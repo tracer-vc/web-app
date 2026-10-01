@@ -33,6 +33,9 @@ export async function updateSession(request: NextRequest) {
 
   // Optimistic check only; pages re-check the session via lib/auth.ts.
   if (!data?.claims && !isPublicPath(request.nextUrl.pathname)) {
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return Response.json({ error: "Not signed in." }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";

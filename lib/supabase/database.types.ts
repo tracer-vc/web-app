@@ -17,6 +17,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      analyst_actions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          fund_id: string
+          id: string
+          target_id: string | null
+          target_table: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          fund_id?: string
+          id?: string
+          target_id?: string | null
+          target_table: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          fund_id?: string
+          id?: string
+          target_id?: string | null
+          target_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyst_actions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analyst_actions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_prompts: {
         Row: {
           config_id: string
@@ -412,10 +463,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_config_draft: { Args: never; Returns: string }
       create_fund_with_admin: {
         Args: { p_display_name: string; p_fund_name: string; p_user_id: string }
         Returns: string
       }
+      discard_config_draft: { Args: never; Returns: undefined }
+      publish_config: { Args: never; Returns: number }
+      save_config_draft: { Args: { p_config: Json }; Returns: undefined }
     }
     Enums: {
       config_status: "draft" | "published"
