@@ -63,6 +63,8 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 
 32. **Draft → publish** (agreed 2026-10-01; reconciles `data_flow.html` with `ui_design.html` and `plan.md`). "Edit" copies the active version into one draft per fund (`create_config_draft()`). `PUT /api/settings/config` saves the editor's full state into that draft (`save_config_draft()`, one transaction, row ids kept stable). "Publish as vN" (`POST /api/settings/config/publish`, `publish_config()`) makes the draft the active published version and the previous one inactive. This keeps the spec's rule: a published version is never edited, so evaluations pinned to it are unaffected. Draft created, discarded and published are logged in `analyst_actions`.
 
+33. **R3 fallback** (agreed 2026-10-01; completes decision 12). Pass and Watch each have one or more conditions, combined with "any" or "all". Proceed has no conditions: it applies when neither Pass nor Watch matches, so the classification is always defined. Conditions available: any dimension below its disqualifying threshold; lowest or average dimension score (0–5); number of open decision-critical uncertainties; number of open conflicts.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

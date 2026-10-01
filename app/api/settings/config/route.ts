@@ -1,5 +1,5 @@
 import { adminContext, dbErrorResponse, jsonError, memberContext } from "@/lib/api";
-import { DraftSchema, loadConfig } from "@/lib/config";
+import { DraftSchema, describeIssuePath, loadConfig } from "@/lib/config";
 
 // Active config with all child lists; admins also get the open draft, if any.
 export async function GET() {
@@ -21,7 +21,7 @@ export async function PUT(request: Request) {
   const parsed = DraftSchema.safeParse(body);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return jsonError(400, `${issue.path.join(".") || "body"}: ${issue.message}`, {
+    return jsonError(400, `${describeIssuePath(issue.path)}: ${issue.message}`, {
       issues: parsed.error.issues,
     });
   }
