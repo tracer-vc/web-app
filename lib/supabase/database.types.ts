@@ -151,6 +151,102 @@ export type Database = {
           },
         ]
       }
+      conflicts: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          kind: Database["public"]["Enums"]["conflict_kind"]
+          parent_conflict_id: string | null
+          passage_a: string
+          passage_b: string
+          rationale: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string | null
+          side_a_id: string
+          side_b_id: string
+          status: Database["public"]["Enums"]["conflict_status"]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["conflict_kind"]
+          parent_conflict_id?: string | null
+          passage_a: string
+          passage_b: string
+          rationale?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+          side_a_id: string
+          side_b_id: string
+          status?: Database["public"]["Enums"]["conflict_status"]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["conflict_kind"]
+          parent_conflict_id?: string | null
+          passage_a?: string
+          passage_b?: string
+          rationale?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+          side_a_id?: string
+          side_b_id?: string
+          status?: Database["public"]["Enums"]["conflict_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conflicts_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflicts_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflicts_parent_conflict_id_fkey"
+            columns: ["parent_conflict_id"]
+            isOneToOne: false
+            referencedRelation: "conflicts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflicts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflicts_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       counter_case_prompts: {
         Row: {
           config_id: string
@@ -1142,6 +1238,7 @@ export type Database = {
       }
       record_sources: {
         Args: {
+          p_conflicts: Json
           p_evaluation_id: string
           p_notes: string[]
           p_run_id: string
@@ -1155,6 +1252,8 @@ export type Database = {
     Enums: {
       answer_origin: "analyst" | "ai"
       config_status: "draft" | "published"
+      conflict_kind: "source" | "claim"
+      conflict_status: "open" | "resolved_a" | "resolved_b" | "unresolvable"
       evaluation_status:
         | "screening"
         | "passed"
@@ -1305,6 +1404,8 @@ export const Constants = {
     Enums: {
       answer_origin: ["analyst", "ai"],
       config_status: ["draft", "published"],
+      conflict_kind: ["source", "claim"],
+      conflict_status: ["open", "resolved_a", "resolved_b", "unresolvable"],
       evaluation_status: [
         "screening",
         "passed",

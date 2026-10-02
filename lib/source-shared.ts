@@ -28,8 +28,20 @@ export type RunView = {
   notes: string[];
 };
 
+export type SourceConflictView = {
+  id: string;
+  code: string;
+  sideA: string; // S#
+  sideB: string;
+  description: string;
+  passageA: string;
+  passageB: string;
+  status: Enums<"conflict_status">;
+};
+
 export type SourceTableView = {
   sources: SourceView[];
+  conflicts: SourceConflictView[];
   prompts: { id: string; question: string; required: boolean }[];
   run: RunView | null;
 };

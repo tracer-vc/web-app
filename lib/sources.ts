@@ -8,7 +8,12 @@ type Supabase = Awaited<ReturnType<typeof createClient>>;
 // Source Table, the deal's Collection Prompts and the latest Source Table run
 // (RLS: the caller's fund only).
 export async function loadSourceTable(supabase: Supabase, evaluationId: string, configId: string): Promise<SourceTableView> {
-  const [{ data: sources, error: sErr }, { data: prompts, error: pErr }, { data: runs, error: rErr }] = await Promise.all([
+  const [
+    { data: sources, error: sErr },
+    { data: prompts, error: pErr },
+    { data: runs, error: rErr },
+    { data: conflicts, error: cErr },
+  ] = await Promise.all([
     supabase
       .from("sources")
       .select(
@@ -23,13 +28,20 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
       .eq("step", 2)
       .order("created_at", { ascending: false })
       .limit(1),
+    supabase
+      .from("conflicts")
+      .select("id, code, side_a_id, side_b_id, description, passage_a, passage_b, status")
+      .eq("evaluation_id", evaluationId)
+      .eq("kind", "source"),
   ]);
   if (sErr) throw sErr;
+  if (cErr) throw cErr;
   if (pErr) throw pErr;
   if (rErr) throw rErr;
 
-  const codeNumber = (code: string) => Number(code.slice(1));
+  const codeNumber = (code: string) => Number(code.replace(/^\D+/, ""));
   const run = runs[0];
+  const sourceCode = new Map(sources.map((s) => [s.id, s.code]));
   return {
     sources: [...sources]
       .sort((a, b) => codeNumber(a.code) - codeNumber(b.code))
@@ -46,6 +58,18 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
         accessedAt: s.accessed_at,
         relevanceNote: s.relevance_note,
         promptIds: s.coverage.map((c) => c.prompt_id),
+      })),
+    conflicts: [...conflicts]
+      .sort((a, b) => codeNumber(a.code) - codeNumber(b.code))
+      .map((c) => ({
+        id: c.id,
+        code: c.code,
+        sideA: sourceCode.get(c.side_a_id) ?? "?",
+        sideB: sourceCode.get(c.side_b_id) ?? "?",
+        description: c.description,
+        passageA: c.passage_a,
+        passageB: c.passage_b,
+        status: c.status,
       })),
     prompts,
     run: run ? (toRunView(run) satisfies RunView) : null,

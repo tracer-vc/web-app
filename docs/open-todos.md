@@ -14,7 +14,7 @@ Things that need doing outside the code (accounts, dashboards, keys) or a decisi
 
 ## Keys
 
-- [ ] **Tavily API key** for web search (M8). Add `TAVILY_API_KEY` to `.env.local` and Vercel.
+- [ ] **Tavily API key on Vercel** (web search, M8). Already in `.env.local` (2026-10-02); add `TAVILY_API_KEY` to Vercel when deploying. Free plan: 1,000 credits/month, about 8 per deal with web search.
 
 ## Decisions
 
