@@ -579,6 +579,146 @@ export type Database = {
           },
         ]
       }
+      dimension_assessment_claims: {
+        Row: {
+          assessment_id: string
+          claim_id: string
+          fund_id: string
+        }
+        Insert: {
+          assessment_id: string
+          claim_id: string
+          fund_id: string
+        }
+        Update: {
+          assessment_id?: string
+          claim_id?: string
+          fund_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dimension_assessment_claims_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "dimension_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessment_claims_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessment_claims_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dimension_assessments: {
+        Row: {
+          answers: Json
+          code: string
+          counter_signal: string
+          created_at: string
+          dimension_id: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          override_at: string | null
+          override_by: string | null
+          override_reason: string | null
+          override_score: number | null
+          proposed_score: number
+          run_id: string | null
+          score: number
+          score_capped_by: string | null
+        }
+        Insert: {
+          answers: Json
+          code: string
+          counter_signal: string
+          created_at?: string
+          dimension_id: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          override_score?: number | null
+          proposed_score: number
+          run_id?: string | null
+          score: number
+          score_capped_by?: string | null
+        }
+        Update: {
+          answers?: Json
+          code?: string
+          counter_signal?: string
+          created_at?: string
+          dimension_id?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          override_at?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          override_score?: number | null
+          proposed_score?: number
+          run_id?: string | null
+          score?: number
+          score_capped_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dimension_assessments_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "dimensions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessments_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessments_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessments_override_by_fkey"
+            columns: ["override_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessments_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dimension_assessments_score_capped_by_fkey"
+            columns: ["score_capped_by"]
+            isOneToOne: false
+            referencedRelation: "uncertainties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dimension_prompts: {
         Row: {
           created_at: string
@@ -1741,6 +1881,16 @@ export type Database = {
           p_notes: string[]
           p_run_id: string
           p_uncertainties: Json
+          p_warnings: string[]
+        }
+        Returns: number
+      }
+      record_dimension_assessments: {
+        Args: {
+          p_assessments: Json
+          p_evaluation_id: string
+          p_notes: string[]
+          p_run_id: string
           p_warnings: string[]
         }
         Returns: number

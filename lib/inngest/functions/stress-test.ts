@@ -1,19 +1,18 @@
 import "server-only";
 
 import { callLlm } from "@/lib/llm/call";
-import type { PromptClaim } from "@/lib/llm/prompts/claim-table";
 import { P10 } from "@/lib/llm/prompts/p10-falsifiers";
 import { P8 } from "@/lib/llm/prompts/p8-counter-case";
 import { P9 } from "@/lib/llm/prompts/p9-uncertainties";
 import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COUNTER_CASE_RUN, inngest, type CounterCaseRunData } from "../client";
+import { loadClaimContext } from "../claim-context";
 import { describe, isFatal } from "../errors";
 
 // Decision 17: P9 fills the Uncertainty List up to this many items.
 const MAX_UNCERTAINTIES = 10;
 
-const codeNumber = (code: string) => Number(code.replace(/^\D+/, ""));
 
 // Step 4 (M11): P8 counter-case → P9 Uncertainty List → P10 falsifiers, then
 // one transaction (record_counter_case). Every cited C#/U# is checked against
@@ -45,18 +44,12 @@ export const stressTest = inngest.createFunction(
         .eq("id", evaluationId)
         .single();
       if (error) throw error;
-      const [counterPrompts, prompts, claims, conflicts, uncertainties] = await Promise.all([
+      const [counterPrompts, prompts, context] = await Promise.all([
         admin.from("counter_case_prompts").select("id, prompt").eq("config_id", ev.config_id).order("position"),
         admin.from("collection_prompts").select("question").eq("config_id", ev.config_id).order("position"),
-        admin
-          .from("claims")
-          .select("id, code, type, confidence, statement, links:claim_sources(marked_wrong_at, source:sources(code))")
-          .eq("evaluation_id", evaluationId),
-        admin.from("conflicts").select("code, kind, side_a_id, side_b_id, description, status").eq("evaluation_id", evaluationId),
-        admin.from("uncertainties").select("code, question, decision_critical").eq("evaluation_id", evaluationId),
+        loadClaimContext(admin, evaluationId),
       ]);
-      for (const r of [counterPrompts, prompts, claims, conflicts, uncertainties]) if (r.error) throw r.error;
-      const open = conflicts.data!.filter((c) => c.status === "open");
+      for (const r of [counterPrompts, prompts]) if (r.error) throw r.error;
       return {
         fundId: ev.fund_id,
         model: ev.fund.llm_model,
@@ -64,26 +57,7 @@ export const stressTest = inngest.createFunction(
         thesis: ev.memo?.preliminary_thesis ?? "",
         counterPrompts: counterPrompts.data!.map((p, i) => ({ id: p.id, ref: `K${i + 1}`, prompt: p.prompt })),
         prompts: prompts.data!.map((p, i) => ({ ref: `P${i + 1}`, question: p.question })),
-        claims: [...claims.data!]
-          .sort((a, b) => codeNumber(a.code) - codeNumber(b.code))
-          .map(
-            (c): PromptClaim => ({
-              code: c.code,
-              type: c.type,
-              confidence: c.confidence,
-              statement: c.statement,
-              sources: [...new Set(c.links.filter((l) => !l.marked_wrong_at).map((l) => l.source.code))].sort(
-                (a, b) => codeNumber(a) - codeNumber(b),
-              ),
-              openConflicts: open
-                .filter((x) => x.kind === "claim" && (x.side_a_id === c.id || x.side_b_id === c.id))
-                .map((x) => x.code),
-            }),
-          ),
-        openConflicts: open.map((c) => ({ code: c.code, description: c.description })),
-        uncertainties: [...uncertainties.data!]
-          .sort((a, b) => codeNumber(a.code) - codeNumber(b.code))
-          .map((u) => ({ code: u.code, question: u.question, decisionCritical: u.decision_critical })),
+        ...context,
       };
     });
     const llm = { fundId: d.fundId, model: d.model, ...ids };

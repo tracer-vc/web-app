@@ -17,3 +17,6 @@ export type ClaimsExtractData = { evaluationId: string; runId: string };
 
 export const COUNTER_CASE_RUN = "tracer/counter-case.run";
 export type CounterCaseRunData = { evaluationId: string; runId: string };
+
+export const DIMENSIONS_SCORE = "tracer/dimensions.score";
+export type DimensionsScoreData = { evaluationId: string; runId: string };

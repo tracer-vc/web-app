@@ -13,12 +13,14 @@ import {
 import { loadClaimTable } from "@/lib/claims";
 import { loadConflictRegister } from "@/lib/conflicts";
 import { loadCounterCase } from "@/lib/counter-case";
+import { loadDimensions } from "@/lib/dimensions";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimsTab } from "./claims-tab";
 import { CounterCaseTab } from "./counter-case-tab";
+import { DimensionsTab } from "./dimensions-tab";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
@@ -129,6 +131,16 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           view={await loadCounterCase(supabase, deal.id, deal.configId)}
           claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
           conflicts={await loadConflictRegister(supabase, deal.id)}
+          canScore={deal.status === "stress_testing"}
+          scoringStarted={deal.currentStep >= 5}
+        />
+      ) : tab === "dimensions" ? (
+        <DimensionsTab
+          evaluationId={deal.id}
+          canRun={deal.status === "scoring"}
+          view={await loadDimensions(supabase, deal.id, deal.configId)}
+          counterCase={await loadCounterCase(supabase, deal.id, deal.configId)}
+          claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
         />
       ) : (
         <div className="card text-[13px]">

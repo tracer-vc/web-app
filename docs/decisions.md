@@ -111,6 +111,15 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - **Re-runs:** a second run is rejected until re-runs arrive (M14).
     - **Conflicts:** they can also be resolved from the Counter-Case tab (data_flow.html).
 
+## K. Dimensions
+
+41. **Step 5 details** (agreed 2026-10-02; fills in decisions 14–16 and data_flow.html P11 for M12).
+    - **One assessment per dimension:** P11 runs once per dimension of the evaluation's pinned config, in parallel. Every dimension must be assessed; if one fails after its retries, the run fails and can be retried.
+    - **Answers:** each concrete prompt gets one answer, citing C# where the claims support it. An answer may say the claims don't address the prompt and then cites nothing. The score's justification cites claims within the config's claims-per-score range (default 2–5). This is checked in P11 validation and again at commit by a deferred trigger.
+    - **Score cap (decision 15)** is applied in the database by `record_dimension_assessments`. If a required Collection Prompt of the dimension has an open prompt-derived U#, the score is capped at the config's cap (default 2) and `score_capped_by` names that U#. The model's `proposed_score` is kept, so the view can say "capped by U# (proposed 4)". A proposal at or below the cap is not marked as capped.
+    - **Override (decision 14):** `override_score` and an optional reason sit beside the model score, which never changes. The database stamps who and when and logs every override and every clearing. The score that counts is the override if one exists, otherwise the (capped) score. An override may exceed the cap: it is the analyst's logged judgement.
+    - **Assessments are fixed once written:** answers, counter-signal and scores cannot be edited; a new run belongs to re-runs (M14).
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

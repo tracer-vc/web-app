@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { ClaimTableView } from "@/lib/claim-shared";
@@ -18,12 +19,16 @@ export function CounterCaseTab({
   view,
   claimTable,
   conflicts,
+  canScore,
+  scoringStarted,
 }: {
   evaluationId: string;
   canRun: boolean;
   view: CounterCaseView;
   claimTable: ClaimTableView;
   conflicts: ConflictView[];
+  canScore: boolean;
+  scoringStarted: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(view.run);
@@ -44,6 +49,20 @@ export function CounterCaseTab({
     }, 2000);
     return () => clearInterval(timer);
   }, [evaluationId, run, router]);
+
+  // Step 5 starts from here; the Dimensions tab shows its progress.
+  function score() {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/evaluations/${evaluationId}/dimensions`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "Couldn't start dimension scoring.");
+        return;
+      }
+      router.push(`/deals/${evaluationId}?tab=dimensions`);
+    });
+  }
 
   function start() {
     setError(null);
@@ -132,7 +151,7 @@ export function CounterCaseTab({
               ))}
             </div>
           )}
-          {error && (
+          {error && !done && (
             <p role="alert" className="text-danger text-[13px]">
               {error}
             </p>
@@ -250,6 +269,29 @@ export function CounterCaseTab({
 
       {done && <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} />}
 
+      {done && !active && (
+        <section className="card gap-2" data-testid="next-step">
+          {scoringStarted ? (
+            <Link href={`/deals/${evaluationId}?tab=dimensions`}>Dimensions →</Link>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="btn btn-primary" onClick={score} disabled={!canScore || pending}>
+                Score dimensions
+              </button>
+              <span className="text-muted text-[13px]">
+                Next step: each fund-defined dimension answered from the Claim Table, its strongest counter-signal named,
+                and scored 0–5 against the anchors.
+              </span>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="text-danger text-[13px]">
+              {error}
+            </p>
+          )}
+        </section>
+      )}
+
       {trace && (
         <TraceDrawer
           key={trace}
@@ -265,7 +307,7 @@ export function CounterCaseTab({
   );
 }
 
-function TraceDrawer({
+export function TraceDrawer({
   code,
   evaluationId,
   view,
