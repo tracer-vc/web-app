@@ -12,11 +12,13 @@ import {
 } from "@/lib/evaluation-shared";
 import { loadClaimTable } from "@/lib/claims";
 import { loadConflictRegister } from "@/lib/conflicts";
+import { loadCounterCase } from "@/lib/counter-case";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimsTab } from "./claims-tab";
+import { CounterCaseTab } from "./counter-case-tab";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
@@ -116,6 +118,16 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           evaluationId={deal.id}
           canExtract={deal.status === "collecting" || deal.status === "extracting"}
           table={await loadClaimTable(supabase, deal.id, deal.configId)}
+          conflicts={await loadConflictRegister(supabase, deal.id)}
+          canStressTest={deal.status === "extracting"}
+          stressTestStarted={deal.currentStep >= 4}
+        />
+      ) : tab === "counter-case" ? (
+        <CounterCaseTab
+          evaluationId={deal.id}
+          canRun={deal.status === "stress_testing"}
+          view={await loadCounterCase(supabase, deal.id, deal.configId)}
+          claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
           conflicts={await loadConflictRegister(supabase, deal.id)}
         />
       ) : (

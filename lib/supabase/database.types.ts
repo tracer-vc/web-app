@@ -432,6 +432,111 @@ export type Database = {
           },
         ]
       }
+      counter_argument_claims: {
+        Row: {
+          argument_id: string
+          claim_id: string
+          fund_id: string
+        }
+        Insert: {
+          argument_id: string
+          claim_id: string
+          fund_id: string
+        }
+        Update: {
+          argument_id?: string
+          claim_id?: string
+          fund_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counter_argument_claims_argument_id_fkey"
+            columns: ["argument_id"]
+            isOneToOne: false
+            referencedRelation: "counter_arguments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counter_argument_claims_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counter_argument_claims_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      counter_arguments: {
+        Row: {
+          argument: string
+          counter_case_prompt_id: string | null
+          created_at: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          mechanism: string
+          rank: number
+          run_id: string | null
+        }
+        Insert: {
+          argument: string
+          counter_case_prompt_id?: string | null
+          created_at?: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          mechanism: string
+          rank: number
+          run_id?: string | null
+        }
+        Update: {
+          argument?: string
+          counter_case_prompt_id?: string | null
+          created_at?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          mechanism?: string
+          rank?: number
+          run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counter_arguments_counter_case_prompt_id_fkey"
+            columns: ["counter_case_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "counter_case_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counter_arguments_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counter_arguments_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counter_arguments_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       counter_case_prompts: {
         Row: {
           config_id: string
@@ -747,6 +852,141 @@ export type Database = {
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      falsifier_claims: {
+        Row: {
+          claim_id: string
+          falsifier_id: string
+          fund_id: string
+        }
+        Insert: {
+          claim_id: string
+          falsifier_id: string
+          fund_id: string
+        }
+        Update: {
+          claim_id?: string
+          falsifier_id?: string
+          fund_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "falsifier_claims_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifier_claims_falsifier_id_fkey"
+            columns: ["falsifier_id"]
+            isOneToOne: false
+            referencedRelation: "falsifiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifier_claims_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      falsifier_uncertainties: {
+        Row: {
+          falsifier_id: string
+          fund_id: string
+          uncertainty_id: string
+        }
+        Insert: {
+          falsifier_id: string
+          fund_id: string
+          uncertainty_id: string
+        }
+        Update: {
+          falsifier_id?: string
+          fund_id?: string
+          uncertainty_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "falsifier_uncertainties_falsifier_id_fkey"
+            columns: ["falsifier_id"]
+            isOneToOne: false
+            referencedRelation: "falsifiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifier_uncertainties_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifier_uncertainties_uncertainty_id_fkey"
+            columns: ["uncertainty_id"]
+            isOneToOne: false
+            referencedRelation: "uncertainties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      falsifiers: {
+        Row: {
+          code: string
+          created_at: string
+          criterion: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          outcome_check: string
+          run_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          criterion: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          outcome_check: string
+          run_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          criterion?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          outcome_check?: string
+          run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "falsifiers_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifiers_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "falsifiers_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -1486,6 +1726,18 @@ export type Database = {
           p_claims: Json
           p_conflicts: Json
           p_evaluation_id: string
+          p_notes: string[]
+          p_run_id: string
+          p_uncertainties: Json
+          p_warnings: string[]
+        }
+        Returns: number
+      }
+      record_counter_case: {
+        Args: {
+          p_arguments: Json
+          p_evaluation_id: string
+          p_falsifiers: Json
           p_notes: string[]
           p_run_id: string
           p_uncertainties: Json

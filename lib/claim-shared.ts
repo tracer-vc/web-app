@@ -41,6 +41,7 @@ export type ClaimView = {
   links: ClaimLinkView[];
   promptIds: string[];
   conflicts: ClaimConflictView[];
+  citedBy: string[]; // "Counter-argument 1", "F2" (statements from step 6 on)
 };
 
 export type UncertaintyView = {

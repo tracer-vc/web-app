@@ -99,6 +99,18 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - "Mark link as wrong" sets `marked_wrong_at`; the database stamps who and when and logs it. The link is kept and shown struck through, but no longer counts for R1. Unmarking reverses it, also logged. The share of marked links is shown as the false-link rate. A Fact whose links are all marked wrong stays in the table at the floor level ("Low: no source").
     - `private.recompute_confidence(claim_id)` is R1 in SQL, with the same result and rule text as `lib/rules/confidence.ts`; both are tested against `lib/rules/confidence-cases.json` (`npm test`). Triggers run it after a claim conflict's status changes, a link is marked or unmarked, and a source's tier or party changes.
 
+## J. Counter-case
+
+40. **Step 4 details** (agreed 2026-10-02; fills in data_flow.html P8–P10 and decisions 11, 17, 18 for M11).
+    - **Prompt link:** `counter_arguments.counter_case_prompt_id` (nullable) records which Counter-Case Prompt an argument answers, so the view can show prompt → argument → mechanism → C# as ui_design.html does. P8 also answers every prompt; those answers are kept only in `llm_calls`.
+    - **Ranking:** P8 returns exactly three arguments, strongest first; the order is the rank (decision 18).
+    - **Citations:** every argument and every falsifier cites at least one C#. This is checked at commit by deferred triggers and by prompt validation.
+    - **Uncertainty List:** P9 sees the recorded U# and returns only new questions, at most 10 minus the number already recorded, with no padding (decision 17). If 10 or more are recorded, P9 is skipped. New U# continue after the step-3 ones and show the origin "uncertainty analysis".
+    - **Falsifiers:** P10 may cite the new U# by the codes they will receive. The database resolves every cited C#/U# within the evaluation in the same transaction, so an unknown ID fails the write. A falsifier needs a number or date in its criterion or outcome check.
+    - **Failures:** P8 and P10 are required; if either fails after its retries, the run fails and can be retried. A failed P9 adds nothing and leaves a run warning.
+    - **Re-runs:** a second run is rejected until re-runs arrive (M14).
+    - **Conflicts:** they can also be resolved from the Counter-Case tab (data_flow.html).
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

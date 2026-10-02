@@ -16,7 +16,7 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
     supabase
       .from("claims")
       .select(
-        "id, code, statement, type, confidence, confidence_basis, links:claim_sources(id, source_id, excerpt, excerpt_start, excerpt_end, marked_wrong_at, source:sources(code, title, tier, party)), coverage:claim_prompt_coverage(prompt_id)",
+        "id, code, statement, type, confidence, confidence_basis, links:claim_sources(id, source_id, excerpt, excerpt_start, excerpt_end, marked_wrong_at, source:sources(code, title, tier, party)), coverage:claim_prompt_coverage(prompt_id), arguments:counter_argument_claims(argument:counter_arguments(rank)), falsifiers:falsifier_claims(falsifier:falsifiers(code))",
       )
       .eq("evaluation_id", evaluationId),
     supabase
@@ -68,6 +68,10 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
             markedWrong: l.marked_wrong_at !== null,
           })),
         promptIds: c.coverage.map((p) => p.prompt_id),
+        citedBy: [
+          ...c.arguments.map((a) => a.argument.rank).sort().map((r) => `Counter-argument ${r}`),
+          ...c.falsifiers.map((f) => f.falsifier.code).sort((a, b) => codeNumber(a) - codeNumber(b)),
+        ],
         conflicts: claimConflicts
           .filter((x) => x.side_a_id === c.id || x.side_b_id === c.id)
           .map((x) => ({

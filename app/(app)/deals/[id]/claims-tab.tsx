@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
@@ -26,11 +27,15 @@ export function ClaimsTab({
   canExtract,
   table,
   conflicts,
+  canStressTest,
+  stressTestStarted,
 }: {
   evaluationId: string;
   canExtract: boolean;
   table: ClaimTableView;
   conflicts: ConflictView[];
+  canStressTest: boolean;
+  stressTestStarted: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(table.run);
@@ -39,7 +44,9 @@ export function ClaimsTab({
   const [openId, setOpenId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const active = isRunActive(run);
-  const { claims, uncertainties, prompts } = table;
+  const { claims, prompts } = table;
+  // Step 3 writes the prompt-derived U#; the full list is on the Counter-Case tab.
+  const uncertainties = table.uncertainties.filter((u) => u.fromPrompt !== null);
   const open = claims.find((c) => c.id === openId) ?? null;
 
   useEffect(() => {
@@ -53,6 +60,20 @@ export function ClaimsTab({
     }, 2000);
     return () => clearInterval(timer);
   }, [evaluationId, run, router]);
+
+  // Step 4 starts from here; the Counter-Case tab shows its progress.
+  function stressTest() {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/evaluations/${evaluationId}/counter-case`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "Couldn't start the counter-case.");
+        return;
+      }
+      router.push(`/deals/${evaluationId}?tab=counter-case`);
+    });
+  }
 
   function extract() {
     setError(null);
@@ -126,7 +147,7 @@ export function ClaimsTab({
               ))}
             </div>
           )}
-          {error && (
+          {error && claims.length === 0 && (
             <p role="alert" className="text-danger text-[13px]">
               {error}
             </p>
@@ -264,6 +285,29 @@ export function ClaimsTab({
 
       <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} />
 
+      {claims.length > 0 && !active && (
+        <section className="card gap-2" data-testid="next-step">
+          {stressTestStarted ? (
+            <Link href={`/deals/${evaluationId}?tab=counter-case`}>Counter-Case →</Link>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="btn btn-primary" onClick={stressTest} disabled={!canStressTest || pending}>
+                Stress-test thesis
+              </button>
+              <span className="text-muted text-[13px]">
+                Next step: the three strongest arguments against, the full Uncertainty List and falsifiers, all citing
+                this Claim Table. Review links and conflicts first.
+              </span>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="text-danger text-[13px]">
+              {error}
+            </p>
+          )}
+        </section>
+      )}
+
       {open && (
         <ClaimDrawer
           key={open.id}
@@ -278,7 +322,7 @@ export function ClaimsTab({
   );
 }
 
-function ClaimDrawer({
+export function ClaimDrawer({
   evaluationId,
   claim,
   prompts,
@@ -381,7 +425,17 @@ function ClaimDrawer({
       </div>
       <div className="text-[13px]">
         <div className="text-muted mb-1 text-xs">Cited by</div>
-        <span className="text-muted">Not cited yet: outputs cite claims from step 5 on.</span>
+        {claim.citedBy.length ? (
+          <div className="flex flex-wrap gap-1.5" data-testid="cited-by">
+            {claim.citedBy.map((c) => (
+              <span key={c} className="tag tag-neutral">
+                {c}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-muted">Not cited yet.</span>
+        )}
       </div>
 
       {shownLink && <SourceText key={shownLink.id} evaluationId={evaluationId} link={shownLink} />}

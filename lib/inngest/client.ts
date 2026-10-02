@@ -14,3 +14,6 @@ export type SourcesCollectData = { evaluationId: string; runId: string };
 
 export const CLAIMS_EXTRACT = "tracer/claims.extract";
 export type ClaimsExtractData = { evaluationId: string; runId: string };
+
+export const COUNTER_CASE_RUN = "tracer/counter-case.run";
+export type CounterCaseRunData = { evaluationId: string; runId: string };
