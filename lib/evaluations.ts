@@ -37,7 +37,7 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
   const { data: e, error } = await supabase
     .from("evaluations")
     .select(
-      `id, fund_id, status, current_step, updated_at, config_id,
+      `id, fund_id, status, current_step, uploads_only, updated_at, config_id,
        company:companies(name, stage, sector, website),
        config:framework_configs(version),
        evaluator:profiles(display_name),
@@ -66,6 +66,7 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
     fundId: e.fund_id,
     status: e.status,
     currentStep: e.current_step,
+    uploadsOnly: e.uploads_only,
     updatedAt: e.updated_at,
     company: e.company,
     configVersion: e.config.version,

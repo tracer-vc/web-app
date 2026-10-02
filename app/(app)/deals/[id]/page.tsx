@@ -12,6 +12,7 @@ import {
 } from "@/lib/evaluation-shared";
 import { loadEvaluation } from "@/lib/evaluations";
 import { createClient } from "@/lib/supabase/server";
+import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
 export const metadata: Metadata = {
@@ -100,6 +101,14 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           answers={deal.answers}
           documents={deal.documents}
           memo={deal.memo}
+          editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
+        />
+      ) : tab === "evidence" ? (
+        <EvidenceTab
+          evaluationId={deal.id}
+          fundId={deal.fundId}
+          documents={deal.documents}
+          uploadsOnly={deal.uploadsOnly}
           editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
         />
       ) : (

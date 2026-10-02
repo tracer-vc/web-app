@@ -81,6 +81,7 @@ export type EvaluationView = {
   fundId: string;
   status: EvaluationStatus;
   currentStep: number;
+  uploadsOnly: boolean;
   updatedAt: string;
   company: { name: string; stage: string; sector: string; website: string };
   configVersion: number;
