@@ -17,6 +17,10 @@ export type LlmErrorKind = "missing_key" | "auth" | "rate_limit" | "model" | "in
 
 // An LLM failure with a message the analyst can act on.
 export class LlmError extends Error {
+  // For "invalid_output": the last schema-valid output that failed the
+  // prompt's rule checks, so a caller can salvage the valid parts (decision 37).
+  lastOutput?: unknown;
+
   constructor(
     readonly kind: LlmErrorKind,
     readonly userMessage: string,

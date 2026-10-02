@@ -68,6 +68,191 @@ export type Database = {
           },
         ]
       }
+      claim_prompt_coverage: {
+        Row: {
+          claim_id: string
+          created_at: string
+          fund_id: string
+          prompt_id: string
+        }
+        Insert: {
+          claim_id: string
+          created_at?: string
+          fund_id: string
+          prompt_id: string
+        }
+        Update: {
+          claim_id?: string
+          created_at?: string
+          fund_id?: string
+          prompt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_prompt_coverage_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_prompt_coverage_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_prompt_coverage_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "collection_prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_sources: {
+        Row: {
+          claim_id: string
+          created_at: string
+          excerpt: string
+          excerpt_end: number
+          excerpt_start: number
+          fund_id: string
+          id: string
+          marked_wrong_at: string | null
+          marked_wrong_by: string | null
+          source_id: string
+        }
+        Insert: {
+          claim_id: string
+          created_at?: string
+          excerpt: string
+          excerpt_end: number
+          excerpt_start: number
+          fund_id: string
+          id?: string
+          marked_wrong_at?: string | null
+          marked_wrong_by?: string | null
+          source_id: string
+        }
+        Update: {
+          claim_id?: string
+          created_at?: string
+          excerpt?: string
+          excerpt_end?: number
+          excerpt_start?: number
+          fund_id?: string
+          id?: string
+          marked_wrong_at?: string | null
+          marked_wrong_by?: string | null
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_sources_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_sources_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_sources_marked_wrong_by_fkey"
+            columns: ["marked_wrong_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_sources_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claims: {
+        Row: {
+          code: string
+          confidence: Database["public"]["Enums"]["claim_confidence"] | null
+          confidence_basis: Json | null
+          created_at: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          merged_into: string | null
+          notes: string | null
+          run_id: string | null
+          statement: string
+          type: Database["public"]["Enums"]["claim_type"]
+        }
+        Insert: {
+          code: string
+          confidence?: Database["public"]["Enums"]["claim_confidence"] | null
+          confidence_basis?: Json | null
+          created_at?: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          merged_into?: string | null
+          notes?: string | null
+          run_id?: string | null
+          statement: string
+          type: Database["public"]["Enums"]["claim_type"]
+        }
+        Update: {
+          code?: string
+          confidence?: Database["public"]["Enums"]["claim_confidence"] | null
+          confidence_basis?: Json | null
+          created_at?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          merged_into?: string | null
+          notes?: string | null
+          run_id?: string | null
+          statement?: string
+          type?: Database["public"]["Enums"]["claim_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claims_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claims_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claims_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_prompts: {
         Row: {
           config_id: string
@@ -1201,6 +1386,80 @@ export type Database = {
           },
         ]
       }
+      uncertainties: {
+        Row: {
+          code: string
+          created_at: string
+          decision_critical: boolean
+          evaluation_id: string
+          from_prompt_id: string | null
+          fund_id: string
+          id: string
+          min_evidence_to_resolve: string | null
+          question: string
+          run_id: string | null
+          status: Database["public"]["Enums"]["uncertainty_status"]
+          why_unresolved: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          decision_critical: boolean
+          evaluation_id: string
+          from_prompt_id?: string | null
+          fund_id: string
+          id?: string
+          min_evidence_to_resolve?: string | null
+          question: string
+          run_id?: string | null
+          status?: Database["public"]["Enums"]["uncertainty_status"]
+          why_unresolved: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          decision_critical?: boolean
+          evaluation_id?: string
+          from_prompt_id?: string | null
+          fund_id?: string
+          id?: string
+          min_evidence_to_resolve?: string | null
+          question?: string
+          run_id?: string | null
+          status?: Database["public"]["Enums"]["uncertainty_status"]
+          why_unresolved?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uncertainties_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uncertainties_from_prompt_id_fkey"
+            columns: ["from_prompt_id"]
+            isOneToOne: false
+            referencedRelation: "collection_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uncertainties_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uncertainties_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1222,6 +1481,18 @@ export type Database = {
       }
       discard_config_draft: { Args: never; Returns: undefined }
       publish_config: { Args: never; Returns: number }
+      record_claims: {
+        Args: {
+          p_claims: Json
+          p_conflicts: Json
+          p_evaluation_id: string
+          p_notes: string[]
+          p_run_id: string
+          p_uncertainties: Json
+          p_warnings: string[]
+        }
+        Returns: number
+      }
       record_quick_screen: {
         Args: {
           p_answers: Json
@@ -1251,6 +1522,8 @@ export type Database = {
     }
     Enums: {
       answer_origin: "analyst" | "ai"
+      claim_confidence: "high" | "medium" | "low"
+      claim_type: "fact" | "inference" | "speculation"
       config_status: "draft" | "published"
       conflict_kind: "source" | "claim"
       conflict_status: "open" | "resolved_a" | "resolved_b" | "unresolvable"
@@ -1273,6 +1546,7 @@ export type Database = {
         | "failed"
       source_origin: "upload" | "web"
       source_tier: "primary" | "secondary" | "tertiary"
+      uncertainty_status: "open" | "resolved"
       user_role: "analyst" | "admin"
       verdict: "proceed" | "watch" | "pass"
     }
@@ -1403,6 +1677,8 @@ export const Constants = {
   public: {
     Enums: {
       answer_origin: ["analyst", "ai"],
+      claim_confidence: ["high", "medium", "low"],
+      claim_type: ["fact", "inference", "speculation"],
       config_status: ["draft", "published"],
       conflict_kind: ["source", "claim"],
       conflict_status: ["open", "resolved_a", "resolved_b", "unresolvable"],
@@ -1421,6 +1697,7 @@ export const Constants = {
       run_status: ["queued", "running", "done", "done_with_warnings", "failed"],
       source_origin: ["upload", "web"],
       source_tier: ["primary", "secondary", "tertiary"],
+      uncertainty_status: ["open", "resolved"],
       user_role: ["analyst", "admin"],
       verdict: ["proceed", "watch", "pass"],
     },

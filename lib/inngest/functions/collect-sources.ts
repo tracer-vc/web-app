@@ -2,7 +2,6 @@ import "server-only";
 
 import type { TierDefinitions } from "@/lib/config-shared";
 import { callLlm } from "@/lib/llm/call";
-import { LlmError } from "@/lib/llm/client";
 import { fitDocuments } from "@/lib/llm/prompts/p1a-quick-screen-answers";
 import { P2, type P2Output } from "@/lib/llm/prompts/p2-classify-source";
 import { P3 } from "@/lib/llm/prompts/p3-search-queries";
@@ -11,6 +10,7 @@ import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canonicalUrl, searchWeb, WebSearchError, type WebHit } from "@/lib/web-search";
 import { inngest, SOURCES_COLLECT, type SourcesCollectData } from "../client";
+import { describe, isFatal } from "../errors";
 
 // Characters of one document shown to P2, of one web page kept as a source,
 // and of all sources together shown to P4.
@@ -37,13 +37,6 @@ type Ctx = {
   tiers: TierDefinitions;
   prompts: { id: string; ref: string; question: string }[];
 };
-
-// LLM failures that stop the whole run (configuration problems); anything
-// else becomes a warning on the item (decision 25).
-const isFatal = (e: unknown) =>
-  e instanceof LlmError && (e.kind === "auth" || e.kind === "missing_key" || e.kind === "model");
-const describe = (e: unknown) =>
-  e instanceof LlmError ? (e.detail ?? e.userMessage) : e instanceof Error ? e.message : String(e);
 
 async function classify(
   ctx: Ctx,

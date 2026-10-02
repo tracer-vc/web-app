@@ -77,7 +77,9 @@ export function SourceTable({ evaluationId, table }: { evaluationId: string; tab
                 </td>
                 <td className="text-muted py-2 pr-3 text-xs">{fmtDate(s.accessedAt)}</td>
                 <td className="text-muted py-2 pr-3 text-xs">{s.relevanceNote}</td>
-                <td className="text-muted py-2 tabular-nums">—</td>
+                <td className="text-muted py-2 tabular-nums" data-testid="source-claims">
+                  {s.claimCount || "—"}
+                </td>
               </tr>
             ))}
           </tbody>

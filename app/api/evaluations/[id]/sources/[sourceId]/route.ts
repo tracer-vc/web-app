@@ -26,7 +26,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/evaluations
 
 // Decision 23: analysts may correct a source's tier and party. Column-granted;
 // the database logs every change (analyst_actions). Confidence is recomputed
-// from these once claims exist (M9).
+// from these by recompute_confidence (M10).
 export async function PATCH(request: Request, ctx: RouteContext<"/api/evaluations/[id]/sources/[sourceId]">) {
   const member = await memberContext();
   if (member instanceof Response) return member;

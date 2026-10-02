@@ -10,7 +10,15 @@ export const MAX_QUICK_SCREEN_QUESTIONS = 7;
 // R1 confidence rules (decision 9). Fixed mechanism: shown, never edited.
 export type ConfidenceRules = {
   evaluation: "first_match";
-  levels: { level: "high" | "medium" | "low"; description: string }[];
+  // A level matches when the claim's sources come from at least `min_parties`
+  // distinct parties, of which at least `min_parties_in_tiers.min` have a
+  // source in one of the listed tiers. Levels run best to worst.
+  levels: {
+    level: "high" | "medium" | "low";
+    description: string;
+    min_parties?: number;
+    min_parties_in_tiers?: { tiers: Tier[]; min: number };
+  }[];
   open_conflict_downgrade: number;
   independence: string;
 };

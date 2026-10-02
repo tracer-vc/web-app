@@ -17,7 +17,7 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
     supabase
       .from("sources")
       .select(
-        "id, code, origin, title, url, tier, party, published_at, accessed_at, relevance_note, document:documents(filename), coverage:source_prompt_coverage(prompt_id)",
+        "id, code, origin, title, url, tier, party, published_at, accessed_at, relevance_note, document:documents(filename), coverage:source_prompt_coverage(prompt_id), claim_links:claim_sources(claim_id)",
       )
       .eq("evaluation_id", evaluationId),
     supabase.from("collection_prompts").select("id, question, required").eq("config_id", configId).order("position"),
@@ -58,6 +58,7 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
         accessedAt: s.accessed_at,
         relevanceNote: s.relevance_note,
         promptIds: s.coverage.map((c) => c.prompt_id),
+        claimCount: new Set(s.claim_links.map((l) => l.claim_id)).size,
       })),
     conflicts: [...conflicts]
       .sort((a, b) => codeNumber(a.code) - codeNumber(b.code))
@@ -76,7 +77,7 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
   };
 }
 
-function toRunView(r: {
+export function toRunView(r: {
   id: string;
   status: RunView["status"];
   progress: number;

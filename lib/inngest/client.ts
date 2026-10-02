@@ -11,3 +11,6 @@ export const inngest = new Inngest({
 
 export const SOURCES_COLLECT = "tracer/sources.collect";
 export type SourcesCollectData = { evaluationId: string; runId: string };
+
+export const CLAIMS_EXTRACT = "tracer/claims.extract";
+export type ClaimsExtractData = { evaluationId: string; runId: string };

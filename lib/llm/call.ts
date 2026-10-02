@@ -37,6 +37,7 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
   const userMessage = prompt.user(input);
   const format = zodTextFormat(prompt.schema, prompt.name);
   let lastError: LlmError | null = null;
+  let lastRejected: z.infer<Schema> | undefined;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const started = Date.now();
@@ -72,6 +73,7 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
         } else {
           validationErrors = prompt.validate?.(parsed.data, input) ?? [];
           if (validationErrors.length === 0) output = parsed.data;
+          else lastRejected = parsed.data;
         }
       }
       if (validationErrors.length > 0) {
@@ -118,7 +120,9 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
     if (error && !isRetryable(error)) throw error;
   }
 
-  throw lastError ?? new LlmError("invalid_output", "The model's answer was unusable. Try again.");
+  const failure = lastError ?? new LlmError("invalid_output", "The model's answer was unusable. Try again.");
+  if (failure.kind === "invalid_output") failure.lastOutput = lastRejected;
+  throw failure;
 }
 
 type CreateParams = Parameters<OpenAI["responses"]["create"]>[0];

@@ -174,6 +174,23 @@ a:hover {
   color: var(--color-neutral-100);
 }
 
+.tag-accent {
+  background: var(--color-accent-800);
+  color: var(--color-accent-300);
+}
+
+.tag-outline {
+  box-shadow: inset 0 0 0 1px var(--color-neutral-600);
+  color: var(--color-neutral-300);
+}
+
+/* A claim's excerpt highlighted in its source text. */
+mark.excerpt {
+  background: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  color: var(--color-text);
+  border-radius: 2px;
+}
+
 .card {
   display: flex;
   flex-direction: column;

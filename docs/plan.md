@@ -263,7 +263,7 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 3. The "12 paying customers" and "8 customers" claims both exist and share a CR# of kind `claim` linked to the source conflict from M8.
 4. The planted gap appears as a U# with "from prompt N".
 5. Check a confidence label by hand against decision 9 for three claims.
-6. Force an R4 failure (mock P5 output with a paraphrased excerpt in a unit test) → the claim is rejected after retries and logged.
+6. Force an R4 failure (mock P5 output with a paraphrased excerpt in a unit test) → the claim is rejected after retries and logged. Unit tests run with `npm test` (`lib/excerpt.test.mjs`, `lib/rules/*.test.mjs`); what survives a final failure is decision 37.
 7. SQL: insert a `fact` claim without `claim_sources` → the commit fails; add a source link in the same transaction → succeeds.
 
 ---

@@ -79,6 +79,18 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 
 36. **Web search settings** (agreed 2026-10-02; fills in decisions 5 and 6 for step 2b). P3 proposes up to 8 queries; each runs as a Tavily *basic* search (1 credit) with up to 4 results, the page text returned by Tavily itself (`include_raw_content`, no extra credit) instead of a separate fetch + readability step. Results are de-duplicated by URL and capped at 12 web sources per deal (pages kept up to 30,000 characters). LinkedIn, X, Facebook and Instagram are excluded (decision 6). A result without page text (paywall, blocked) is skipped with a run warning; a missing or rejected Tavily key or exhausted credits skip the web part with a warning, and the uploads still produce a Source Table. P4 then checks all sources (uploads and web) for material factual disagreements; its quoted passages must occur verbatim in the sources. About 8 Tavily credits per deal; uploads-only deals use none.
 
+## H. Claim extraction
+
+37. **R4 failures and claim assembly** (agreed 2026-10-02; fills in decisions 24 and 25 for step 3).
+    - P5 runs once per source chunk: chunks of up to 15,000 characters, at most 6 per source, with a run warning if a source is longer. P5 returns at most 6 claims per chunk. It has no minimum, so a thin chunk isn't padded.
+    - R4 is part of P5's validation: every Fact/Inference excerpt must be found in the source's *full* text (normalised match: case, typographic quotes and dashes, whitespace). A miss triggers the normal retries.
+    - If the last attempt still fails, the claims that pass R4 and the other checks are kept. Each rejected claim is logged as a run warning with its statement and excerpt, and the run ends `done_with_warnings`. One bad excerpt therefore doesn't discard a whole source.
+    - The stored excerpt is the original source text at the matched span, never the model's copy. `excerpt_start`/`excerpt_end` are code-point offsets (the unit of Postgres `length()`), so the database can bound-check them and the UI can highlight the exact span.
+    - P6 merges only same-type claims that state the same proposition, so every merged excerpt supports the kept statement in full. A general claim is not merged into a more specific one, because the specific claim would inherit evidence that doesn't support it and could gain confidence it hasn't earned. The kept claim gets the union of evidence links and prompts; dropped candidates are not stored. Contradictions are only between Fact/Inference claims, and never on a dropped side.
+    - A claim conflict gets `parent_conflict_id` when its two claims cite the two sides of a source conflict from step 2b. Both sides of a new claim conflict are open, so R1 downgrades both claims one level.
+
+38. **P7 output** (agreed 2026-10-02; extends data_flow.html P7 with the fields `uncertainties` stores). Besides `{question, why_unresolved}`, P7 returns `decision_critical` (could resolving it change Proceed / Watch / Pass) and `min_evidence_to_resolve`. R2 decides in code which required prompts are uncovered; only a Fact or Inference covers a prompt. If P7 fails, the U# is still written, with the prompt text as the question and a run warning.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

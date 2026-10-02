@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { DocumentView } from "@/lib/evaluation-shared";
@@ -15,6 +16,7 @@ export function EvidenceTab({
   documents,
   uploadsOnly,
   canBuild,
+  claimsStarted,
   materialsEditable,
   table,
 }: {
@@ -23,6 +25,7 @@ export function EvidenceTab({
   documents: DocumentView[];
   uploadsOnly: boolean;
   canBuild: boolean;
+  claimsStarted: boolean;
   materialsEditable: boolean;
   table: SourceTableView;
 }) {
@@ -64,6 +67,20 @@ export function EvidenceTab({
         return;
       }
       router.refresh();
+    });
+  }
+
+  // Step 3 starts from here; the Claims tab shows its progress.
+  function extract() {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/evaluations/${evaluationId}/claims/extract`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "Couldn't start claim extraction.");
+        return;
+      }
+      router.push(`/deals/${evaluationId}?tab=claims`);
     });
   }
 
@@ -158,6 +175,24 @@ export function EvidenceTab({
                 {n}
               </p>
             ))}
+          </div>
+        )}
+
+        {table.sources.length > 0 && !active && (
+          <div className="flex flex-wrap items-center gap-3 border-t border-[var(--color-divider)] pt-3">
+            {claimsStarted ? (
+              <Link href={`/deals/${evaluationId}?tab=claims`}>Claim Table →</Link>
+            ) : (
+              <>
+                <button className="btn btn-primary" onClick={extract} disabled={!canBuild || pending}>
+                  Extract claims
+                </button>
+                <span className="text-muted text-[13px]">
+                  Next step: atomic claims with verbatim excerpts from every source. Check tiers and parties first; they
+                  set each claim&apos;s confidence.
+                </span>
+              </>
+            )}
           </div>
         )}
 

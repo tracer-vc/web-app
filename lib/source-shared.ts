@@ -17,6 +17,7 @@ export type SourceView = {
   accessedAt: string;
   relevanceNote: string;
   promptIds: string[];
+  claimCount: number; // claims citing it (0 before step 3)
 };
 
 export type RunView = {

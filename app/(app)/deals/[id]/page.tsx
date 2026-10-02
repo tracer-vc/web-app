@@ -10,10 +10,12 @@ import {
   isStepUnlocked,
   type PipelineTab,
 } from "@/lib/evaluation-shared";
+import { loadClaimTable } from "@/lib/claims";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
 import { createClient } from "@/lib/supabase/server";
+import { ClaimsTab } from "./claims-tab";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
@@ -108,6 +110,12 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         />
       ) : tab === "evidence" ? (
         <EvidenceSection deal={deal} supabase={supabase} />
+      ) : tab === "claims" ? (
+        <ClaimsTab
+          evaluationId={deal.id}
+          canExtract={deal.status === "collecting" || deal.status === "extracting"}
+          table={await loadClaimTable(supabase, deal.id, deal.configId)}
+        />
       ) : (
         <div className="card text-[13px]">
           <p>{PIPELINE_STEPS.find((s) => s.key === tab)?.label}</p>
@@ -134,6 +142,7 @@ async function EvidenceSection({
       documents={deal.documents}
       uploadsOnly={deal.uploadsOnly}
       canBuild={deal.status === "collecting"}
+      claimsStarted={deal.currentStep >= 3}
       materialsEditable={QUICK_SCREEN_STATUSES.includes(deal.status) && !started}
       table={table}
     />
