@@ -120,6 +120,21 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - **Override (decision 14):** `override_score` and an optional reason sit beside the model score, which never changes. The database stamps who and when and logs every override and every clearing. The score that counts is the override if one exists, otherwise the (capped) score. An override may exceed the cap: it is the analyst's logged judgement.
     - **Assessments are fixed once written:** answers, counter-signal and scores cannot be edited; a new run belongs to re-runs (M14).
 
+## L. Outputs
+
+42. **Synthesis and output documents** (agreed 2026-10-02; fills in data_flow.html P12, P13, R3 and decisions 11, 18 for M13).
+    - **What the model writes vs. what comes from rows.** P12 writes the Thesis Card sections: thesis, outlier, base/upside/failure case, moat, entry wedge, 2–3 milestones. P13 writes the Snapshot's justification, three supporting arguments, the 3–7 item research agenda and the re-evaluation trigger. Everything else is rendered from its own rows rather than restated by a model: the Thesis Card's falsifiers (F#), dimension scores (D#) and open questions (open decision-critical U#), and the Snapshot's three risks, which are the ranked counter-case arguments (decision 18).
+    - **Statement shape:** each statement has a `text` and an optional `detail`. For base and upside case the detail holds the gating variables, for the failure case the dominant failure mode, and for a research-agenda item the evidence that would resolve it. IDs live only in the reference lists, never in the text; the view shows them as `[C#]` links.
+    - **Citations (decision 11):** checked by the prompts (retried up to 2 times, then the run fails and nothing is saved) and again at commit by the database. A statement cites at least one C#; research-agenda and open-question items cite at least one U#; a S# only next to a claim that cites it. The failure case must cite at least one claim of the strongest counter-argument.
+    - **R3 classification:** `lib/rules/classification.ts`, unit-tested. It runs on the score that counts (an override, else the capped score), open decision-critical U# and open conflicts. Rules are evaluated Pass → Watch → Proceed. The full trace is stored in `decisions.rule_trace`, and its one-line summary is shown as "Rule applied". P13 is told the classification and must not argue for another.
+    - **Completion:** a deal is `complete` once its outputs are recorded. The output tabs unlock when synthesis starts and show its progress until then.
+    - **One printed page:** the Thesis Card prints on one A4 page. To keep it there:
+      - P12 items are short: the thesis up to 300 characters, other items up to 260, details up to 160.
+      - Each item cites at most 5 claims and 8 IDs in total; P13 items have the same ID limits.
+      - P10 falsifiers are short too (criterion up to 220 characters, outcome check up to 300).
+      - Open questions print in two columns, and counter-signals are clamped on paper. The full text is in the Evidence Pack and the drawers.
+    - **Retries with feedback (extends decision 25):** when an answer fails validation, the next attempt receives the list of violations. `llm_calls.input.feedback` records it.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

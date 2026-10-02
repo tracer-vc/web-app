@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import {
+  OUTPUT_TABS,
   PIPELINE_STEPS,
   QUICK_SCREEN_STATUSES,
   STATUS_LABELS,
@@ -14,6 +15,7 @@ import { loadClaimTable } from "@/lib/claims";
 import { loadConflictRegister } from "@/lib/conflicts";
 import { loadCounterCase } from "@/lib/counter-case";
 import { loadDimensions } from "@/lib/dimensions";
+import { loadOutputs } from "@/lib/outputs";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
@@ -21,6 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClaimsTab } from "./claims-tab";
 import { CounterCaseTab } from "./counter-case-tab";
 import { DimensionsTab } from "./dimensions-tab";
+import { OutputsTab } from "./outputs";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
@@ -37,16 +40,16 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
   const deal = await loadEvaluation(supabase, id);
   if (!deal) notFound();
 
-  const requested = PIPELINE_STEPS.find((s) => s.key === tabParam);
+  const requested = [...PIPELINE_STEPS, ...OUTPUT_TABS].find((s) => s.key === tabParam);
   const tab: PipelineTab =
     requested && isStepUnlocked(requested.step, deal.status, deal.currentStep) ? requested.key : "quick-screen";
 
   return (
     <>
-      <p className="mb-2 text-[13px]">
+      <p className="mb-2 text-[13px] print:hidden">
         <Link href="/deals">← All deals</Link>
       </p>
-      <div className="mb-6 flex flex-wrap items-end gap-4">
+      <div className="mb-6 flex flex-wrap items-end gap-4 print:hidden">
         <div>
           <h1 className="mb-1.5 text-3xl">{deal.company.name}</h1>
           <p className="text-muted text-[13px]">
@@ -65,7 +68,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         </div>
       </div>
 
-      <nav className="mb-8 flex flex-wrap gap-1 border-b border-[var(--color-divider)] pb-2" aria-label="Pipeline">
+      <nav className="mb-8 flex flex-wrap gap-1 border-b border-[var(--color-divider)] pb-2 print:hidden" aria-label="Pipeline">
         {PIPELINE_STEPS.map((s) => {
           const unlocked = isStepUnlocked(s.step, deal.status, deal.currentStep);
           const active = s.key === tab;
@@ -97,6 +100,33 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
               className="flex cursor-not-allowed items-center gap-2 px-3 py-1.5 text-[13px] text-[var(--color-neutral-600)]"
             >
               {dot}
+              {s.label}
+            </span>
+          );
+        })}
+        <span className="mx-2 self-center text-[var(--color-neutral-700)]" aria-hidden>
+          |
+        </span>
+        {OUTPUT_TABS.map((s) => {
+          const unlocked = isStepUnlocked(s.step, deal.status, deal.currentStep);
+          const active = s.key === tab;
+          return unlocked ? (
+            <Link
+              key={s.key}
+              href={`/deals/${deal.id}?tab=${s.key}`}
+              aria-current={active ? "page" : undefined}
+              className={`rounded-md px-3 py-1.5 text-[13px] no-underline ${
+                active ? "bg-[var(--color-accent-800)]/40 text-[var(--color-accent-300)]" : "text-[var(--color-neutral-300)]"
+              }`}
+            >
+              {s.label}
+            </Link>
+          ) : (
+            <span
+              key={s.key}
+              title="Unlocks once outputs are generated"
+              className="cursor-not-allowed px-3 py-1.5 text-[13px] text-[var(--color-neutral-600)]"
+            >
               {s.label}
             </span>
           );
@@ -141,14 +171,48 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           view={await loadDimensions(supabase, deal.id, deal.configId)}
           counterCase={await loadCounterCase(supabase, deal.id, deal.configId)}
           claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
+          canSynthesize={deal.status === "scoring"}
+          synthesisStarted={deal.currentStep >= 6}
         />
       ) : (
-        <div className="card text-[13px]">
-          <p>{PIPELINE_STEPS.find((s) => s.key === tab)?.label}</p>
-          <p className="text-muted">This step arrives in a later milestone.</p>
-        </div>
+        <OutputsSection deal={deal} supabase={supabase} doc={tab} />
       )}
     </>
+  );
+}
+
+async function OutputsSection({
+  deal,
+  supabase,
+  doc,
+}: {
+  deal: NonNullable<Awaited<ReturnType<typeof loadEvaluation>>>;
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  doc: "thesis-card" | "decision-snapshot" | "evidence-pack";
+}) {
+  const [outputs, claimTable, counterCase, dimensions, sourceTable, conflicts] = await Promise.all([
+    loadOutputs(supabase, deal.id, deal.configId),
+    loadClaimTable(supabase, deal.id, deal.configId),
+    loadCounterCase(supabase, deal.id, deal.configId),
+    loadDimensions(supabase, deal.id, deal.configId),
+    loadSourceTable(supabase, deal.id, deal.configId),
+    loadConflictRegister(supabase, deal.id),
+  ]);
+  return (
+    <OutputsTab
+      doc={doc}
+      evaluationId={deal.id}
+      header={{
+        name: deal.company.name,
+        stage: deal.company.stage,
+        sector: deal.company.sector,
+        evaluator: deal.evaluator,
+        configVersion: deal.configVersion,
+      }}
+      outputs={outputs}
+      bundle={{ claimTable, counterCase, dimensions, sources: sourceTable.sources, conflicts }}
+      canRun={deal.status === "synthesizing"}
+    />
   );
 }
 

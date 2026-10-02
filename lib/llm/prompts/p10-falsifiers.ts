@@ -14,6 +14,10 @@ export type P10Input = {
   claims: PromptClaim[];
 };
 
+// Falsifiers appear on the one-page Thesis Card (decision 42).
+export const MAX_CRITERION_LENGTH = 220;
+export const MAX_CHECK_LENGTH = 300;
+
 const schema = z.object({
   falsifiers: z.array(
     z.object({
@@ -27,11 +31,12 @@ const schema = z.object({
 
 export const P10: PromptDef<P10Input, typeof schema> = {
   key: "P10",
-  version: "1",
+  version: "2",
   name: "falsifiers",
   system: [
     "Write 2–4 observable conditions under which the thesis should be dropped or materially revised. Each needs a concrete outcome check (numbers, timeframe) and links to the claims and uncertainties it tests.",
     "Base them on the strongest counter-case arguments and the decision-critical uncertainties. A criterion is defined in advance and can be observed by a third party; avoid vague wording such as \"traction stalls\".",
+    `Keep each criterion to one sentence of at most ${MAX_CRITERION_LENGTH} characters and each outcome check to at most ${MAX_CHECK_LENGTH}: the falsifiers appear on the one-page Thesis Card.`,
     "Use only claim IDs and uncertainty IDs from the lists provided; cite at least one claim per falsifier. Write in English.",
   ].join("\n"),
   user: (i) =>
@@ -57,6 +62,8 @@ export const P10: PromptDef<P10Input, typeof schema> = {
     o.falsifiers.forEach((f, i) => {
       const where = `falsifier ${i + 1}`;
       if (!f.criterion.trim()) errors.push(`${where}: criterion is empty`);
+      else if (f.criterion.length > MAX_CRITERION_LENGTH) errors.push(`${where}: criterion longer than ${MAX_CRITERION_LENGTH} characters`);
+      if (f.outcome_check.length > MAX_CHECK_LENGTH) errors.push(`${where}: outcome check longer than ${MAX_CHECK_LENGTH} characters`);
       if (!f.outcome_check.trim()) errors.push(`${where}: outcome_check is empty`);
       else if (!/\d/.test(f.criterion + f.outcome_check)) errors.push(`${where}: give a number or date in the criterion or outcome check`);
       if (f.claim_ids.length === 0) errors.push(`${where}: cite at least one claim`);

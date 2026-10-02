@@ -38,6 +38,9 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
   const format = zodTextFormat(prompt.schema, prompt.name);
   let lastError: LlmError | null = null;
   let lastRejected: z.infer<Schema> | undefined;
+  // Rule violations of the previous attempt, shown to the model on the retry
+  // so it can correct them (decision 25).
+  let feedback: string | null = null;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const started = Date.now();
@@ -54,6 +57,7 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
         input: [
           { role: "system", content: prompt.system },
           { role: "user", content: userMessage },
+          ...(feedback ? [{ role: "user" as const, content: feedback }] : []),
         ],
         text: { format },
       });
@@ -100,6 +104,7 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
         input: {
           system: prompt.system,
           user: userMessage,
+          feedback,
           temperature: noTemperature.has(ctx.model) ? null : 0,
         } as Json,
         output: raw === null ? null : (tryJson(raw) as Json),
@@ -118,6 +123,13 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
 
     lastError = error;
     if (error && !isRetryable(error)) throw error;
+    feedback = validationErrors.length
+      ? [
+          "Your previous answer was rejected for these reasons:",
+          ...validationErrors.map((e) => `- ${e}`),
+          "Return a complete, corrected answer.",
+        ].join("\n")
+      : null;
   }
 
   const failure = lastError ?? new LlmError("invalid_output", "The model's answer was unusable. Try again.");

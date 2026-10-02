@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { ClaimTableView } from "@/lib/claim-shared";
@@ -20,12 +21,16 @@ export function DimensionsTab({
   view,
   counterCase,
   claimTable,
+  canSynthesize,
+  synthesisStarted,
 }: {
   evaluationId: string;
   canRun: boolean;
   view: DimensionsView;
   counterCase: CounterCaseView;
   claimTable: ClaimTableView;
+  canSynthesize: boolean;
+  synthesisStarted: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(view.run);
@@ -48,6 +53,20 @@ export function DimensionsTab({
     }, 2000);
     return () => clearInterval(timer);
   }, [evaluationId, run, router]);
+
+  // Step 6 starts from here; the output tabs show its progress.
+  function synthesize() {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/evaluations/${evaluationId}/synthesize`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "Couldn't start synthesis.");
+        return;
+      }
+      router.push(`/deals/${evaluationId}?tab=thesis-card`);
+    });
+  }
 
   function start() {
     setError(null);
@@ -132,7 +151,7 @@ export function DimensionsTab({
               ))}
             </div>
           )}
-          {error && (
+          {error && !done && (
             <p role="alert" className="text-danger text-[13px]">
               {error}
             </p>
@@ -188,6 +207,29 @@ export function DimensionsTab({
             </tbody>
           </table>
         </div>
+      )}
+
+      {done && !active && (
+        <section className="card gap-2" data-testid="next-step">
+          {synthesisStarted ? (
+            <Link href={`/deals/${evaluationId}?tab=thesis-card`}>Thesis Card →</Link>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="btn btn-primary" onClick={synthesize} disabled={!canSynthesize || pending}>
+                Generate outputs
+              </button>
+              <span className="text-muted text-[13px]">
+                Next step: Thesis Card, Proceed / Watch / Pass by rule, and Decision Snapshot, every statement citing the
+                tables. Review overrides and conflicts first.
+              </span>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="text-danger text-[13px]">
+              {error}
+            </p>
+          )}
+        </section>
       )}
 
       {open && <DimensionDrawer key={open.id} evaluationId={evaluationId} a={open} onOpen={setTrace} onClose={() => setTrace(null)} />}

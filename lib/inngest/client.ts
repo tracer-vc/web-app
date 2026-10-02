@@ -20,3 +20,6 @@ export type CounterCaseRunData = { evaluationId: string; runId: string };
 
 export const DIMENSIONS_SCORE = "tracer/dimensions.score";
 export type DimensionsScoreData = { evaluationId: string; runId: string };
+
+export const SYNTHESIZE = "tracer/outputs.synthesize";
+export type SynthesizeData = { evaluationId: string; runId: string };

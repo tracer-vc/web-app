@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="nav">
+      <header className="nav print:hidden">
         <div className="nav-brand">
           <span className="nav-brand-dot" />
           Tracer
@@ -38,7 +38,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </form>
         </div>
       </header>
-      <main className="w-full max-w-[1440px] flex-1 px-12 pt-12 pb-24">{children}</main>
+      <main className="w-full max-w-[1440px] flex-1 px-12 pt-12 pb-24 print:p-0">{children}</main>
     </div>
   );
 }

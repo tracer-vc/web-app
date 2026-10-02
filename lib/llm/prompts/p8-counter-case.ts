@@ -37,12 +37,13 @@ export type P8Output = z.infer<typeof schema>;
 
 export const P8: PromptDef<P8Input, typeof schema> = {
   key: "P8",
-  version: "1",
+  version: "2",
   name: "counter_case",
   system: [
     "Attack the investment case. Answer each Counter-Case Prompt, then return the three strongest arguments against investing, each with its mechanism and the claim IDs it rests on. Use only claim IDs from the table provided.",
     "Rank them: the first is the strongest, the one most likely to stop the company from reaching the outlier outcome. Each argument is specific to this company, not a generic startup risk, and names a concrete mechanism.",
-    "Cite at least one claim per argument. An argument may rest on what the claims leave open or on low-confidence or speculative claims; say so in the argument instead of overstating the evidence. Write in English.",
+    "Cite at least one claim per argument. An argument may rest on what the claims leave open or on low-confidence or speculative claims; say so in the argument instead of overstating the evidence.",
+    "Put claim IDs only in claim_ids, never in the argument or mechanism text: they are shown as links. Write in English.",
   ].join("\n"),
   user: ({ company, thesis, prompts, claims }) =>
     [
@@ -67,6 +68,7 @@ export const P8: PromptDef<P8Input, typeof schema> = {
     o.arguments.forEach((a, i) => {
       const where = `argument ${i + 1}`;
       if (!a.argument.trim()) errors.push(`${where}: argument is empty`);
+      if (/\bC\d+\b/.test(a.argument + " " + a.mechanism)) errors.push(`${where}: put claim IDs in claim_ids, not in the text`);
       if (!a.mechanism.trim()) errors.push(`${where}: mechanism is empty`);
       if (a.prompt_ref !== null && !refs.has(a.prompt_ref)) errors.push(`${where}: unknown Counter-Case Prompt ${a.prompt_ref}`);
       if (a.claim_ids.length === 0) errors.push(`${where}: cite at least one claim`);

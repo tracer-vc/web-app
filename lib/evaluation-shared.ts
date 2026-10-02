@@ -26,7 +26,13 @@ export const PIPELINE_STEPS = [
   { key: "counter-case", step: 4, label: "Counter-Case" },
   { key: "dimensions", step: 5, label: "Dimensions" },
 ] as const;
-export type PipelineTab = (typeof PIPELINE_STEPS)[number]["key"];
+// Output documents (step 6), rendered from rows once synthesis has run.
+export const OUTPUT_TABS = [
+  { key: "thesis-card", step: 6, label: "Thesis Card" },
+  { key: "decision-snapshot", step: 6, label: "Decision Snapshot" },
+  { key: "evidence-pack", step: 6, label: "Evidence Pack" },
+] as const;
+export type PipelineTab = (typeof PIPELINE_STEPS)[number]["key"] | (typeof OUTPUT_TABS)[number]["key"];
 
 // Statuses in which the Quick Screen can still be redone or overridden
 // (mirrors private.is_quick_screen_status in the database).

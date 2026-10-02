@@ -207,3 +207,32 @@ mark.excerpt {
 .text-danger {
   color: var(--color-danger);
 }
+
+/* Output documents print on white A4 (Thesis Card: one page). */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  :root {
+    color-scheme: light;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  /* These component classes are unlayered, so Tailwind's print: utilities
+     can't override them. */
+  .nav,
+  .btn {
+    display: none !important;
+  }
+  .card {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+  .text-muted {
+    color: #444 !important;
+  }
+}

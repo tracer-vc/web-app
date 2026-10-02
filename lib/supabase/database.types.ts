@@ -579,6 +579,61 @@ export type Database = {
           },
         ]
       }
+      decisions: {
+        Row: {
+          classification: Database["public"]["Enums"]["verdict"]
+          created_at: string
+          evaluation_id: string
+          fund_id: string
+          id: string
+          reeval_trigger: string | null
+          rule_trace: Json
+          run_id: string | null
+        }
+        Insert: {
+          classification: Database["public"]["Enums"]["verdict"]
+          created_at?: string
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          reeval_trigger?: string | null
+          rule_trace: Json
+          run_id?: string | null
+        }
+        Update: {
+          classification?: Database["public"]["Enums"]["verdict"]
+          created_at?: string
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          reeval_trigger?: string | null
+          rule_trace?: Json
+          run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dimension_assessment_claims: {
         Row: {
           assessment_id: string
@@ -1766,6 +1821,106 @@ export type Database = {
           },
         ]
       }
+      statement_refs: {
+        Row: {
+          fund_id: string
+          position: number
+          ref_id: string
+          ref_kind: Database["public"]["Enums"]["statement_ref_kind"]
+          statement_id: string
+        }
+        Insert: {
+          fund_id: string
+          position?: number
+          ref_id: string
+          ref_kind: Database["public"]["Enums"]["statement_ref_kind"]
+          statement_id: string
+        }
+        Update: {
+          fund_id?: string
+          position?: number
+          ref_id?: string
+          ref_kind?: Database["public"]["Enums"]["statement_ref_kind"]
+          statement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statement_refs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_refs_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "statements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      statements: {
+        Row: {
+          created_at: string
+          detail: string | null
+          document: Database["public"]["Enums"]["statement_document"]
+          evaluation_id: string
+          fund_id: string
+          id: string
+          position: number
+          run_id: string | null
+          section: Database["public"]["Enums"]["statement_section"]
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          document: Database["public"]["Enums"]["statement_document"]
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          position: number
+          run_id?: string | null
+          section: Database["public"]["Enums"]["statement_section"]
+          text: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          document?: Database["public"]["Enums"]["statement_document"]
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          position?: number
+          run_id?: string | null
+          section?: Database["public"]["Enums"]["statement_section"]
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statements_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statements_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statements_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uncertainties: {
         Row: {
           code: string
@@ -1895,6 +2050,19 @@ export type Database = {
         }
         Returns: number
       }
+      record_synthesis: {
+        Args: {
+          p_classification: Database["public"]["Enums"]["verdict"]
+          p_evaluation_id: string
+          p_notes: string[]
+          p_reeval_trigger: string
+          p_rule_trace: Json
+          p_run_id: string
+          p_statements: Json
+          p_warnings: string[]
+        }
+        Returns: number
+      }
       record_quick_screen: {
         Args: {
           p_answers: Json
@@ -1948,6 +2116,24 @@ export type Database = {
         | "failed"
       source_origin: "upload" | "web"
       source_tier: "primary" | "secondary" | "tertiary"
+      statement_document: "thesis_card" | "decision_snapshot"
+      statement_ref_kind: "claim" | "source" | "uncertainty" | "falsifier"
+      statement_section:
+        | "thesis"
+        | "outlier"
+        | "base_case"
+        | "upside_case"
+        | "failure_case"
+        | "moat"
+        | "entry_wedge"
+        | "milestone"
+        | "falsifier"
+        | "open_question"
+        | "justification"
+        | "supporting_arg"
+        | "risk"
+        | "research_agenda"
+        | "reeval_trigger"
       uncertainty_status: "open" | "resolved"
       user_role: "analyst" | "admin"
       verdict: "proceed" | "watch" | "pass"
@@ -2099,6 +2285,25 @@ export const Constants = {
       run_status: ["queued", "running", "done", "done_with_warnings", "failed"],
       source_origin: ["upload", "web"],
       source_tier: ["primary", "secondary", "tertiary"],
+      statement_document: ["thesis_card", "decision_snapshot"],
+      statement_ref_kind: ["claim", "source", "uncertainty", "falsifier"],
+      statement_section: [
+        "thesis",
+        "outlier",
+        "base_case",
+        "upside_case",
+        "failure_case",
+        "moat",
+        "entry_wedge",
+        "milestone",
+        "falsifier",
+        "open_question",
+        "justification",
+        "supporting_arg",
+        "risk",
+        "research_agenda",
+        "reeval_trigger",
+      ],
       uncertainty_status: ["open", "resolved"],
       user_role: ["analyst", "admin"],
       verdict: ["proceed", "watch", "pass"],
