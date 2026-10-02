@@ -33,6 +33,7 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
       .select("id, status, progress, error, warnings, notes")
       .eq("evaluation_id", evaluationId)
       .eq("step", 3)
+      .is("superseded_at", null)
       .order("created_at", { ascending: false })
       .limit(1),
   ]);

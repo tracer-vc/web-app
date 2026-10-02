@@ -8,6 +8,7 @@ import type { CounterCaseView } from "@/lib/counter-case-shared";
 import { effectiveScore, type DimensionAssessmentView, type DimensionsView } from "@/lib/dimension-shared";
 import { isRunActive, type RunView } from "@/lib/source-shared";
 import { TraceDrawer } from "./counter-case-tab";
+import { RerunControl, RunCallsLink } from "./rerun-control";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -23,6 +24,7 @@ export function DimensionsTab({
   claimTable,
   canSynthesize,
   synthesisStarted,
+  hasOutputs,
 }: {
   evaluationId: string;
   canRun: boolean;
@@ -31,6 +33,7 @@ export function DimensionsTab({
   claimTable: ClaimTableView;
   canSynthesize: boolean;
   synthesisStarted: boolean;
+  hasOutputs: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(view.run);
@@ -134,7 +137,7 @@ export function DimensionsTab({
             <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
-                  Dimension scoring failed: {run.error ?? "unknown error"}. Try again.
+                  Dimension scoring failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
                 </p>
               ) : (
                 <p>Dimensions scored{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
@@ -149,6 +152,7 @@ export function DimensionsTab({
                   {n}
                 </p>
               ))}
+              <RunCallsLink evaluationId={evaluationId} run={run} />
             </div>
           )}
           {error && !done && (
@@ -229,6 +233,15 @@ export function DimensionsTab({
               {error}
             </p>
           )}
+          <div className="border-t border-[var(--color-divider)] pt-2">
+            <RerunControl
+              evaluationId={evaluationId}
+              step={5}
+              label="dimension scoring"
+              start={{ path: "dimensions", tab: "dimensions" }}
+              hasOutputs={hasOutputs}
+            />
+          </div>
         </section>
       )}
 

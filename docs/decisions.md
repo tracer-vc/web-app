@@ -135,6 +135,16 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
       - Open questions print in two columns, and counter-signals are clamped on paper. The full text is in the Evidence Pack and the drawers.
     - **Retries with feedback (extends decision 25):** when an answer fails validation, the next attempt receives the list of violations. `llm_calls.input.feedback` records it.
 
+## M. Robustness and exports
+
+43. **Re-runs, failures and exports** (agreed 2026-10-02; fills in decisions 20, 25 and 31 for M14).
+    - **Re-run step N (2–6):** `reset_from_step` deletes step N's rows and every later step's in one transaction. Step 4 removes only the uncertainties P9 added; step 3 removes all of them, including the R2 ones. It marks those steps' runs as superseded (`pipeline_runs.superseded_at`; the tabs ignore superseded runs), sets the deal back to step N, logs `pipeline.reset` with what was cleared, and starts the step again. Codes restart because they are assigned as count + 1. Analyst actions on cleared rows (link marks, overrides, resolutions of claim conflicts) are gone with them; the log keeps them.
+    - **Frozen IDs (decision 20):** once outputs exist, any re-run needs an explicit full-reset confirmation (UI checkbox and a database check). A re-run is refused while a run is active.
+    - **Materials after 2b:** documents stay locked by the database once a Source Table exists. "Change materials" resets from 2b, which unlocks them; the Source Table is then rebuilt.
+    - **Failures:** a missing or rejected key or a rejected model fails a background run at once (not retried with back-off), with the readable message stored on the run. Every finished run links to a page listing its model calls (llm_calls: prompt and version, attempt, latency, tokens, error or validation errors, input and output).
+    - **Exports:** the Evidence Pack `.xlsx` has five sheets (Source Table, Claim Table, Conflict Register, Uncertainty List, Dimension Assessment), keyed by the same IDs as the UI. It is written with the existing `jszip` dependency, since a spreadsheet library would need file-system junctions Turbopack can't create on this drive. Thesis Card and Snapshot print through the browser's print view (one A4 page for the card).
+    - **Deals list:** shows the R3 classification once outputs exist (else the Quick Screen verdict), open conflicts and open decision-critical uncertainties.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

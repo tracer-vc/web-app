@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { ClassificationCriteria } from "@/lib/config-shared";
-import { callLlm } from "@/lib/llm/call";
 import { P12, stripLabel, type P12Output } from "@/lib/llm/prompts/p12-thesis-card";
 import { P13 } from "@/lib/llm/prompts/p13-decision-snapshot";
 import type { Item, SynthesisContext } from "@/lib/llm/prompts/synthesis-shared";
@@ -10,6 +9,7 @@ import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import { inngest, SYNTHESIZE, type SynthesizeData } from "../client";
+import { callLlmStep } from "../errors";
 import { loadClaimContext } from "../claim-context";
 
 const codeNumber = (code: string) => Number(code.replace(/^\D+/, ""));
@@ -69,7 +69,7 @@ export const synthesize = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event, error }) => {
       const data = (event.data as { event: { data: SynthesizeData } }).event.data;
-      await failRun(createAdminClient(), data.runId, `Synthesis failed: ${error.message}`);
+      await failRun(createAdminClient(), data.runId, error.message);
     },
   },
   async ({ event, step }) => {
@@ -155,7 +155,7 @@ export const synthesize = inngest.createFunction(
 
     // 1. P12 Thesis Card (required)
     const thesisCard = await step.run("thesis card", async () => {
-      const { output } = await callLlm(P12, d.ctx, llm);
+      const { output } = await callLlmStep(P12, d.ctx, llm);
       await setProgress(45);
       return thesisCardRows(output);
     });
@@ -163,7 +163,7 @@ export const synthesize = inngest.createFunction(
     // 2. R3 by rule, then P13 Decision Snapshot (required)
     const decision = classify(d.criteria, d.facts);
     const snapshot = await step.run("decision snapshot", async () => {
-      const { output } = await callLlm(
+      const { output } = await callLlmStep(
         P13,
         {
           ...d.ctx,

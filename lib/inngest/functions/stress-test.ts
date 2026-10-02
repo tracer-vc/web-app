@@ -1,6 +1,5 @@
 import "server-only";
 
-import { callLlm } from "@/lib/llm/call";
 import { P10 } from "@/lib/llm/prompts/p10-falsifiers";
 import { P8 } from "@/lib/llm/prompts/p8-counter-case";
 import { P9 } from "@/lib/llm/prompts/p9-uncertainties";
@@ -8,7 +7,7 @@ import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COUNTER_CASE_RUN, inngest, type CounterCaseRunData } from "../client";
 import { loadClaimContext } from "../claim-context";
-import { describe, isFatal } from "../errors";
+import { callLlmStep, describe, isFatal } from "../errors";
 
 // Decision 17: P9 fills the Uncertainty List up to this many items.
 const MAX_UNCERTAINTIES = 10;
@@ -26,7 +25,7 @@ export const stressTest = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event, error }) => {
       const data = (event.data as { event: { data: CounterCaseRunData } }).event.data;
-      await failRun(createAdminClient(), data.runId, `Counter-case run failed: ${error.message}`);
+      await failRun(createAdminClient(), data.runId, error.message);
     },
   },
   async ({ event, step }) => {
@@ -65,7 +64,7 @@ export const stressTest = inngest.createFunction(
 
     // 1. P8: three ranked arguments (required)
     const p8 = await step.run("counter-case arguments", async () => {
-      const { output } = await callLlm(
+      const { output } = await callLlmStep(
         P8,
         { company: d.company, thesis: d.thesis, prompts: d.counterPrompts.map(({ ref, prompt }) => ({ ref, prompt })), claims: d.claims },
         llm,
@@ -88,7 +87,7 @@ export const stressTest = inngest.createFunction(
         return { items: [], note: `The Uncertainty List already has ${d.uncertainties.length} items; P9 added none.`, warning: null };
       }
       try {
-        const { output } = await callLlm(
+        const { output } = await callLlmStep(
           P9,
           {
             company: d.company,
@@ -127,7 +126,7 @@ export const stressTest = inngest.createFunction(
 
     // 3. P10: 2–4 falsifiers (required)
     const p10 = await step.run("falsifiers", async () => {
-      const { output } = await callLlm(
+      const { output } = await callLlmStep(
         P10,
         {
           company: d.company,

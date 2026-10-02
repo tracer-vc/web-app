@@ -9,6 +9,7 @@ import type { CounterCaseView, FalsifierView, UncertaintyListItem } from "@/lib/
 import { isRunActive, type RunView } from "@/lib/source-shared";
 import { ClaimDrawer } from "./claims-tab";
 import { ConflictRegister } from "./conflict-register";
+import { RerunControl, RunCallsLink } from "./rerun-control";
 
 // Step 4 (ui_design.html): Counter-Case (prompt → argument → mechanism → C#),
 // Uncertainty List (U#) and Falsification Criteria (F#). Every ID opens its
@@ -21,6 +22,7 @@ export function CounterCaseTab({
   conflicts,
   canScore,
   scoringStarted,
+  hasOutputs,
 }: {
   evaluationId: string;
   canRun: boolean;
@@ -29,6 +31,7 @@ export function CounterCaseTab({
   conflicts: ConflictView[];
   canScore: boolean;
   scoringStarted: boolean;
+  hasOutputs: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(view.run);
@@ -134,7 +137,7 @@ export function CounterCaseTab({
             <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
-                  The counter-case run failed: {run.error ?? "unknown error"}. Try again.
+                  The counter-case run failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
                 </p>
               ) : (
                 <p>Counter-case built{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
@@ -149,6 +152,7 @@ export function CounterCaseTab({
                   {n}
                 </p>
               ))}
+              <RunCallsLink evaluationId={evaluationId} run={run} />
             </div>
           )}
           {error && !done && (
@@ -289,6 +293,15 @@ export function CounterCaseTab({
               {error}
             </p>
           )}
+          <div className="border-t border-[var(--color-divider)] pt-2">
+            <RerunControl
+              evaluationId={evaluationId}
+              step={4}
+              label="counter-case"
+              start={{ path: "counter-case", tab: "counter-case" }}
+              hasOutputs={hasOutputs}
+            />
+          </div>
         </section>
       )}
 

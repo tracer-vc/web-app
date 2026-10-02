@@ -9,6 +9,7 @@ import { effectiveScore, type DimensionsView } from "@/lib/dimension-shared";
 import { CLASSIFICATION_LABELS, refCodes, type OutputsView, type Section, type StatementView } from "@/lib/output-shared";
 import { isRunActive, TIER_LABELS, type RunView, type SourceView } from "@/lib/source-shared";
 import { TraceDrawer } from "./counter-case-tab";
+import { RerunControl, RunCallsLink } from "./rerun-control";
 
 // Output documents (step 6): Thesis Card, Decision Snapshot and Evidence Pack,
 // rendered from rows. Every ID is a link into the trace drawer.
@@ -45,6 +46,24 @@ export function OutputsTab({
 
   return (
     <div className="flex flex-col gap-6">
+      {ready && (
+        <div className="flex flex-wrap items-start gap-3 print:hidden">
+          <RerunControl
+            evaluationId={evaluationId}
+            step={6}
+            label="outputs"
+            action="Regenerate"
+            start={{ path: "synthesize", tab: doc }}
+            hasOutputs
+          />
+          {outputs.run && <RunCallsLink evaluationId={evaluationId} run={outputs.run} />}
+          {doc === "evidence-pack" && (
+            <a className="btn text-xs no-underline" href={`/api/evaluations/${evaluationId}/evidence-pack/xlsx`} data-testid="export-xlsx">
+              Export Evidence Pack (.xlsx)
+            </a>
+          )}
+        </div>
+      )}
       {!ready ? (
         <GeneratePanel evaluationId={evaluationId} initialRun={outputs.run} canRun={canRun} />
       ) : doc === "thesis-card" ? (
@@ -129,9 +148,12 @@ function GeneratePanel({ evaluationId, initialRun, canRun }: { evaluationId: str
         </div>
       )}
       {run?.status === "failed" && (
-        <p role="alert" className="text-danger text-[13px]" data-testid="run-result">
-          Synthesis failed: {run.error ?? "unknown error"}. Try again.
-        </p>
+        <div className="flex flex-col gap-1" data-testid="run-result">
+          <p role="alert" className="text-danger text-[13px]">
+            Synthesis failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
+          </p>
+          <RunCallsLink evaluationId={evaluationId} run={run} />
+        </div>
       )}
       {error && (
         <p role="alert" className="text-danger text-[13px]">

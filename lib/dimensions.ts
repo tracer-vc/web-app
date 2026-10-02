@@ -26,6 +26,7 @@ export async function loadDimensions(supabase: Supabase, evaluationId: string, c
       .select("id, status, progress, error, warnings, notes")
       .eq("evaluation_id", evaluationId)
       .eq("step", 5)
+      .is("superseded_at", null)
       .order("created_at", { ascending: false })
       .limit(1),
   ]);

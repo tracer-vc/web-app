@@ -8,6 +8,7 @@ import { isRunActive, type RunView, type SourceTableView } from "@/lib/source-sh
 import type { ConflictView } from "@/lib/conflict-shared";
 import { ConflictRegister } from "./conflict-register";
 import { MaterialsSection } from "./materials-section";
+import { RerunControl, RunCallsLink } from "./rerun-control";
 import { SourceTable } from "./source-table";
 
 // Step 2: the deal's materials (shared with the Quick Screen, decision 34),
@@ -22,6 +23,7 @@ export function EvidenceTab({
   materialsEditable,
   table,
   conflicts,
+  hasOutputs,
 }: {
   evaluationId: string;
   fundId: string;
@@ -32,6 +34,7 @@ export function EvidenceTab({
   materialsEditable: boolean;
   table: SourceTableView;
   conflicts: ConflictView[]; // source conflicts
+  hasOutputs: boolean;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(uploadsOnly);
@@ -164,7 +167,7 @@ export function EvidenceTab({
           <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
             {run.status === "failed" ? (
               <p role="alert" className="text-danger">
-                The Source Table run failed: {run.error ?? "unknown error"}. Try again.
+                The Source Table run failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
               </p>
             ) : (
               <p>Source Table built{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
@@ -179,6 +182,23 @@ export function EvidenceTab({
                 {n}
               </p>
             ))}
+            <RunCallsLink evaluationId={evaluationId} run={run} />
+          </div>
+        )}
+
+        {table.sources.length > 0 && !active && (
+          <div className="flex flex-wrap items-start gap-2 border-t border-[var(--color-divider)] pt-3">
+            <RerunControl
+              evaluationId={evaluationId}
+              step={2}
+              label="Source Table"
+              start={{ path: "sources/collect", tab: "evidence" }}
+              hasOutputs={hasOutputs}
+            />
+            <RerunControl evaluationId={evaluationId} step={2} label="materials" action="Change" hasOutputs={hasOutputs} />
+            <span className="text-muted self-center text-xs">
+              Documents can only change before the Source Table is built, so changing them re-runs from 2b.
+            </span>
           </div>
         )}
 

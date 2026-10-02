@@ -78,7 +78,11 @@ export default async function DealsPage() {
                     <div className="text-muted mt-1 text-[11px]">{STATUS_LABELS[d.status]}</div>
                   </td>
                   <td className="py-3 pr-4">
-                    {d.verdict ? (
+                    {d.classification ? (
+                      <span className="tag tag-accent" title="Classification by rule (R3)" data-testid="deal-classification">
+                        {VERDICT_LABELS[d.classification]}
+                      </span>
+                    ) : d.verdict ? (
                       <span className="tag tag-neutral">
                         {VERDICT_LABELS[d.verdict]}
                         {d.overridden && " · overridden"}
@@ -87,8 +91,12 @@ export default async function DealsPage() {
                       <span className="text-muted">—</span>
                     )}
                   </td>
-                  <td className="text-muted py-3 pr-4">—</td>
-                  <td className="text-muted py-3 pr-4">—</td>
+                  <td className={`py-3 pr-4 tabular-nums ${d.openConflicts ? "text-danger" : "text-muted"}`} data-testid="deal-conflicts">
+                    {d.currentStep >= 2 ? `${d.openConflicts} open` : "—"}
+                  </td>
+                  <td className="text-muted py-3 pr-4 tabular-nums" data-testid="deal-critical">
+                    {d.currentStep >= 3 ? d.openCriticalUncertainties : "—"}
+                  </td>
                   <td className="py-3 pr-4 tabular-nums">v{d.configVersion}</td>
                   <td className="text-muted py-3 whitespace-nowrap">
                     {new Date(d.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}

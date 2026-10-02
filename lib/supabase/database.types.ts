@@ -614,7 +614,7 @@ export type Database = {
           {
             foreignKeyName: "decisions_evaluation_id_fkey"
             columns: ["evaluation_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "evaluations"
             referencedColumns: ["id"]
           },
@@ -1362,6 +1362,7 @@ export type Database = {
           progress: number
           started_at: string | null
           status: Database["public"]["Enums"]["run_status"]
+          superseded_at: string | null
           step: number
           warnings: string[]
         }
@@ -1377,6 +1378,7 @@ export type Database = {
           progress?: number
           started_at?: string | null
           status?: Database["public"]["Enums"]["run_status"]
+          superseded_at?: string | null
           step: number
           warnings?: string[]
         }
@@ -1392,6 +1394,7 @@ export type Database = {
           progress?: number
           started_at?: string | null
           status?: Database["public"]["Enums"]["run_status"]
+          superseded_at?: string | null
           step?: number
           warnings?: string[]
         }
@@ -2062,6 +2065,15 @@ export type Database = {
           p_warnings: string[]
         }
         Returns: number
+      }
+      reset_from_step: {
+        Args: {
+          p_actor_id: string
+          p_confirm_full_reset: boolean
+          p_evaluation_id: string
+          p_step: number
+        }
+        Returns: Json
       }
       record_quick_screen: {
         Args: {

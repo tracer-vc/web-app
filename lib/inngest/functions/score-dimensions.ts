@@ -1,11 +1,11 @@
 import "server-only";
 
 import type { ScoreAnchors, SufficiencyRule } from "@/lib/config-shared";
-import { callLlm } from "@/lib/llm/call";
 import { P11 } from "@/lib/llm/prompts/p11-assess-dimension";
 import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DIMENSIONS_SCORE, inngest, type DimensionsScoreData } from "../client";
+import { callLlmStep } from "../errors";
 import { loadClaimContext } from "../claim-context";
 
 // Step 5 (M12): P11 once per dimension of the pinned config, in parallel, then
@@ -21,7 +21,7 @@ export const scoreDimensions = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event, error }) => {
       const data = (event.data as { event: { data: DimensionsScoreData } }).event.data;
-      await failRun(createAdminClient(), data.runId, `Dimension scoring failed: ${error.message}`);
+      await failRun(createAdminClient(), data.runId, error.message);
     },
   },
   async ({ event, step }) => {
@@ -68,7 +68,7 @@ export const scoreDimensions = inngest.createFunction(
       d.dimensions.map((dim) =>
         step.run(`assess ${dim.position}: ${dim.title.slice(0, 60)}`, async () => {
           const prompts = dim.prompts.map((p, i) => ({ id: p.id, ref: `Q${i + 1}`, prompt: p.prompt }));
-          const { output } = await callLlm(
+          const { output } = await callLlmStep(
             P11,
             {
               company: d.company,

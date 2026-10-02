@@ -14,6 +14,7 @@ import {
 import { CONFLICT_STATUS_LABELS, CONFLICT_STATUS_SHORT, type ConflictView } from "@/lib/conflict-shared";
 import { isRunActive, TIER_LABELS, type RunView } from "@/lib/source-shared";
 import { ConflictRegister } from "./conflict-register";
+import { RerunControl, RunCallsLink } from "./rerun-control";
 
 const FILTERS = ["all", "fact", "inference", "speculation"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -29,6 +30,7 @@ export function ClaimsTab({
   conflicts,
   canStressTest,
   stressTestStarted,
+  hasOutputs,
 }: {
   evaluationId: string;
   canExtract: boolean;
@@ -36,6 +38,7 @@ export function ClaimsTab({
   conflicts: ConflictView[];
   canStressTest: boolean;
   stressTestStarted: boolean;
+  hasOutputs: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(table.run);
@@ -130,7 +133,7 @@ export function ClaimsTab({
             <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
-                  Claim extraction failed: {run.error ?? "unknown error"}. Try again.
+                  Claim extraction failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
                 </p>
               ) : (
                 <p>Claim Table built{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
@@ -145,6 +148,7 @@ export function ClaimsTab({
                   {n}
                 </p>
               ))}
+              <RunCallsLink evaluationId={evaluationId} run={run} />
             </div>
           )}
           {error && claims.length === 0 && (
@@ -305,6 +309,15 @@ export function ClaimsTab({
               {error}
             </p>
           )}
+          <div className="border-t border-[var(--color-divider)] pt-2">
+            <RerunControl
+              evaluationId={evaluationId}
+              step={3}
+              label="claim extraction"
+              start={{ path: "claims/extract", tab: "claims" }}
+              hasOutputs={hasOutputs}
+            />
+          </div>
         </section>
       )}
 

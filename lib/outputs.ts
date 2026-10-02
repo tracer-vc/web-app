@@ -37,6 +37,7 @@ export async function loadOutputs(supabase: Supabase, evaluationId: string, conf
         .select("id, status, progress, error, warnings, notes")
         .eq("evaluation_id", evaluationId)
         .eq("step", 6)
+        .is("superseded_at", null)
         .order("created_at", { ascending: false })
         .limit(1),
     ]);

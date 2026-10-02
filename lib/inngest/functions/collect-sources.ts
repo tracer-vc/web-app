@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { TierDefinitions } from "@/lib/config-shared";
-import { callLlm } from "@/lib/llm/call";
 import { fitDocuments } from "@/lib/llm/prompts/p1a-quick-screen-answers";
 import { P2, type P2Output } from "@/lib/llm/prompts/p2-classify-source";
 import { P3 } from "@/lib/llm/prompts/p3-search-queries";
@@ -10,7 +9,7 @@ import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canonicalUrl, searchWeb, WebSearchError, type WebHit } from "@/lib/web-search";
 import { inngest, SOURCES_COLLECT, type SourcesCollectData } from "../client";
-import { describe, isFatal } from "../errors";
+import { callLlmStep, describe, isFatal } from "../errors";
 
 // Characters of one document shown to P2, of one web page kept as a source,
 // and of all sources together shown to P4.
@@ -46,7 +45,7 @@ async function classify(
   fallbackDate: string | null,
 ): Promise<Outcome> {
   try {
-    const { output } = await callLlm(
+    const { output } = await callLlmStep(
       P2,
       {
         company: ctx.company,
@@ -88,7 +87,7 @@ export const collectSources = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event, error }) => {
       const data = (event.data as { event: { data: SourcesCollectData } }).event.data;
-      await failRun(createAdminClient(), data.runId, `Source Table run failed: ${error.message}`);
+      await failRun(createAdminClient(), data.runId, error.message);
     },
   },
   async ({ event, step }) => {
@@ -158,7 +157,7 @@ export const collectSources = inngest.createFunction(
       const plan = await step.run("plan web search", async () => {
         const covered = new Set(uploads.flatMap((u) => (u.outcome.kind === "source" ? u.outcome.c.promptIds : [])));
         try {
-          const { output } = await callLlm(
+          const { output } = await callLlmStep(
             P3,
             {
               company: loaded.company,
@@ -235,7 +234,7 @@ export const collectSources = inngest.createFunction(
       const texts = await sourceTexts(sources, web);
       const fitted = fitDocuments(texts.map((text) => ({ text })), CONFLICT_BUDGET);
       try {
-        const { output } = await callLlm(
+        const { output } = await callLlmStep(
           P4,
           {
             sources: sources.map((s, i) => ({

@@ -2,7 +2,6 @@ import "server-only";
 
 import type { ConfidenceRules, Tier } from "@/lib/config-shared";
 import { checkClaimExcerpts, ExcerptIndex } from "@/lib/excerpt";
-import { callLlm } from "@/lib/llm/call";
 import { LlmError } from "@/lib/llm/client";
 import { claimShapeErrors, MAX_CLAIMS_PER_CHUNK, P5, type P5Claim } from "@/lib/llm/prompts/p5-extract-claims";
 import { P6, type P6Output } from "@/lib/llm/prompts/p6-merge-claims";
@@ -21,7 +20,7 @@ import { failRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import { CLAIMS_EXTRACT, inngest, type ClaimsExtractData } from "../client";
-import { describe, isFatal } from "../errors";
+import { callLlmStep, describe, isFatal } from "../errors";
 
 // Decision 24: P5 runs on chunks of a source; R4 checks against the full text.
 const CHUNK_SIZE = 15_000;
@@ -59,7 +58,7 @@ export const extractClaims = inngest.createFunction(
     retries: 2,
     onFailure: async ({ event, error }) => {
       const data = (event.data as { event: { data: ClaimsExtractData } }).event.data;
-      await failRun(createAdminClient(), data.runId, `Claim extraction failed: ${error.message}`);
+      await failRun(createAdminClient(), data.runId, error.message);
     },
   },
   async ({ event, step }) => {
@@ -130,7 +129,7 @@ export const extractClaims = inngest.createFunction(
           let claims: P5Claim[];
           const stepWarnings: string[] = [];
           try {
-            claims = (await callLlm(P5, input, llm)).output.claims;
+            claims = (await callLlmStep(P5, input, llm)).output.claims;
           } catch (e) {
             if (isFatal(e)) throw e;
             // Decision 37: after the retries, keep the claims that pass R4 and
@@ -184,7 +183,7 @@ export const extractClaims = inngest.createFunction(
       const empty: P6Output = { merges: [], contradictions: [] };
       if (pool.length < 2) return { ...empty, warning: null as string | null };
       try {
-        const { output } = await callLlm(
+        const { output } = await callLlmStep(
           P6,
           {
             claims: pool.map((c) => ({
@@ -225,7 +224,7 @@ export const extractClaims = inngest.createFunction(
       const u = await step.run(`open question ${prompt.ref}`, async () => {
         const nearest = nearestStatements(prompt.question, claims.filter((c) => c.type !== "speculation").map((c) => c.statement));
         try {
-          const { output } = await callLlm(P7, { company: loaded.company, prompt, nearest }, llm);
+          const { output } = await callLlmStep(P7, { company: loaded.company, prompt, nearest }, llm);
           return {
             question: output.question.trim(),
             why_unresolved: output.why_unresolved.trim(),

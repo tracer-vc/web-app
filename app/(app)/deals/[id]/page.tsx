@@ -147,6 +147,8 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         <EvidenceSection deal={deal} supabase={supabase} />
       ) : tab === "claims" ? (
         <ClaimsTab
+          key={deal.updatedAt}
+          hasOutputs={deal.status === "complete"}
           evaluationId={deal.id}
           canExtract={deal.status === "collecting" || deal.status === "extracting"}
           table={await loadClaimTable(supabase, deal.id, deal.configId)}
@@ -156,6 +158,8 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         />
       ) : tab === "counter-case" ? (
         <CounterCaseTab
+          key={deal.updatedAt}
+          hasOutputs={deal.status === "complete"}
           evaluationId={deal.id}
           canRun={deal.status === "stress_testing"}
           view={await loadCounterCase(supabase, deal.id, deal.configId)}
@@ -166,6 +170,8 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         />
       ) : tab === "dimensions" ? (
         <DimensionsTab
+          key={deal.updatedAt}
+          hasOutputs={deal.status === "complete"}
           evaluationId={deal.id}
           canRun={deal.status === "scoring"}
           view={await loadDimensions(supabase, deal.id, deal.configId)}
@@ -200,6 +206,7 @@ async function OutputsSection({
   ]);
   return (
     <OutputsTab
+      key={deal.updatedAt}
       doc={doc}
       evaluationId={deal.id}
       header={{
@@ -230,6 +237,8 @@ async function EvidenceSection({
   const started = table.sources.length > 0 || isRunActive(table.run);
   return (
     <EvidenceTab
+      key={deal.updatedAt}
+      hasOutputs={deal.status === "complete"}
       evaluationId={deal.id}
       fundId={deal.fundId}
       documents={deal.documents}

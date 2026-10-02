@@ -14,7 +14,10 @@ export async function listDeals(supabase: Supabase): Promise<DealRow[]> {
       `id, status, current_step, updated_at,
        company:companies(name, stage, sector),
        config:framework_configs(version),
-       memo:quick_screen_memos(verdict, verdict_overridden_at)`,
+       memo:quick_screen_memos(verdict, verdict_overridden_at),
+       decision:decisions(classification),
+       conflicts(status),
+       uncertainties(status, decision_critical)`,
     )
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -28,6 +31,9 @@ export async function listDeals(supabase: Supabase): Promise<DealRow[]> {
     currentStep: e.current_step,
     verdict: e.memo?.verdict ?? null,
     overridden: !!e.memo?.verdict_overridden_at,
+    classification: e.decision?.classification ?? null,
+    openConflicts: e.conflicts.filter((c) => c.status === "open").length,
+    openCriticalUncertainties: e.uncertainties.filter((u) => u.status === "open" && u.decision_critical).length,
     configVersion: e.config.version,
     updatedAt: e.updated_at,
   }));

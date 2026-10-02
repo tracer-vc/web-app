@@ -26,6 +26,7 @@ export async function loadSourceTable(supabase: Supabase, evaluationId: string, 
       .select("id, status, progress, error, warnings, notes")
       .eq("evaluation_id", evaluationId)
       .eq("step", 2)
+      .is("superseded_at", null)
       .order("created_at", { ascending: false })
       .limit(1),
     supabase

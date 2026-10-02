@@ -106,8 +106,11 @@ export type DealRow = {
   sector: string;
   status: EvaluationStatus;
   currentStep: number;
-  verdict: Verdict | null;
+  verdict: Verdict | null; // Quick Screen
   overridden: boolean;
+  classification: Verdict | null; // R3, once outputs exist
+  openConflicts: number;
+  openCriticalUncertainties: number;
   configVersion: number;
   updatedAt: string;
 };

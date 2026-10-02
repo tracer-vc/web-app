@@ -29,6 +29,7 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
       .select("status")
       .eq("evaluation_id", id)
       .eq("step", 2)
+      .is("superseded_at", null)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
