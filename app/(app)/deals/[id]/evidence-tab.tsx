@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { DocumentView } from "@/lib/evaluation-shared";
 import { isRunActive, type RunView, type SourceTableView } from "@/lib/source-shared";
+import type { ConflictView } from "@/lib/conflict-shared";
+import { ConflictRegister } from "./conflict-register";
 import { MaterialsSection } from "./materials-section";
 import { SourceTable } from "./source-table";
 
@@ -19,6 +21,7 @@ export function EvidenceTab({
   claimsStarted,
   materialsEditable,
   table,
+  conflicts,
 }: {
   evaluationId: string;
   fundId: string;
@@ -28,6 +31,7 @@ export function EvidenceTab({
   claimsStarted: boolean;
   materialsEditable: boolean;
   table: SourceTableView;
+  conflicts: ConflictView[]; // source conflicts
 }) {
   const router = useRouter();
   const [value, setValue] = useState(uploadsOnly);
@@ -204,6 +208,8 @@ export function EvidenceTab({
       </section>
 
       {table.sources.length > 0 && <SourceTable evaluationId={evaluationId} table={table} />}
+
+      <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} title="Source conflicts" />
     </div>
   );
 }

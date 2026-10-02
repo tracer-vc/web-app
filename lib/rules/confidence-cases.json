@@ -1,0 +1,78 @@
+{
+  "comment": "R1 (decision 9) cases shared by lib/rules/confidence.test.mjs (TypeScript) and supabase/tests/confidence.test.mjs (SQL private.recompute_confidence). Rules: the default seed. Sources are listed in S# order; marked_wrong links do not count.",
+  "rules": {
+    "evaluation": "first_match",
+    "levels": [
+      { "level": "high", "min_parties": 2, "min_parties_in_tiers": { "tiers": ["primary", "secondary"], "min": 1 }, "description": "" },
+      { "level": "medium", "min_parties": 1, "min_parties_in_tiers": { "tiers": ["primary", "secondary"], "min": 1 }, "description": "" },
+      { "level": "low", "min_parties": 1, "description": "" }
+    ],
+    "open_conflict_downgrade": 1,
+    "independence": ""
+  },
+  "cases": [
+    {
+      "name": "one Primary party is Medium",
+      "sources": [{ "tier": "primary", "party": "Nordwind" }],
+      "open_conflict": false,
+      "level": "medium",
+      "rule": "Medium: one Primary party (Nordwind)"
+    },
+    {
+      "name": "two sources of the same party count as one party",
+      "sources": [{ "tier": "primary", "party": "Nordwind" }, { "tier": "tertiary", "party": " nordwind " }],
+      "open_conflict": false,
+      "level": "medium",
+      "rule": "Medium: one Primary/Tertiary party (Nordwind)"
+    },
+    {
+      "name": "two independent parties with one Secondary is High",
+      "sources": [{ "tier": "tertiary", "party": "Blog" }, { "tier": "secondary", "party": "Windpower Weekly" }],
+      "open_conflict": false,
+      "level": "high",
+      "rule": "High: 2 independent parties: Blog (Tertiary), Windpower Weekly (Secondary)"
+    },
+    {
+      "name": "Tertiary only is Low, however many parties",
+      "sources": [{ "tier": "tertiary", "party": "Blog A" }, { "tier": "tertiary", "party": "Blog B" }],
+      "open_conflict": false,
+      "level": "low",
+      "rule": "Low: 2 independent parties: Blog A (Tertiary), Blog B (Tertiary)"
+    },
+    {
+      "name": "an open conflict downgrades Medium to Low",
+      "sources": [{ "tier": "primary", "party": "Nordwind" }],
+      "open_conflict": true,
+      "level": "low",
+      "rule": "Medium: one Primary party (Nordwind) → Low: in an open conflict"
+    },
+    {
+      "name": "an open conflict downgrades High to Medium",
+      "sources": [{ "tier": "primary", "party": "Nordwind" }, { "tier": "secondary", "party": "Windpower Weekly" }],
+      "open_conflict": true,
+      "level": "medium",
+      "rule": "High: 2 independent parties: Nordwind (Primary), Windpower Weekly (Secondary) → Medium: in an open conflict"
+    },
+    {
+      "name": "Low cannot drop further",
+      "sources": [{ "tier": "tertiary", "party": "Blog" }],
+      "open_conflict": true,
+      "level": "low",
+      "rule": "Low: one Tertiary party (Blog)"
+    },
+    {
+      "name": "a link marked wrong does not count",
+      "sources": [{ "tier": "primary", "party": "Nordwind" }, { "tier": "secondary", "party": "Windpower Weekly", "marked_wrong": true }],
+      "open_conflict": false,
+      "level": "medium",
+      "rule": "Medium: one Primary party (Nordwind)"
+    },
+    {
+      "name": "every link marked wrong leaves the floor level",
+      "sources": [{ "tier": "primary", "party": "Nordwind", "marked_wrong": true }],
+      "open_conflict": false,
+      "level": "low",
+      "rule": "Low: no source"
+    }
+  ]
+}

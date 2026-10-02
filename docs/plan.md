@@ -286,7 +286,7 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 **Manual test.**
 
 1. Try to resolve CR1 without a rationale → blocked (UI and DB).
-2. Resolve CR1 for side B with a rationale → status and author shown; the claim on side A is no longer downgraded, its confidence label updates.
+2. Resolve CR1 for side B with a rationale → status and author shown; the claim on side A is no longer downgraded, its confidence label updates. (On the Nordwind fixture CR1 is the source conflict from M8 and the claim conflict repeating it is CR2; the downgrade is lifted by resolving the claim conflict, decision 39.)
 3. Mark one link as wrong → struck through, action logged, claim confidence recomputed.
 4. As analyst of another fund → PATCH returns 404/403.
 

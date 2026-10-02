@@ -126,34 +126,6 @@ export function SourceTable({ evaluationId, table }: { evaluationId: string; tab
         </div>
       </div>
 
-      {conflicts.length > 0 && (
-        <div className="card gap-3 p-4 xl:col-span-2" data-testid="source-conflicts">
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">
-            Source conflicts · {conflicts.filter((c) => c.status === "open").length} open
-          </div>
-          {conflicts.map((c) => (
-            <div key={c.id} className="border-t border-[var(--color-divider)] pt-2 text-[13px]">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[11px]">{c.code}</span>
-                <span className="tag tag-neutral">{c.status}</span>
-                <span>{c.description}</span>
-              </div>
-              <div className="mt-1.5 grid gap-2 text-xs sm:grid-cols-2">
-                <blockquote className="border-l-2 border-[var(--color-accent-800)] pl-2">
-                  <span className="text-muted">{c.sideA}:</span> “{c.passageA}”
-                </blockquote>
-                <blockquote className="border-l-2 border-[var(--color-accent-800)] pl-2">
-                  <span className="text-muted">{c.sideB}:</span> “{c.passageB}”
-                </blockquote>
-              </div>
-            </div>
-          ))}
-          <p className="text-muted text-[11px]">
-            Both sides are kept. Resolving a conflict (with a rationale) arrives with the Conflict Register.
-          </p>
-        </div>
-      )}
-
       {open && (
         <TraceDrawer
           key={open.id}

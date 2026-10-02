@@ -11,6 +11,7 @@ import {
   type PipelineTab,
 } from "@/lib/evaluation-shared";
 import { loadClaimTable } from "@/lib/claims";
+import { loadConflictRegister } from "@/lib/conflicts";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
@@ -115,6 +116,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           evaluationId={deal.id}
           canExtract={deal.status === "collecting" || deal.status === "extracting"}
           table={await loadClaimTable(supabase, deal.id, deal.configId)}
+          conflicts={await loadConflictRegister(supabase, deal.id)}
         />
       ) : (
         <div className="card text-[13px]">
@@ -133,7 +135,10 @@ async function EvidenceSection({
   deal: NonNullable<Awaited<ReturnType<typeof loadEvaluation>>>;
   supabase: Awaited<ReturnType<typeof createClient>>;
 }) {
-  const table = await loadSourceTable(supabase, deal.id, deal.configId);
+  const [table, conflicts] = await Promise.all([
+    loadSourceTable(supabase, deal.id, deal.configId),
+    loadConflictRegister(supabase, deal.id),
+  ]);
   const started = table.sources.length > 0 || isRunActive(table.run);
   return (
     <EvidenceTab
@@ -145,6 +150,7 @@ async function EvidenceSection({
       claimsStarted={deal.currentStep >= 3}
       materialsEditable={QUICK_SCREEN_STATUSES.includes(deal.status) && !started}
       table={table}
+      conflicts={conflicts.filter((c) => c.kind === "source")}
     />
   );
 }

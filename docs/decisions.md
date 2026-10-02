@@ -91,6 +91,14 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 
 38. **P7 output** (agreed 2026-10-02; extends data_flow.html P7 with the fields `uncertainties` stores). Besides `{question, why_unresolved}`, P7 returns `decision_critical` (could resolving it change Proceed / Watch / Pass) and `min_evidence_to_resolve`. R2 decides in code which required prompts are uncovered; only a Fact or Inference covers a prompt. If P7 fails, the U# is still written, with the prompt text as the question and a run warning.
 
+## I. Analyst evidence actions
+
+39. **Resolutions, link marking and recompute** (agreed 2026-10-02; fills in decisions 9, 14, 22 and 23 for M10).
+    - The Conflict Register lists source and claim conflicts. Each is resolved on its own: resolving a source conflict does not resolve the claim conflicts that repeat it. A source conflict has no effect on confidence; only an open *claim* conflict downgrades its two claims (decision 9). The register shows which claim conflicts repeat a source conflict.
+    - The analyst sends only the status and the rationale; the database stamps who and when (`resolved_by`, `resolved_at`) and logs every change in `analyst_actions`. A resolution can be changed or reopened; reopening clears who and when, and the downgrade returns.
+    - "Mark link as wrong" sets `marked_wrong_at`; the database stamps who and when and logs it. The link is kept and shown struck through, but no longer counts for R1. Unmarking reverses it, also logged. The share of marked links is shown as the false-link rate. A Fact whose links are all marked wrong stays in the table at the floor level ("Low: no source").
+    - `private.recompute_confidence(claim_id)` is R1 in SQL, with the same result and rule text as `lib/rules/confidence.ts`; both are tested against `lib/rules/confidence-cases.json` (`npm test`). Triggers run it after a claim conflict's status changes, a link is marked or unmarked, and a source's tier or party changes.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

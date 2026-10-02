@@ -10,7 +10,9 @@ import {
   type ClaimType,
   type ClaimView,
 } from "@/lib/claim-shared";
+import { CONFLICT_STATUS_LABELS, CONFLICT_STATUS_SHORT, type ConflictView } from "@/lib/conflict-shared";
 import { isRunActive, TIER_LABELS, type RunView } from "@/lib/source-shared";
+import { ConflictRegister } from "./conflict-register";
 
 const FILTERS = ["all", "fact", "inference", "speculation"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -23,10 +25,12 @@ export function ClaimsTab({
   evaluationId,
   canExtract,
   table,
+  conflicts,
 }: {
   evaluationId: string;
   canExtract: boolean;
   table: ClaimTableView;
+  conflicts: ConflictView[];
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunView | null>(table.run);
@@ -68,6 +72,8 @@ export function ClaimsTab({
   const conf = (l: string) => claims.filter((c) => c.confidence === l).length;
   const shown = filter === "all" ? claims : claims.filter((c) => c.type === filter);
   const openConflicts = new Set(claims.flatMap((c) => c.conflicts.filter((x) => x.status === "open").map((x) => x.code)));
+  const links = claims.flatMap((c) => c.links);
+  const markedWrong = links.filter((l) => l.markedWrong).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,6 +141,12 @@ export function ClaimsTab({
               {claims.length} claims · {count("fact")} Fact · {count("inference")} Inference · {count("speculation")}{" "}
               Speculation · H {conf("high")} · M {conf("medium")} · L {conf("low")} · {openConflicts.size} open conflict
               {openConflicts.size === 1 ? "" : "s"}
+              {markedWrong > 0 && (
+                <span data-testid="false-link-rate">
+                  {" "}
+                  · {markedWrong} of {links.length} links marked wrong ({Math.round((markedWrong / links.length) * 100)}%)
+                </span>
+              )}
             </span>
             <div className="ml-auto flex gap-1" role="group" aria-label="Filter by type">
               {FILTERS.map((f) => (
@@ -176,11 +188,12 @@ export function ClaimsTab({
                       {c.conflicts.map((x) => (
                         <span
                           key={x.id}
-                          className="tag text-danger ml-1.5"
+                          className={`tag ml-1.5 ${x.status === "open" ? "text-danger" : "tag-neutral"}`}
                           title={`${x.description} (contradicts ${x.otherCode})`}
                           data-testid="claim-conflict-badge"
                         >
-                          ⚠ {x.code} · {x.status}
+                          {x.status === "open" && "⚠ "}
+                          {x.code} · {CONFLICT_STATUS_SHORT[x.status]}
                         </span>
                       ))}
                     </td>
@@ -188,11 +201,22 @@ export function ClaimsTab({
                       <span className={`tag ${TYPE_TAG[c.type]}`}>{CLAIM_TYPE_LABELS[c.type]}</span>
                     </td>
                     <td className="text-muted py-2 pr-3 text-xs" data-testid="claim-excerpt">
-                      {c.links.length ? `“${c.links[0].excerpt}”` : <span className="italic">No excerpt (speculation)</span>}
+                      {c.links.length ? (
+                        <span className={c.links[0].markedWrong ? "line-through" : ""}>“{c.links[0].excerpt}”</span>
+                      ) : (
+                        <span className="italic">No excerpt (speculation)</span>
+                      )}
                       {c.links.length > 1 && ` +${c.links.length - 1} more`}
                     </td>
                     <td className="py-2 pr-3 font-mono text-[11px]" data-testid="claim-sources">
-                      {c.links.map((l) => l.sourceCode).join(", ") || "—"}
+                      {c.links.length
+                        ? c.links.map((l, i) => (
+                            <span key={l.id} className={l.markedWrong ? "text-muted line-through" : ""}>
+                              {i > 0 && ", "}
+                              {l.sourceCode}
+                            </span>
+                          ))
+                        : "—"}
                     </td>
                     <td className="py-2 text-xs" data-testid="claim-confidence">
                       {c.confidence ? CONFIDENCE_LABELS[c.confidence] : <span className="text-muted">—</span>}
@@ -237,6 +261,8 @@ export function ClaimsTab({
           </p>
         </section>
       )}
+
+      <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} />
 
       {open && (
         <ClaimDrawer
@@ -303,9 +329,15 @@ function ClaimDrawer({
       )}
 
       {claim.conflicts.map((x) => (
-        <div key={x.id} className="rounded-md border border-[var(--color-danger)]/40 p-3 text-[13px]" data-testid="drawer-conflict">
-          <div className="text-danger">
-            ⚠ In conflict · {x.code} · {x.status}
+        <div
+          key={x.id}
+          className={`rounded-md border p-3 text-[13px] ${
+            x.status === "open" ? "border-[var(--color-danger)]/40" : "border-[var(--color-divider)]"
+          }`}
+          data-testid="drawer-conflict"
+        >
+          <div className={x.status === "open" ? "text-danger" : ""}>
+            {x.status === "open" ? "⚠ In conflict" : "Conflict"} · {x.code} · {CONFLICT_STATUS_LABELS[x.status]}
           </div>
           <div className="text-muted text-xs">
             Contradicts{" "}
@@ -321,22 +353,14 @@ function ClaimDrawer({
         <div className="flex flex-col gap-2 text-[13px]">
           <div className="text-muted text-xs">Evidence links</div>
           {claim.links.map((l) => (
-            <button
+            <EvidenceLink
               key={l.id}
-              onClick={() => setShownLink(l)}
-              className={`rounded-md border p-3 text-left ${
-                shownLink?.id === l.id ? "border-[var(--color-accent)]" : "border-[var(--color-divider)]"
-              }`}
-              data-testid="evidence-link"
-            >
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="font-mono">{l.sourceCode}</span>
-                <span>{l.sourceTitle}</span>
-                <span className="tag tag-neutral">{TIER_LABELS[l.tier]}</span>
-                <span className="text-muted">party: {l.party}</span>
-              </div>
-              <div className="mt-1">“{l.excerpt}”</div>
-            </button>
+              evaluationId={evaluationId}
+              claimId={claim.id}
+              link={l}
+              selected={shownLink?.id === l.id}
+              onSelect={() => setShownLink(l)}
+            />
           ))}
         </div>
       )}
@@ -362,6 +386,73 @@ function ClaimDrawer({
 
       {shownLink && <SourceText key={shownLink.id} evaluationId={evaluationId} link={shownLink} />}
     </aside>
+  );
+}
+
+// One evidence link: shows its excerpt in the source text below, and lets the
+// analyst mark it as wrong (decision 14: logged, kept, struck through, and no
+// longer counted for confidence).
+function EvidenceLink({
+  evaluationId,
+  claimId,
+  link,
+  selected,
+  onSelect,
+}: {
+  evaluationId: string;
+  claimId: string;
+  link: ClaimLinkView;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function mark(wrong: boolean) {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/evaluations/${evaluationId}/claims/${claimId}/links/${link.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wrong }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Couldn't save.");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <div
+      className={`rounded-md border p-3 ${selected ? "border-[var(--color-accent)]" : "border-[var(--color-divider)]"}`}
+      data-testid="evidence-link"
+      data-marked-wrong={link.markedWrong}
+    >
+      <button onClick={onSelect} className="block w-full text-left">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-mono">{link.sourceCode}</span>
+          <span>{link.sourceTitle}</span>
+          <span className="tag tag-neutral">{TIER_LABELS[link.tier]}</span>
+          <span className="text-muted">party: {link.party}</span>
+          {link.markedWrong && <span className="tag text-danger">marked wrong</span>}
+        </div>
+        <div className={`mt-1 ${link.markedWrong ? "text-muted line-through" : ""}`}>“{link.excerpt}”</div>
+      </button>
+      <div className="mt-2 flex items-center gap-2">
+        <button className="btn px-2.5 py-1 text-xs" onClick={() => mark(!link.markedWrong)} disabled={pending}>
+          {pending ? "Saving…" : link.markedWrong ? "Unmark link" : "Mark link as wrong"}
+        </button>
+        {error && (
+          <span role="alert" className="text-danger text-xs">
+            {error}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
