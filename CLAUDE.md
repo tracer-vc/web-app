@@ -31,7 +31,7 @@ Never weaken the invariant core: mandatory C# on every evaluative statement, man
 
 - `lib/supabase/client.ts` — Client Components (browser, RLS as the user).
 - `lib/supabase/server.ts` — Server Components, Server Functions, Route Handlers (RLS as the user). Create one per request.
-- `lib/supabase/admin.ts` — service-role client. Bypasses RLS; never import it into client code. Allowed only in background pipeline workers and in server code that needs the Auth admin API or service-only functions: fund onboarding (`lib/onboarding.ts`) and admin-checked team management (`app/actions/team.ts`, `/settings/team`).
+- `lib/supabase/admin.ts` — service-role client. Bypasses RLS; never import it into client code. Allowed only for pipeline output (background workers, synchronous pipeline steps such as `POST /api/evaluations/[id]/quick-screen`, and the `llm_calls` logger in `lib/llm/`) after the caller's fund membership has been checked through RLS, and in server code that needs the Auth admin API or service-only functions: fund onboarding (`lib/onboarding.ts`) and admin-checked team management (`app/actions/team.ts`, `/settings/team`).
 - `proxy.ts` (Next 16's replacement for `middleware.ts`) refreshes the auth session via `lib/supabase/proxy.ts`.
 
 Env vars are listed in `.env.local.example`. `.env.local` is gitignored and must never be committed.

@@ -65,6 +65,18 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 
 33. **R3 fallback** (agreed 2026-10-01; completes decision 12). Pass and Watch each have one or more conditions, combined with "any" or "all". Proceed has no conditions: it applies when neither Pass nor Watch matches, so the classification is always defined. Conditions available: any dimension below its disqualifying threshold; lowest or average dimension score (0–5); number of open decision-critical uncertainties; number of open conflicts.
 
+## G. Quick Screen from materials
+
+34. **The AI drafts the Quick Screen answers** (agreed 2026-10-02; changes decision 13's input and the order of steps 1 and 2a).
+    - Deal materials are uploaded at the start (Step 1), before the Quick Screen; Evidence Collection (2b) reuses the same documents. Upload, extraction and the `documents` table therefore arrive with M5 instead of M6.
+    - Prompt **P1a** answers each Quick Screen question from the uploaded documents only, with 1–3 verbatim excerpts per answer. Excerpts are checked against the extracted text (normalised substring, the R4 idea); a mismatch is a rule violation and triggers a retry (decision 25).
+    - If the materials don't answer a question, the answer is "Not stated in the materials." with no citations; nothing is guessed. P1 treats such answers as open.
+    - The analyst reviews and may edit every answer before P1 writes the memo; the AI's original answer and its citations are kept, so edits stay visible.
+    - Uploads only: no web search in the Quick Screen. Typing answers by hand still works when there are no materials.
+    - Documents can be added or removed only while the deal is in the Quick Screen phase (screening, passed, watch, collecting).
+
+35. **No temperature for `gpt-6-luna`** (verified 2026-10-02, as plan M5 asks). The model supports strict JSON-schema structured output but rejects `temperature` ("Unsupported parameter: 'temperature' is not supported with this model"), like other reasoning models. Calls therefore use strict JSON schema without a temperature; runs are not bit-for-bit repeatable. Repeatability rests on the rest of the design: versioned prompts, schema plus code-side validation (decision 25), rules computed by code (R1, R3), and every attempt logged in `llm_calls` with its prompt version and input. `lib/llm/call.ts` sends `temperature: 0` to models that accept it.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

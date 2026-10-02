@@ -113,6 +113,44 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          created_at: string
+          fund_id: string
+          id: string
+          name: string
+          sector: string
+          stage: string
+          website: string
+        }
+        Insert: {
+          created_at?: string
+          fund_id?: string
+          id?: string
+          name: string
+          sector?: string
+          stage?: string
+          website?: string
+        }
+        Update: {
+          created_at?: string
+          fund_id?: string
+          id?: string
+          name?: string
+          sector?: string
+          stage?: string
+          website?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       counter_case_prompts: {
         Row: {
           config_id: string
@@ -297,6 +335,141 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          bytes: number
+          created_at: string
+          evaluation_id: string
+          extracted_text: string | null
+          extraction_error: string | null
+          extraction_status: Database["public"]["Enums"]["extraction_status"]
+          filename: string
+          fund_id: string
+          id: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          bytes: number
+          created_at?: string
+          evaluation_id: string
+          extracted_text?: string | null
+          extraction_error?: string | null
+          extraction_status?: Database["public"]["Enums"]["extraction_status"]
+          filename: string
+          fund_id: string
+          id?: string
+          mime_type: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          bytes?: number
+          created_at?: string
+          evaluation_id?: string
+          extracted_text?: string | null
+          extraction_error?: string | null
+          extraction_status?: Database["public"]["Enums"]["extraction_status"]
+          filename?: string
+          fund_id?: string
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluations: {
+        Row: {
+          company_id: string
+          config_id: string
+          created_at: string
+          current_step: number
+          evaluator_id: string | null
+          fund_id: string
+          id: string
+          status: Database["public"]["Enums"]["evaluation_status"]
+          updated_at: string
+          uploads_only: boolean
+        }
+        Insert: {
+          company_id: string
+          config_id: string
+          created_at?: string
+          current_step?: number
+          evaluator_id?: string | null
+          fund_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["evaluation_status"]
+          updated_at?: string
+          uploads_only?: boolean
+        }
+        Update: {
+          company_id?: string
+          config_id?: string
+          created_at?: string
+          current_step?: number
+          evaluator_id?: string | null
+          fund_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["evaluation_status"]
+          updated_at?: string
+          uploads_only?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "framework_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       framework_configs: {
         Row: {
           classification_criteria: Json
@@ -381,6 +554,149 @@ export type Database = {
         }
         Relationships: []
       }
+      llm_calls: {
+        Row: {
+          attempt: number
+          created_at: string
+          error: string | null
+          evaluation_id: string | null
+          fund_id: string
+          id: string
+          input: Json
+          input_tokens: number | null
+          latency_ms: number | null
+          model: string
+          output: Json | null
+          output_tokens: number | null
+          prompt_key: string
+          prompt_version: string
+          run_id: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          error?: string | null
+          evaluation_id?: string | null
+          fund_id: string
+          id?: string
+          input: Json
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model: string
+          output?: Json | null
+          output_tokens?: number | null
+          prompt_key: string
+          prompt_version: string
+          run_id?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          error?: string | null
+          evaluation_id?: string | null
+          fund_id?: string
+          id?: string
+          input?: Json
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model?: string
+          output?: Json | null
+          output_tokens?: number | null
+          prompt_key?: string
+          prompt_version?: string
+          run_id?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "llm_calls_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "llm_calls_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "llm_calls_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_runs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error: string | null
+          evaluation_id: string
+          finished_at: string | null
+          fund_id: string
+          id: string
+          progress: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["run_status"]
+          step: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          evaluation_id: string
+          finished_at?: string | null
+          fund_id: string
+          id?: string
+          progress?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["run_status"]
+          step: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          evaluation_id?: string
+          finished_at?: string | null
+          fund_id?: string
+          id?: string
+          progress?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["run_status"]
+          step?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_runs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_runs_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_runs_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -409,6 +725,202 @@ export type Database = {
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quick_screen_answer_citations: {
+        Row: {
+          answer_id: string
+          created_at: string
+          document_id: string
+          excerpt: string
+          fund_id: string
+          id: string
+        }
+        Insert: {
+          answer_id: string
+          created_at?: string
+          document_id: string
+          excerpt: string
+          fund_id: string
+          id?: string
+        }
+        Update: {
+          answer_id?: string
+          created_at?: string
+          document_id?: string
+          excerpt?: string
+          fund_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_screen_answer_citations_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "quick_screen_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_answer_citations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_answer_citations_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quick_screen_answers: {
+        Row: {
+          ai_answer: string | null
+          answer: string
+          created_at: string
+          evaluation_id: string
+          found_in_materials: boolean | null
+          fund_id: string
+          id: string
+          origin: Database["public"]["Enums"]["answer_origin"]
+          question_id: string
+          updated_at: string
+        }
+        Insert: {
+          ai_answer?: string | null
+          answer: string
+          created_at?: string
+          evaluation_id: string
+          found_in_materials?: boolean | null
+          fund_id: string
+          id?: string
+          origin?: Database["public"]["Enums"]["answer_origin"]
+          question_id: string
+          updated_at?: string
+        }
+        Update: {
+          ai_answer?: string | null
+          answer?: string
+          created_at?: string
+          evaluation_id?: string
+          found_in_materials?: boolean | null
+          fund_id?: string
+          id?: string
+          origin?: Database["public"]["Enums"]["answer_origin"]
+          question_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_screen_answers_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_answers_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quick_screen_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quick_screen_memos: {
+        Row: {
+          created_at: string
+          evaluation_id: string
+          fund_id: string
+          gating_variable: string | null
+          id: string
+          justification: string
+          llm_call_id: string | null
+          original_verdict: Database["public"]["Enums"]["verdict"]
+          override_reason: string | null
+          preliminary_thesis: string
+          reeval_trigger: string | null
+          reopen_condition: string | null
+          uncertainties: string[]
+          verdict: Database["public"]["Enums"]["verdict"]
+          verdict_overridden_at: string | null
+          verdict_overridden_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          evaluation_id: string
+          fund_id: string
+          gating_variable?: string | null
+          id?: string
+          justification: string
+          llm_call_id?: string | null
+          original_verdict: Database["public"]["Enums"]["verdict"]
+          override_reason?: string | null
+          preliminary_thesis: string
+          reeval_trigger?: string | null
+          reopen_condition?: string | null
+          uncertainties: string[]
+          verdict: Database["public"]["Enums"]["verdict"]
+          verdict_overridden_at?: string | null
+          verdict_overridden_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          evaluation_id?: string
+          fund_id?: string
+          gating_variable?: string | null
+          id?: string
+          justification?: string
+          llm_call_id?: string | null
+          original_verdict?: Database["public"]["Enums"]["verdict"]
+          override_reason?: string | null
+          preliminary_thesis?: string
+          reeval_trigger?: string | null
+          reopen_condition?: string | null
+          uncertainties?: string[]
+          verdict?: Database["public"]["Enums"]["verdict"]
+          verdict_overridden_at?: string | null
+          verdict_overridden_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_screen_memos_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: true
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_memos_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_memos_llm_call_id_fkey"
+            columns: ["llm_call_id"]
+            isOneToOne: false
+            referencedRelation: "llm_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_screen_memos_verdict_overridden_by_fkey"
+            columns: ["verdict_overridden_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -464,18 +976,60 @@ export type Database = {
     }
     Functions: {
       create_config_draft: { Args: never; Returns: string }
+      create_evaluation: {
+        Args: {
+          p_name: string
+          p_sector: string
+          p_stage: string
+          p_website: string
+        }
+        Returns: string
+      }
       create_fund_with_admin: {
         Args: { p_display_name: string; p_fund_name: string; p_user_id: string }
         Returns: string
       }
       discard_config_draft: { Args: never; Returns: undefined }
       publish_config: { Args: never; Returns: number }
+      record_quick_screen: {
+        Args: {
+          p_answers: Json
+          p_evaluation_id: string
+          p_llm_call_id: string
+          p_memo: Json
+          p_run_id: string
+        }
+        Returns: undefined
+      }
+      record_quick_screen_drafts: {
+        Args: { p_drafts: Json; p_evaluation_id: string; p_run_id: string }
+        Returns: undefined
+      }
       save_config_draft: { Args: { p_config: Json }; Returns: undefined }
     }
     Enums: {
+      answer_origin: "analyst" | "ai"
       config_status: "draft" | "published"
+      evaluation_status:
+        | "screening"
+        | "passed"
+        | "watch"
+        | "collecting"
+        | "extracting"
+        | "stress_testing"
+        | "scoring"
+        | "synthesizing"
+        | "complete"
+      extraction_status: "pending" | "extracted" | "no_text" | "failed"
+      run_status:
+        | "queued"
+        | "running"
+        | "done"
+        | "done_with_warnings"
+        | "failed"
       source_tier: "primary" | "secondary" | "tertiary"
       user_role: "analyst" | "admin"
+      verdict: "proceed" | "watch" | "pass"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -603,9 +1157,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      answer_origin: ["analyst", "ai"],
       config_status: ["draft", "published"],
+      evaluation_status: [
+        "screening",
+        "passed",
+        "watch",
+        "collecting",
+        "extracting",
+        "stress_testing",
+        "scoring",
+        "synthesizing",
+        "complete",
+      ],
+      extraction_status: ["pending", "extracted", "no_text", "failed"],
+      run_status: ["queued", "running", "done", "done_with_warnings", "failed"],
       source_tier: ["primary", "secondary", "tertiary"],
       user_role: ["analyst", "admin"],
+      verdict: ["proceed", "watch", "pass"],
     },
   },
 } as const

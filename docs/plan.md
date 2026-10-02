@@ -21,7 +21,7 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 | M2 | Auth, fund sign-up, team, app shell and Vercel deploy | — |
 | M3 | Fund settings: versioning and prompt lists | 0 |
 | M4 | Fund settings: dimensions and rule editors | 0 |
-| M5 | LLM layer, deals list, Quick Screen | 1 |
+| M5 | LLM layer, deals list, materials upload, Quick Screen | 1 (+2a) |
 | M6 | Document upload and text extraction | 2a |
 | M7 | Inngest pipeline runs and Source Table from uploads | 2b |
 | M8 | Web search and source conflicts | 2b |
@@ -134,9 +134,11 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 
 ---
 
-## M5 — LLM layer, deals list, Quick Screen
+## M5 — LLM layer, deals list, materials upload, Quick Screen
 
-**Goal.** An analyst creates a deal, answers the Quick Screen questions and gets the Quick Screen memo with a Proceed / Watch / Pass verdict. The LLM layer every later step uses is built here.
+**Goal.** An analyst creates a deal, uploads its materials, has the AI draft the Quick Screen answers from them (P1a, decision 34), reviews them and gets the Quick Screen memo with a Proceed / Watch / Pass verdict. The LLM layer every later step uses is built here. Upload and text extraction (originally M6) move here because the Quick Screen needs them.
+
+**Added by decision 34.** Migration `documents_and_quick_screen_drafts`: `documents`, private bucket `deal-documents` with storage policies, `quick_screen_answers.origin / ai_answer / found_in_materials`, `quick_screen_answer_citations`, `record_quick_screen_drafts()`. Routes: `POST /api/evaluations/[id]/documents` (register + extract), `GET`/`DELETE /api/evaluations/[id]/documents/[docId]`, `POST /api/evaluations/[id]/quick-screen/draft` (P1a). Fixtures `fixtures/nordwind/`.
 
 **Migration** `evaluations_and_quick_screen`: `companies`, `evaluations` (`config_id` pinned, `status` enum, `current_step`, `uploads_only`), `quick_screen_answers`, `quick_screen_memos` (+ `original_verdict`, `verdict_overridden_by/at`), `pipeline_runs` (status incl. `done_with_warnings`; synchronous steps log here too), `llm_calls` (→ `pipeline_runs`, prompt key/version, model, input/output, validation errors, tokens, latency).
 
@@ -159,12 +161,16 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 4. Override the Pass to Watch → verdict changes, `analyst_actions` has a row, memo shows "overridden".
 5. `llm_calls` has one row per call with prompt key `P1`, tokens, latency.
 6. Set `OPENAI_API_KEY` to an invalid value → the UI shows a readable error, nothing half-saved.
+7. Upload the four Nordwind fixtures → all "done", "View text" shows the extracted text; an image-only PDF → "no text extracted"; a 25 MB file or a 21st file → rejected with a message; Remove deletes file and row; another fund can't read the file.
+8. "Draft answers from materials" → every answer is either drafted with verbatim excerpts from the fixtures or "Not stated in the materials."; editing one shows "AI draft · edited" and keeps the original; the memo is generated from the reviewed answers.
 
 ---
 
 ## M6 — Document upload and text extraction
 
 **Goal.** An analyst uploads deal documents; the system extracts and stores their text.
+
+> **Note (decision 34):** upload, extraction, the `documents` table, the bucket and the Nordwind fixtures were built in M5. What remains for M6 is the Evidence tab view of the same documents and the "Uploads only (no web search)" switch.
 
 **Migration** `documents_and_storage`: `documents` (storage path, filename, mime, bytes, `extracted_text`, `extraction_status`); private bucket `deal-documents` (path `{fund_id}/{evaluation_id}/{document_id}.{ext}`, 20 MB limit) with storage policies mirroring `evaluations`.
 
