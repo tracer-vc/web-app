@@ -64,6 +64,7 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
   return {
     id: e.id,
     fundId: e.fund_id,
+    configId: e.config_id,
     status: e.status,
     currentStep: e.current_step,
     uploadsOnly: e.uploads_only,

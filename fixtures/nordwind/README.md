@@ -12,4 +12,4 @@ Fictional company used for manual tests (plan M6 onwards) and as the seed of the
 Planted on purpose:
 
 - **Conflict:** the deck says "12 paying customers"; the press article says "eight customers".
-- **Gap:** no document covers the competitive landscape or incumbent posture (Collection Prompt 7).
+- **Gap:** no document covers constraints such as regulation, capital intensity or adoption friction (Collection Prompt 9). Competition is only touched by the blog author's opinion (Tertiary).

@@ -11,6 +11,8 @@ import {
   type PipelineTab,
 } from "@/lib/evaluation-shared";
 import { loadEvaluation } from "@/lib/evaluations";
+import { isRunActive } from "@/lib/source-shared";
+import { loadSourceTable } from "@/lib/sources";
 import { createClient } from "@/lib/supabase/server";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
@@ -24,7 +26,8 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
   const { id } = await params;
   const { tab: tabParam } = await searchParams;
 
-  const deal = await loadEvaluation(await createClient(), id);
+  const supabase = await createClient();
+  const deal = await loadEvaluation(supabase, id);
   if (!deal) notFound();
 
   const requested = PIPELINE_STEPS.find((s) => s.key === tabParam);
@@ -104,13 +107,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
         />
       ) : tab === "evidence" ? (
-        <EvidenceTab
-          evaluationId={deal.id}
-          fundId={deal.fundId}
-          documents={deal.documents}
-          uploadsOnly={deal.uploadsOnly}
-          editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
-        />
+        <EvidenceSection deal={deal} supabase={supabase} />
       ) : (
         <div className="card text-[13px]">
           <p>{PIPELINE_STEPS.find((s) => s.key === tab)?.label}</p>
@@ -118,5 +115,27 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
         </div>
       )}
     </>
+  );
+}
+
+async function EvidenceSection({
+  deal,
+  supabase,
+}: {
+  deal: NonNullable<Awaited<ReturnType<typeof loadEvaluation>>>;
+  supabase: Awaited<ReturnType<typeof createClient>>;
+}) {
+  const table = await loadSourceTable(supabase, deal.id, deal.configId);
+  const started = table.sources.length > 0 || isRunActive(table.run);
+  return (
+    <EvidenceTab
+      evaluationId={deal.id}
+      fundId={deal.fundId}
+      documents={deal.documents}
+      uploadsOnly={deal.uploadsOnly}
+      canBuild={deal.status === "collecting"}
+      materialsEditable={QUICK_SCREEN_STATUSES.includes(deal.status) && !started}
+      table={table}
+    />
   );
 }

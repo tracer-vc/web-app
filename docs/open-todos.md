@@ -5,7 +5,7 @@ Things that need doing outside the code (accounts, dashboards, keys) or a decisi
 ## Before deploying to Vercel
 
 - [ ] **Vercel project.** Import the repo, set the env vars from `.env.local.example` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `OPENAI_API_KEY`, `TAVILY_API_KEY`, `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`). Then run M2 test step 8 (sign-up, team, login on the Vercel URL).
-- [ ] **Inngest account (free plan).** Create an account at inngest.com, install the Inngest Vercel integration (or add the app's `/api/inngest` URL), and copy `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY` into Vercel. Locally no account is needed: run the dev server with `npx inngest-cli@latest dev`. Free plan: 50k step executions/month, 5 concurrent steps, 24 h trace history; it pauses (no charge) when the quota runs out.
+- [ ] **Inngest account (free plan).** Create an account at inngest.com, install the Inngest Vercel integration (or add the app's `/api/inngest` URL), and copy `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY` into Vercel. Locally no account is needed: set `INNGEST_DEV=1` in `.env.local` and run the dev server with `npx inngest-cli@latest dev`. **Do not set `INNGEST_DEV` on Vercel.** Free plan: 50k step executions/month, 5 concurrent steps, 24 h trace history; it pauses (no charge) when the quota runs out.
 - [ ] **Supabase Auth URLs.** Authentication → URL Configuration: set the Site URL to the Vercel domain and add `https://<vercel-domain>/auth/confirm` to the redirect URLs (keep the localhost ones for development).
 
 ## Supabase settings

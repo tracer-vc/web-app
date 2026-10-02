@@ -79,6 +79,7 @@ export type MemoView = {
 export type EvaluationView = {
   id: string;
   fundId: string;
+  configId: string;
   status: EvaluationStatus;
   currentStep: number;
   uploadsOnly: boolean;

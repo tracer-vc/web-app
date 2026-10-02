@@ -3,6 +3,6 @@ Posted by a renewable-energy newsletter author, April 2026
 
 I have been following Nordwind since their first pilots. My take: whoever collects the most labelled failure data across fleets will win this market, and Nordwind is ahead.
 
-Operators I spoke to like that Sentinel works on top of the SCADA data they already have. Nobody wants another sensor installation project.
+Operators I spoke to like the dashboards and say the alerts arrive well before their own maintenance teams would notice anything.
 
 This is opinion, not investment advice.

@@ -642,10 +642,12 @@ export type Database = {
           finished_at: string | null
           fund_id: string
           id: string
+          notes: string[]
           progress: number
           started_at: string | null
           status: Database["public"]["Enums"]["run_status"]
           step: number
+          warnings: string[]
         }
         Insert: {
           created_at?: string
@@ -655,10 +657,12 @@ export type Database = {
           finished_at?: string | null
           fund_id: string
           id?: string
+          notes?: string[]
           progress?: number
           started_at?: string | null
           status?: Database["public"]["Enums"]["run_status"]
           step: number
+          warnings?: string[]
         }
         Update: {
           created_at?: string
@@ -668,10 +672,12 @@ export type Database = {
           finished_at?: string | null
           fund_id?: string
           id?: string
+          notes?: string[]
           progress?: number
           started_at?: string | null
           status?: Database["public"]["Enums"]["run_status"]
           step?: number
+          warnings?: string[]
         }
         Relationships: [
           {
@@ -970,6 +976,135 @@ export type Database = {
           },
         ]
       }
+      source_prompt_coverage: {
+        Row: {
+          created_at: string
+          fund_id: string
+          prompt_id: string
+          source_id: string
+        }
+        Insert: {
+          created_at?: string
+          fund_id: string
+          prompt_id: string
+          source_id: string
+        }
+        Update: {
+          created_at?: string
+          fund_id?: string
+          prompt_id?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_prompt_coverage_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "source_prompt_coverage_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "collection_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "source_prompt_coverage_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sources: {
+        Row: {
+          accessed_at: string
+          code: string
+          content_text: string
+          created_at: string
+          document_id: string | null
+          evaluation_id: string
+          fund_id: string
+          id: string
+          origin: Database["public"]["Enums"]["source_origin"]
+          party: string
+          published_at: string | null
+          relevance_note: string
+          run_id: string | null
+          tier: Database["public"]["Enums"]["source_tier"]
+          title: string
+          url: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          code: string
+          content_text: string
+          created_at?: string
+          document_id?: string | null
+          evaluation_id: string
+          fund_id: string
+          id?: string
+          origin: Database["public"]["Enums"]["source_origin"]
+          party: string
+          published_at?: string | null
+          relevance_note?: string
+          run_id?: string | null
+          tier: Database["public"]["Enums"]["source_tier"]
+          title: string
+          url?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          code?: string
+          content_text?: string
+          created_at?: string
+          document_id?: string | null
+          evaluation_id?: string
+          fund_id?: string
+          id?: string
+          origin?: Database["public"]["Enums"]["source_origin"]
+          party?: string
+          published_at?: string | null
+          relevance_note?: string
+          run_id?: string | null
+          tier?: Database["public"]["Enums"]["source_tier"]
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sources_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sources_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sources_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sources_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1005,6 +1140,16 @@ export type Database = {
         Args: { p_drafts: Json; p_evaluation_id: string; p_run_id: string }
         Returns: undefined
       }
+      record_sources: {
+        Args: {
+          p_evaluation_id: string
+          p_notes: string[]
+          p_run_id: string
+          p_sources: Json
+          p_warnings: string[]
+        }
+        Returns: number
+      }
       save_config_draft: { Args: { p_config: Json }; Returns: undefined }
     }
     Enums: {
@@ -1027,6 +1172,7 @@ export type Database = {
         | "done"
         | "done_with_warnings"
         | "failed"
+      source_origin: "upload" | "web"
       source_tier: "primary" | "secondary" | "tertiary"
       user_role: "analyst" | "admin"
       verdict: "proceed" | "watch" | "pass"
@@ -1172,6 +1318,7 @@ export const Constants = {
       ],
       extraction_status: ["pending", "extracted", "no_text", "failed"],
       run_status: ["queued", "running", "done", "done_with_warnings", "failed"],
+      source_origin: ["upload", "web"],
       source_tier: ["primary", "secondary", "tertiary"],
       user_role: ["analyst", "admin"],
       verdict: ["proceed", "watch", "pass"],
