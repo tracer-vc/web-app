@@ -68,6 +68,92 @@ export type Database = {
           },
         ]
       }
+      baseline_memos: {
+        Row: {
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          error: string | null
+          evaluation_id: string
+          finished_at: string | null
+          fund_id: string
+          id: string
+          llm_call_id: string | null
+          model: string | null
+          prompt_key: string | null
+          prompt_version: string | null
+          recommendation: Database["public"]["Enums"]["verdict"] | null
+          refs: Json | null
+          run_number: number
+          status: Database["public"]["Enums"]["run_status"]
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          evaluation_id: string
+          finished_at?: string | null
+          fund_id: string
+          id?: string
+          llm_call_id?: string | null
+          model?: string | null
+          prompt_key?: string | null
+          prompt_version?: string | null
+          recommendation?: Database["public"]["Enums"]["verdict"] | null
+          refs?: Json | null
+          run_number: number
+          status?: Database["public"]["Enums"]["run_status"]
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          evaluation_id?: string
+          finished_at?: string | null
+          fund_id?: string
+          id?: string
+          llm_call_id?: string | null
+          model?: string | null
+          prompt_key?: string | null
+          prompt_version?: string | null
+          recommendation?: Database["public"]["Enums"]["verdict"] | null
+          refs?: Json | null
+          run_number?: number
+          status?: Database["public"]["Enums"]["run_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "baseline_memos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "baseline_memos_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "baseline_memos_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "baseline_memos_llm_call_id_fkey"
+            columns: ["llm_call_id"]
+            isOneToOne: false
+            referencedRelation: "llm_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_prompt_coverage: {
         Row: {
           claim_id: string
@@ -993,6 +1079,8 @@ export type Database = {
           fund_id: string
           id: string
           status: Database["public"]["Enums"]["evaluation_status"]
+          study_parent_id: string | null
+          study_run: number | null
           updated_at: string
           uploads_only: boolean
         }
@@ -1005,6 +1093,8 @@ export type Database = {
           fund_id: string
           id?: string
           status?: Database["public"]["Enums"]["evaluation_status"]
+          study_parent_id?: string | null
+          study_run?: number | null
           updated_at?: string
           uploads_only?: boolean
         }
@@ -1017,6 +1107,8 @@ export type Database = {
           fund_id?: string
           id?: string
           status?: Database["public"]["Enums"]["evaluation_status"]
+          study_parent_id?: string | null
+          study_run?: number | null
           updated_at?: string
           uploads_only?: boolean
         }
@@ -2004,6 +2096,10 @@ export type Database = {
     }
     Functions: {
       create_config_draft: { Args: never; Returns: string }
+      create_study_copy: {
+        Args: { p_actor_id: string; p_parent_id: string }
+        Returns: string
+      }
       create_evaluation: {
         Args: {
           p_name: string

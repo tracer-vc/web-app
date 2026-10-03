@@ -16,6 +16,7 @@ import { loadConflictRegister } from "@/lib/conflicts";
 import { loadCounterCase } from "@/lib/counter-case";
 import { loadDimensions } from "@/lib/dimensions";
 import { loadOutputs } from "@/lib/outputs";
+import { baselineRunDoc, loadStudy } from "@/lib/study";
 import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
@@ -24,6 +25,7 @@ import { ClaimsTab } from "./claims-tab";
 import { CounterCaseTab } from "./counter-case-tab";
 import { DimensionsTab } from "./dimensions-tab";
 import { OutputsTab } from "./outputs";
+import { StudyTab } from "./study-tab";
 import { EvidenceTab } from "./evidence-tab";
 import { QuickScreenTab } from "./quick-screen-tab";
 
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DealPage({ params, searchParams }: PageProps<"/deals/[id]">) {
-  await requireUser();
+  const user = await requireUser();
   const { id } = await params;
   const { tab: tabParam } = await searchParams;
 
@@ -41,14 +43,28 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
   if (!deal) notFound();
 
   const requested = [...PIPELINE_STEPS, ...OUTPUT_TABS].find((s) => s.key === tabParam);
-  const tab: PipelineTab =
-    requested && isStepUnlocked(requested.step, deal.status, deal.currentStep) ? requested.key : "quick-screen";
+  // Study 2 (decision 44): fund admins, on original deals only.
+  const showStudy = user.role === "admin" && deal.studyParentId === null;
+  const tab: PipelineTab | "study" =
+    tabParam === "study" && showStudy
+      ? "study"
+      : requested && isStepUnlocked(requested.step, deal.status, deal.currentStep)
+        ? requested.key
+        : "quick-screen";
 
   return (
     <>
       <p className="mb-2 text-[13px] print:hidden">
         <Link href="/deals">← All deals</Link>
       </p>
+      {deal.studyParentId && (
+        <p className="tag tag-outline mb-3 print:hidden" data-testid="study-copy-banner">
+          Study 2 · artifact run {deal.studyRun} (hidden copy) ·{" "}
+          <Link href={`/deals/${deal.studyParentId}?tab=study`} className="ml-1">
+            back to the original deal
+          </Link>
+        </p>
+      )}
       <div className="mb-6 flex flex-wrap items-end gap-4 print:hidden">
         <div>
           <h1 className="mb-1.5 text-3xl">{deal.company.name}</h1>
@@ -131,6 +147,17 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
             </span>
           );
         })}
+        {showStudy && (
+          <Link
+            href={`/deals/${deal.id}?tab=study`}
+            aria-current={tab === "study" ? "page" : undefined}
+            className={`ml-auto rounded-md px-3 py-1.5 text-[13px] no-underline ${
+              tab === "study" ? "bg-[var(--color-accent-800)]/40 text-[var(--color-accent-300)]" : "text-[var(--color-neutral-400)]"
+            }`}
+          >
+            Study
+          </Link>
+        )}
       </nav>
 
       {tab === "quick-screen" ? (
@@ -180,11 +207,27 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           canSynthesize={deal.status === "scoring"}
           synthesisStarted={deal.currentStep >= 6}
         />
+      ) : tab === "study" ? (
+        <StudySection deal={deal} supabase={supabase} />
       ) : (
         <OutputsSection deal={deal} supabase={supabase} doc={tab} />
       )}
     </>
   );
+}
+
+async function StudySection({
+  deal,
+  supabase,
+}: {
+  deal: NonNullable<Awaited<ReturnType<typeof loadEvaluation>>>;
+  supabase: Awaited<ReturnType<typeof createClient>>;
+}) {
+  const study = await loadStudy(supabase, deal.id);
+  const baselineDocs = Object.fromEntries(
+    study.baselines.filter((b) => b.content).map((b) => [b.id, baselineRunDoc(b, `Baseline run ${b.run}`, deal.company.name)]),
+  );
+  return <StudyTab key={deal.updatedAt} evaluationId={deal.id} study={study} baselineDocs={baselineDocs} />;
 }
 
 async function OutputsSection({

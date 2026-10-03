@@ -145,6 +145,18 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - **Exports:** the Evidence Pack `.xlsx` has five sheets (Source Table, Claim Table, Conflict Register, Uncertainty List, Dimension Assessment), keyed by the same IDs as the UI. It is written with the existing `jszip` dependency, since a spreadsheet library would need file-system junctions Turbopack can't create on this drive. Thesis Card and Snapshot print through the browser's print view (one A4 page for the card).
     - **Deals list:** shows the R3 classification once outputs exist (else the Quick Screen verdict), open conflicts and open decision-critical uncertainties.
 
+## N. Study 2
+
+44. **Baseline and artifact runs** (agreed 2026-10-02 with the user; fills in decisions 27 and 29 for M15).
+    - **Baseline corpus:** the deal's Source Table texts, the same texts the artifact worked from, including web pages found in 2b. They are numbered [1]…[n] by S# order and shown with title and origin only; the artifact's tiers and parties are not given. Long corpora are shortened evenly (200,000 characters in total).
+    - **Baseline prompt (B1):** the same LLM and fund config (dimensions with their concrete prompts, score anchors, outcome notes) and the deal's Quick Screen memo. It writes a memo under the same headings as the Thesis Card and Decision Snapshot, citing documents [n]. It has no claim layer, no sufficiency rule, no conflict register and no rule-based classification: the model picks the recommendation. Items are asked to be 1–2 sentences but not length-checked. Validation checks only that cited [n] exist and that every section and dimension is present. Each memo is stored in `baseline_memos` with its `llm_calls` row.
+    - **Artifact runs:** "Run artifact again" copies the deal as a hidden study copy: same company, config version (even if a newer one has been published), Quick Screen (answers and memo) and documents (files copied in Storage, extracted text reused). It then runs steps 2b–6 back to back through the same workers as the buttons. The original is run 1 and copies are numbered from 2. Copies are not in the deals list; they open from the Study tab and show a banner. A failed step stops the run; the copy can be continued from its own deal page.
+    - **Visibility:** the Study tab and baseline memos are for fund admins only (RLS on `baseline_memos`; admin-only routes).
+    - **Export (user's choice of format):** a zip with one file per completed run (`artifact-run-k`, `baseline-run-k`) and a README, as PDF + xlsx, HTML + xlsx, or Markdown.
+      - Artifact files contain the Decision Snapshot and Thesis Card plus appendices (Claim Table, Sources, Uncertainty List, Conflict Register), so every ID can be looked up without the app. With PDF and HTML, each artifact run also gets its Evidence Pack `.xlsx`.
+      - Baseline files contain the memo and its numbered References.
+      - PDFs are generated with `pdf-lib`'s standard fonts; characters outside their character set are mapped to close equivalents.
+
 ## Scope
 
 **Core:** auth + fund-scoped RLS; versioned framework config with seed data; Quick Screen (P1); upload, extraction and Source Table (P2); claim extraction with R4, P6, R1, R2/P7; Conflict Register with resolution; counter-case, uncertainties, falsifiers (P8–P10); dimension scoring with R2 caps (P11); synthesis with DB-enforced `statement_refs`, R3, P12/P13; outputs rendered from rows with click-through trace; `llm_calls` audit log; step runs with progress (polling); baseline memo generator; uploads-only switch.

@@ -405,7 +405,7 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 **Manual test.**
 
 1. Run the baseline 5 times on the Nordwind corpus → 5 memos stored, each with its `llm_calls` row.
-2. Run the artifact 5 times → 5 complete evaluation copies with separate IDs.
+2. Run the artifact 5 times → 5 complete evaluation copies with separate IDs. (The original deal is artifact run 1; copies are numbered from 2. Details in decision 44.)
 3. Export → one file per run, readable without the app.
 
 ---

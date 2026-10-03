@@ -19,6 +19,7 @@ export async function listDeals(supabase: Supabase): Promise<DealRow[]> {
        conflicts(status),
        uncertainties(status, decision_critical)`,
     )
+    .is("study_parent_id", null) // study copies are listed in the Study tab only
     .order("updated_at", { ascending: false });
   if (error) throw error;
 
@@ -43,7 +44,7 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
   const { data: e, error } = await supabase
     .from("evaluations")
     .select(
-      `id, fund_id, status, current_step, uploads_only, updated_at, config_id,
+      `id, fund_id, status, current_step, uploads_only, updated_at, config_id, study_parent_id, study_run,
        company:companies(name, stage, sector, website),
        config:framework_configs(version),
        evaluator:profiles(display_name),
@@ -73,6 +74,8 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
     configId: e.config_id,
     status: e.status,
     currentStep: e.current_step,
+    studyParentId: e.study_parent_id,
+    studyRun: e.study_run,
     uploadsOnly: e.uploads_only,
     updatedAt: e.updated_at,
     company: e.company,

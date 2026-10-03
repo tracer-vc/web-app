@@ -23,3 +23,9 @@ export type DimensionsScoreData = { evaluationId: string; runId: string };
 
 export const SYNTHESIZE = "tracer/outputs.synthesize";
 export type SynthesizeData = { evaluationId: string; runId: string };
+
+// Study 2 (M15)
+export const BASELINE_RUN = "tracer/study.baseline";
+export type BaselineRunData = { evaluationId: string; baselineId: string };
+export const STUDY_ARTIFACT = "tracer/study.artifact";
+export type StudyArtifactData = { evaluationId: string; actorId: string };

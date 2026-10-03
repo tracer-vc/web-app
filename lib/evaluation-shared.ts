@@ -83,6 +83,8 @@ export type MemoView = {
 };
 
 export type EvaluationView = {
+  studyParentId: string | null; // set on hidden Study 2 copies
+  studyRun: number | null;
   id: string;
   fundId: string;
   configId: string;
