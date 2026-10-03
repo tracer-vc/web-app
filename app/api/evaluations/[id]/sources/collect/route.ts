@@ -20,6 +20,14 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
     return jsonError(409, "The Source Table is built after a Proceed in the Quick Screen.");
   }
 
+  // Decision 45: wait until the images in the materials have been read.
+  const { count: reading } = await member.supabase
+    .from("documents")
+    .select("id", { count: "exact", head: true })
+    .eq("evaluation_id", id)
+    .in("visual_status", ["pending", "running"]);
+  if (reading) return jsonError(409, "The images in the materials are still being read. Try again in a moment.");
+
   const [{ count: sources }, { count: readable }] = await Promise.all([
     member.supabase.from("sources").select("id", { count: "exact", head: true }).eq("evaluation_id", id),
     member.supabase

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MAX_DOCUMENTS, MAX_DOCUMENT_BYTES, type DocumentView } from "@/lib/evaluation-shared";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,9 @@ const TYPES: Record<string, { label: string; ext: string }> = {
   "text/html": { label: "HTML", ext: "html" },
   "text/plain": { label: "TXT", ext: "txt" },
   "text/markdown": { label: "Markdown", ext: "md" },
+  "image/png": { label: "PNG", ext: "png" },
+  "image/jpeg": { label: "JPEG", ext: "jpg" },
+  "image/webp": { label: "WebP", ext: "webp" },
 };
 const BY_EXTENSION: Record<string, string> = {
   pdf: "application/pdf",
@@ -22,6 +25,10 @@ const BY_EXTENSION: Record<string, string> = {
   htm: "text/html",
   txt: "text/plain",
   md: "text/markdown",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
 };
 const ACCEPT = Object.keys(BY_EXTENSION).map((e) => `.${e}`).join(",");
 
@@ -61,6 +68,14 @@ export function MaterialsSection({
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const busy = uploads.some((u) => u.state !== "error");
+  const reading = documents.some((d) => d.visualStatus === "pending" || d.visualStatus === "running");
+
+  // Images are read in the background (decision 45); refresh until done.
+  useEffect(() => {
+    if (!reading) return;
+    const timer = setInterval(() => router.refresh(), 3000);
+    return () => clearInterval(timer);
+  }, [reading, router]);
 
   const update = (key: string, patch: Partial<Upload>) =>
     setUploads((list) => list.map((u) => (u.key === key ? { ...u, ...patch } : u)));
@@ -106,7 +121,7 @@ export function MaterialsSection({
     const accepted: [File, string][] = [];
     for (const f of list) {
       const mime = mimeOf(f);
-      if (!mime) rejected.push(`${f.name}: unsupported type (PDF, PPTX, DOCX, HTML, TXT, MD)`);
+      if (!mime) rejected.push(`${f.name}: unsupported type (PDF, PPTX, DOCX, HTML, TXT, MD, PNG, JPEG, WebP)`);
       else if (f.size > MAX_DOCUMENT_BYTES) rejected.push(`${f.name}: larger than 20 MB`);
       else if (f.size === 0) rejected.push(`${f.name}: empty file`);
       else accepted.push([f, mime]);
@@ -153,7 +168,9 @@ export function MaterialsSection({
           }`}
         >
           <span>Drop pitch deck, founder profiles, press, technical docs</span>
-          <span className="text-muted text-xs">PDF, PPTX, DOCX, HTML, TXT · up to 20 MB each</span>
+          <span className="text-muted text-xs">
+            PDF, PPTX, DOCX, HTML, TXT, PNG, JPEG, WebP · up to 20 MB each · charts, tables and images are read too
+          </span>
           <button className="btn btn-primary" onClick={() => input.current?.click()} disabled={busy}>
             Choose files
           </button>
@@ -218,6 +235,7 @@ function DocumentRow({
 }) {
   const [text, setText] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const readingImages = doc.visualStatus === "pending" || doc.visualStatus === "running";
 
   async function toggle() {
     if (!open && text === null) {
@@ -236,11 +254,21 @@ function DocumentRow({
           {TYPES[doc.mimeType]?.label ?? doc.mimeType} · {size(doc.bytes)}
         </span>
         <span
-          className={`tag ${doc.status === "extracted" ? "tag-neutral" : ""} ${doc.status === "no_text" || doc.status === "failed" ? "text-danger" : ""}`}
+          className={`tag ${doc.status === "extracted" ? "tag-neutral" : ""} ${(doc.status === "no_text" && !readingImages) || doc.status === "failed" ? "text-danger" : ""}`}
           data-testid="document-status"
         >
-          {STATUS_LABELS[doc.status]}
+          {doc.status === "no_text" && readingImages ? "text from images…" : STATUS_LABELS[doc.status]}
         </span>
+        {doc.visualStatus !== "none" && (
+          <span
+            className={`tag ${doc.visualStatus === "failed" ? "text-danger" : "tag-outline"}`}
+            title={doc.visualError ?? doc.visualSummary ?? undefined}
+            data-testid="visual-status"
+            data-status={doc.visualStatus}
+          >
+            {readingImages ? "reading images…" : doc.visualStatus === "failed" ? "images not read" : "images read"}
+          </span>
+        )}
         {doc.status === "extracted" && (
           <button className="btn px-2 py-1 text-xs" onClick={toggle} aria-expanded={open}>
             {open ? "Hide text" : "View text"}
@@ -252,6 +280,11 @@ function DocumentRow({
           </button>
         )}
       </div>
+      {(doc.visualSummary || doc.visualError) && !readingImages && (
+        <p className={`mt-1 text-xs ${doc.visualStatus === "failed" ? "text-danger" : "text-muted"}`} data-testid="visual-summary">
+          {doc.visualStatus === "failed" ? doc.visualError : doc.visualSummary}
+        </p>
+      )}
       {open && (
         <pre className="mt-2 max-h-72 overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-xs whitespace-pre-wrap">
           {text}

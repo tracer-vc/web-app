@@ -35,6 +35,17 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
   const client = openai();
   const admin = createAdminClient();
   const userMessage = prompt.user(input);
+  const images = prompt.images?.(input) ?? [];
+  const userContent = images.length
+    ? [
+        ...images.map((img) => ({
+          type: "input_image" as const,
+          image_url: `data:${img.mimeType};base64,${img.base64}`,
+          detail: "high" as const,
+        })),
+        { type: "input_text" as const, text: userMessage },
+      ]
+    : userMessage;
   const format = zodTextFormat(prompt.schema, prompt.name);
   let lastError: LlmError | null = null;
   let lastRejected: z.infer<Schema> | undefined;
@@ -56,7 +67,7 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
         model: ctx.model,
         input: [
           { role: "system", content: prompt.system },
-          { role: "user", content: userMessage },
+          { role: "user", content: userContent },
           ...(feedback ? [{ role: "user" as const, content: feedback }] : []),
         ],
         text: { format },
@@ -104,6 +115,9 @@ export async function callLlm<Input, Schema extends z.ZodObject>(
         input: {
           system: prompt.system,
           user: userMessage,
+          images: images.length
+            ? images.map((img) => ({ label: img.label, mime_type: img.mimeType, bytes: Math.floor((img.base64.length * 3) / 4) }))
+            : undefined,
           feedback,
           temperature: noTemperature.has(ctx.model) ? null : 0,
         } as Json,

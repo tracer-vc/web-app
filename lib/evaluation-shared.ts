@@ -59,6 +59,10 @@ export type DocumentView = {
   mimeType: string;
   bytes: number;
   status: "pending" | "extracted" | "no_text" | "failed";
+  // Reading images, pages and charts (decision 45)
+  visualStatus: "none" | "pending" | "running" | "done" | "failed";
+  visualSummary: string | null;
+  visualError: string | null;
   createdAt: string;
 };
 

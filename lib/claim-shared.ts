@@ -20,6 +20,9 @@ export type ClaimLinkView = {
   start: number; // code-point offsets in the source text
   end: number;
   markedWrong: boolean;
+  // Set when the excerpt lies in an image or chart block of an uploaded
+  // document (decision 45): where it came from, and the stored image if any.
+  visual: { id: string; documentId: string; locator: string; kind: "page" | "image" | "chart"; hasImage: boolean } | null;
 };
 
 export type ClaimConflictView = {

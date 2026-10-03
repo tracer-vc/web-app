@@ -24,7 +24,9 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
   const admin = createAdminClient();
   const { data: docs, error: docsError } = await admin
     .from("documents")
-    .select("storage_path, filename, mime_type, bytes, extracted_text, extraction_status, extraction_error")
+    .select(
+      "id, storage_path, filename, mime_type, bytes, extracted_text, extraction_status, extraction_error, visual_status, visual_summary, visual_error, visuals:document_visuals(position, kind, locator, storage_path, mime_type, informative, transcription, text_start, text_end, llm_call_id)",
+    )
     .eq("evaluation_id", id)
     .order("created_at");
   if (docsError) return dbErrorResponse(docsError);
@@ -58,6 +60,30 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
         uploaded_by: member.user.id,
       });
       if (insertError) throw insertError;
+
+      // The images read from it (decision 45): same files, same text blocks.
+      if (d.visual_status !== "none") {
+        const visuals = [];
+        for (const v of d.visuals) {
+          let storagePath: string | null = null;
+          if (v.storage_path) {
+            storagePath = `${copy!.fund_id}/${copyId}/visuals/${docId}/${v.storage_path.split("/").pop()}`;
+            const { error: vCopyError } = await admin.storage.from(BUCKET).copy(v.storage_path, storagePath);
+            if (vCopyError) throw vCopyError;
+            copied.push(storagePath);
+          }
+          visuals.push({ ...v, storage_path: storagePath });
+        }
+        const { error: visualsError } = await admin.rpc("record_document_visuals", {
+          p_document_id: docId,
+          p_text: d.extracted_text ?? "",
+          p_visuals: visuals,
+          p_status: d.visual_status,
+          p_error: d.visual_error,
+          p_summary: d.visual_summary,
+        });
+        if (visualsError) throw visualsError;
+      }
     }
     await inngest.send({ name: STUDY_ARTIFACT, data: { evaluationId: copyId, actorId: member.user.id } });
     return Response.json({ copyId, run: copy!.study_run }, { status: 202 });

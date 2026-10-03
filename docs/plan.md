@@ -410,6 +410,27 @@ Built from the spec in `docs/` (thesis proposal, app summaries, `data_flow.html`
 
 ---
 
+## M16 — Visual content of uploaded documents
+
+**Goal.** Information that exists only in images, charts or scans of the uploaded materials reaches the Evidence Pack and can be cited, with the image shown in the trace (decision 45).
+
+**Migration** `document_visuals`: `documents.visual_status/visual_summary/visual_error`, `document_visuals` (kind page | image | chart, locator, stored image, transcription, text range), `record_document_visuals()` (append-only), document text frozen once the Source Table exists, image types allowed in the bucket.
+
+**Pages/routes.**
+
+- Upload accepts PNG/JPEG/WebP; after text extraction the background job reads PDF pages, PPTX/DOCX images and native charts (V1 for images), appends the informative content, and records each visual.
+- Materials list shows "reading images…" and a summary; the Quick Screen draft and the Source Table wait until reading has finished.
+- Claim drawer: "From … · AI transcription" with the image; Claim Table and exports mark such claims. `GET /api/evaluations/[id]/documents/[docId]/visuals/[visualId]` serves the image.
+
+**Manual test** (fixtures in `fixtures/nordwind-visual/`).
+
+1. Upload the pipeline chart (PNG), the traction deck (PPTX) and the scanned letter of intent (PDF) → each shows "images read" with a summary; the text contains the transcriptions and the native chart data.
+2. The scanned PDF, which has no text layer, becomes usable.
+3. Build the Source Table and extract claims → at least one claim cites a fact that exists only in an image; its trace drawer shows "From … · AI transcription" and the image.
+4. Remove a document before the Source Table is built → its stored images are removed too.
+
+---
+
 ## Backlog (nice-to-have, not scheduled)
 
 Company and Media tabs; P0 prompt suggestions from dimensions; PDF export; copy-link sharing; "Export deal"; Supabase Realtime instead of polling; OCR fallback; claim text editing; Undo merge; change-log UI; deals-list filters; configuration-version comparison UI.

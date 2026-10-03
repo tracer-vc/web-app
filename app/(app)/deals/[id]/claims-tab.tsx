@@ -232,6 +232,11 @@ export function ClaimsTab({
                         <span className="italic">No excerpt (speculation)</span>
                       )}
                       {c.links.length > 1 && ` +${c.links.length - 1} more`}
+                      {c.links.some((l) => l.visual) && (
+                        <span className="tag tag-outline ml-1" title="Quoted from an image or chart in the document" data-testid="from-visual">
+                          {c.links.some((l) => l.visual?.kind !== "chart") ? "image" : "chart"}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2 pr-3 font-mono text-[11px]" data-testid="claim-sources">
                       {c.links.length
@@ -508,6 +513,26 @@ function EvidenceLink({
           {link.markedWrong && <span className="tag text-danger">marked wrong</span>}
         </div>
         <div className={`mt-1 ${link.markedWrong ? "text-muted line-through" : ""}`}>“{link.excerpt}”</div>
+        {link.visual && (
+          <div className="mt-2 flex flex-col gap-1.5 text-xs" data-testid="visual-origin">
+            <span className="tag tag-outline w-fit">
+              From {link.visual.locator} ·{" "}
+              {link.visual.kind === "chart" ? "chart data read from the file" : "AI transcription of the image"}
+            </span>
+            {link.visual.hasImage && (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- private, authenticated image route */}
+                <img
+                  src={`/api/evaluations/${evaluationId}/documents/${link.visual.documentId}/visuals/${link.visual.id}`}
+                  alt={`${link.sourceTitle}, ${link.visual.locator}`}
+                  className="max-h-72 w-fit max-w-full rounded border border-[var(--color-divider)] bg-white"
+                  data-testid="visual-image"
+                />
+                <span className="text-muted">The excerpt quotes the AI transcription of this image; check it against the image.</span>
+              </>
+            )}
+          </div>
+        )}
       </button>
       <div className="mt-2 flex items-center gap-2">
         <button className="btn px-2.5 py-1 text-xs" onClick={() => mark(!link.markedWrong)} disabled={pending}>

@@ -29,3 +29,7 @@ export const BASELINE_RUN = "tracer/study.baseline";
 export type BaselineRunData = { evaluationId: string; baselineId: string };
 export const STUDY_ARTIFACT = "tracer/study.artifact";
 export type StudyArtifactData = { evaluationId: string; actorId: string };
+
+// Reading the visual content of an uploaded document (decision 45)
+export const DOCUMENT_VISUALS = "tracer/document.visuals";
+export type DocumentVisualsData = { documentId: string };

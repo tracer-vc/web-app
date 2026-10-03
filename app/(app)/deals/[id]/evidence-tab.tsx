@@ -42,6 +42,8 @@ export function EvidenceTab({
   const [run, setRun] = useState<RunView | null>(table.run);
   const [pending, startTransition] = useTransition();
   const readable = documents.filter((d) => d.status === "extracted").length;
+  // Decision 45: the Source Table waits until the images have been read.
+  const readingImages = documents.some((d) => d.visualStatus === "pending" || d.visualStatus === "running");
   const active = isRunActive(run);
   const built = table.sources.length > 0 || (!!run && !active && run.status !== "failed");
 
@@ -142,8 +144,8 @@ export function EvidenceTab({
 
         {!built && (
           <div className="flex flex-wrap items-center gap-3 border-t border-[var(--color-divider)] pt-3">
-            <button className="btn btn-primary" onClick={build} disabled={!canBuild || pending || active || readable === 0}>
-              {active ? "Building…" : "Build Source Table"}
+            <button className="btn btn-primary" onClick={build} disabled={!canBuild || pending || active || readable === 0 || readingImages}>
+              {active ? "Building…" : readingImages ? "Reading images…" : "Build Source Table"}
             </button>
             <span className="text-muted text-[13px]">
               {readable} document{readable === 1 ? "" : "s"} with readable text. Each is classified against the

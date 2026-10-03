@@ -22,8 +22,8 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/evaluations
   });
 }
 
-// Remove a document and its file. The database allows this only while the
-// deal is in the Quick Screen phase.
+// Remove a document, its file and the images read from it (decision 45). The
+// database allows this only before the Source Table is built.
 export async function DELETE(_request: Request, ctx: RouteContext<"/api/evaluations/[id]/documents/[docId]">) {
   const member = await memberContext();
   if (member instanceof Response) return member;
@@ -38,7 +38,10 @@ export async function DELETE(_request: Request, ctx: RouteContext<"/api/evaluati
   if (error) return dbErrorResponse(error);
   if (!data.length) return jsonError(404, "Document not found.");
 
-  const { error: storageError } = await member.supabase.storage.from("deal-documents").remove([data[0].storage_path]);
+  const storage = member.supabase.storage.from("deal-documents");
+  const folder = `${data[0].storage_path.split("/")[0]}/${id}/visuals/${docId}`;
+  const { data: visuals } = await storage.list(folder);
+  const { error: storageError } = await storage.remove([data[0].storage_path, ...(visuals ?? []).map((f) => `${folder}/${f.name}`)]);
   if (storageError) return jsonError(500, "The document was removed, but its file couldn't be deleted.");
 
   return new Response(null, { status: 204 });

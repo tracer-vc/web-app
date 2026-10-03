@@ -16,6 +16,10 @@ Things that need doing outside the code (accounts, dashboards, keys) or a decisi
 
 - [ ] **Tavily API key on Vercel** (web search, M8). Already in `.env.local` (2026-10-02); add `TAVILY_API_KEY` to Vercel when deploying. Free plan: 1,000 credits/month, about 8 per deal with web search.
 
+## After the first deploy
+
+- [ ] **Check PDF page rendering on Vercel** (decision 45). `@napi-rs/canvas` is a native module loaded at runtime; `next.config.ts` traces `node_modules/@napi-rs/canvas*` into the functions. Upload a PDF with a chart and confirm the materials list shows "images read". If it fails with a missing module, check that Vercel's install pulled the Linux binary (`@napi-rs/canvas-linux-x64-gnu`).
+
 ## Decisions
 
 - [ ] **"Tracer Fund"** (seeded in M1) has no members and can't get any since self-service sign-up (decision 2). Keep it or delete it.

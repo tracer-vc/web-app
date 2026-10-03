@@ -47,6 +47,8 @@ export function QuickScreenTab({
   const pending = drafting || generating;
 
   const readable = documents.filter((d) => d.status === "extracted").length;
+
+  const readingImages = documents.some((d) => d.visualStatus === "pending" || d.visualStatus === "running");
   const allAnswered = questions.every((q) => answers[q.id]?.trim());
   const changed = questions.some((q) => (answers[q.id] ?? "").trim() !== (saved[q.id]?.answer ?? "").trim());
   const hasAnswers = questions.some((q) => saved[q.id] || answers[q.id]?.trim());
@@ -110,10 +112,10 @@ export function QuickScreenTab({
               <button
                 className="btn btn-primary ml-auto"
                 onClick={draft}
-                disabled={pending || readable === 0}
+                disabled={pending || readable === 0 || readingImages}
                 title={readable === 0 ? "Upload at least one document with readable text first" : undefined}
               >
-                {drafting ? "Drafting answers…" : "Draft answers from materials"}
+                {drafting ? "Drafting answers…" : readingImages ? "Reading images…" : "Draft answers from materials"}
               </button>
             )}
           </div>

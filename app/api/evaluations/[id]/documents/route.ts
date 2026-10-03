@@ -2,6 +2,8 @@ import * as z from "zod";
 import { dbErrorResponse, jsonError, memberContext } from "@/lib/api";
 import { MAX_DOCUMENT_BYTES } from "@/lib/evaluation-shared";
 import { DOCUMENT_TYPES, extractDocumentText } from "@/lib/extract";
+import { DOCUMENT_VISUALS, inngest } from "@/lib/inngest/client";
+import { hasVisuals } from "@/lib/visual/collect";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const Body = z.object({
@@ -12,7 +14,8 @@ const Body = z.object({
 });
 
 // The browser has uploaded the file to deal-documents/{fund}/{evaluation}/{id}.{ext}
-// (storage policies mirror evaluations). Register it, then extract its text.
+// (storage policies mirror evaluations). Register it, extract its text, and
+// queue reading its visual content in the background (decision 45).
 // Metadata is written as the user (RLS + limits); text by the server.
 export async function POST(request: Request, ctx: RouteContext<"/api/evaluations/[id]/documents">) {
   const member = await memberContext();
@@ -58,5 +61,21 @@ export async function POST(request: Request, ctx: RouteContext<"/api/evaluations
     .eq("id", id);
   if (updateError) return dbErrorResponse(updateError);
 
-  return Response.json({ id, status: result.status }, { status: 201 });
+  let visualStatus: "none" | "pending" | "failed" = "none";
+  if (result.status !== "failed" && hasVisuals(mime_type)) {
+    visualStatus = "pending";
+    await admin.from("documents").update({ visual_status: "pending" }).eq("id", id);
+    try {
+      await inngest.send({ name: DOCUMENT_VISUALS, data: { documentId: id } });
+    } catch (e) {
+      visualStatus = "failed";
+      const detail = e instanceof Error ? e.message : String(e);
+      await admin
+        .from("documents")
+        .update({ visual_status: "failed", visual_error: `Couldn't start reading the images: ${detail}` })
+        .eq("id", id);
+    }
+  }
+
+  return Response.json({ id, status: result.status, visualStatus }, { status: 201 });
 }

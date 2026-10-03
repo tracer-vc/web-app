@@ -50,7 +50,7 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
        evaluator:profiles(display_name),
        answers:quick_screen_answers(question_id, answer, origin, ai_answer, found_in_materials,
          citations:quick_screen_answer_citations(document_id, excerpt, document:documents(filename))),
-       documents(id, filename, mime_type, bytes, extraction_status, created_at),
+       documents(id, filename, mime_type, bytes, extraction_status, visual_status, visual_summary, visual_error, created_at),
        memo:quick_screen_memos(preliminary_thesis, verdict, original_verdict, justification, uncertainties,
          reopen_condition, gating_variable, reeval_trigger, verdict_overridden_at, override_reason,
          overrider:profiles!quick_screen_memos_verdict_overridden_by_fkey(display_name))`,
@@ -106,6 +106,9 @@ export async function loadEvaluation(supabase: Supabase, id: string): Promise<Ev
         mimeType: d.mime_type,
         bytes: d.bytes,
         status: d.extraction_status,
+        visualStatus: d.visual_status,
+        visualSummary: d.visual_summary,
+        visualError: d.visual_error,
         createdAt: d.created_at,
       })),
     memo: m

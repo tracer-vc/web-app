@@ -3,6 +3,7 @@ import "server-only";
 import JSZip from "jszip";
 import mammoth from "mammoth";
 import { extractText as extractPdfText } from "unpdf";
+import { decodeEntities } from "./xml-text";
 
 // Supported upload types (bucket deal-documents allows the same list).
 export const DOCUMENT_TYPES: Record<string, { label: string; ext: string }> = {
@@ -12,6 +13,10 @@ export const DOCUMENT_TYPES: Record<string, { label: string; ext: string }> = {
   "text/html": { label: "HTML", ext: "html" },
   "text/plain": { label: "TXT", ext: "txt" },
   "text/markdown": { label: "Markdown", ext: "md" },
+  // Images carry no text layer; their content is read by V1 (decision 45).
+  "image/png": { label: "PNG", ext: "png" },
+  "image/jpeg": { label: "JPEG", ext: "jpg" },
+  "image/webp": { label: "WebP", ext: "webp" },
 };
 
 // Less than this many non-whitespace characters counts as "no text extracted"
@@ -46,6 +51,10 @@ async function extractByType(mime: string, data: Uint8Array): Promise<string> {
       return extractPptx(data);
     case "text/html":
       return htmlToText(new TextDecoder().decode(data));
+    case "image/png":
+    case "image/jpeg":
+    case "image/webp":
+      return "";
     case "text/plain":
     case "text/markdown":
       return new TextDecoder().decode(data);
@@ -85,30 +94,7 @@ function htmlToText(html: string): string {
   );
 }
 
-const NAMED_ENTITIES: Record<string, string> = {
-  ldquo: "“",
-  rdquo: "”",
-  lsquo: "‘",
-  rsquo: "’",
-  ndash: "–",
-  mdash: "—",
-  hellip: "…",
-  copy: "©",
-  euro: "€",
-};
 
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&(ldquo|rdquo|lsquo|rsquo|ndash|mdash|hellip|copy|euro);/g, (_, n: string) => NAMED_ENTITIES[n])
-    .replace(/&nbsp;/g, " ")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;|&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
-}
 
 function normalise(text: string): string {
   return text

@@ -27,6 +27,14 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
     return jsonError(409, "The Quick Screen can only be redone before Evidence Collection starts.");
   }
 
+  // Decision 45: wait until the images in the materials have been read.
+  const { count: reading } = await member.supabase
+    .from("documents")
+    .select("id", { count: "exact", head: true })
+    .eq("evaluation_id", id)
+    .in("visual_status", ["pending", "running"]);
+  if (reading) return jsonError(409, "The images in the materials are still being read. Try again in a moment.");
+
   const [{ data: questions }, { data: documents }] = await Promise.all([
     member.supabase.from("quick_screen_questions").select("id, label, question").eq("config_id", evaluation.config_id).order("position"),
     member.supabase

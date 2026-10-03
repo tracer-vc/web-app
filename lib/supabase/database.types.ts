@@ -1002,6 +1002,79 @@ export type Database = {
           },
         ]
       }
+      document_visuals: {
+        Row: {
+          created_at: string
+          document_id: string
+          fund_id: string
+          id: string
+          informative: boolean
+          kind: Database["public"]["Enums"]["visual_kind"]
+          llm_call_id: string | null
+          locator: string
+          mime_type: string | null
+          position: number
+          storage_path: string | null
+          text_end: number | null
+          text_start: number | null
+          transcription: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          fund_id: string
+          id?: string
+          informative: boolean
+          kind: Database["public"]["Enums"]["visual_kind"]
+          llm_call_id?: string | null
+          locator: string
+          mime_type?: string | null
+          position: number
+          storage_path?: string | null
+          text_end?: number | null
+          text_start?: number | null
+          transcription?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          fund_id?: string
+          id?: string
+          informative?: boolean
+          kind?: Database["public"]["Enums"]["visual_kind"]
+          llm_call_id?: string | null
+          locator?: string
+          mime_type?: string | null
+          position?: number
+          storage_path?: string | null
+          text_end?: number | null
+          text_start?: number | null
+          transcription?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_visuals_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_visuals_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_visuals_llm_call_id_fkey"
+            columns: ["llm_call_id"]
+            isOneToOne: false
+            referencedRelation: "llm_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           bytes: number
@@ -1016,6 +1089,9 @@ export type Database = {
           mime_type: string
           storage_path: string
           uploaded_by: string | null
+          visual_error: string | null
+          visual_status: Database["public"]["Enums"]["visual_status"]
+          visual_summary: string | null
         }
         Insert: {
           bytes: number
@@ -1030,6 +1106,9 @@ export type Database = {
           mime_type: string
           storage_path: string
           uploaded_by?: string | null
+          visual_error?: string | null
+          visual_status?: Database["public"]["Enums"]["visual_status"]
+          visual_summary?: string | null
         }
         Update: {
           bytes?: number
@@ -1044,6 +1123,9 @@ export type Database = {
           mime_type?: string
           storage_path?: string
           uploaded_by?: string | null
+          visual_error?: string | null
+          visual_status?: Database["public"]["Enums"]["visual_status"]
+          visual_summary?: string | null
         }
         Relationships: [
           {
@@ -2171,6 +2253,17 @@ export type Database = {
         }
         Returns: Json
       }
+      record_document_visuals: {
+        Args: {
+          p_document_id: string
+          p_error: string | null
+          p_status: Database["public"]["Enums"]["visual_status"]
+          p_summary: string | null
+          p_text: string
+          p_visuals: Json
+        }
+        Returns: number
+      }
       record_quick_screen: {
         Args: {
           p_answers: Json
@@ -2245,6 +2338,8 @@ export type Database = {
       uncertainty_status: "open" | "resolved"
       user_role: "analyst" | "admin"
       verdict: "proceed" | "watch" | "pass"
+      visual_kind: "page" | "image" | "chart"
+      visual_status: "none" | "pending" | "running" | "done" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2415,6 +2510,8 @@ export const Constants = {
       uncertainty_status: ["open", "resolved"],
       user_role: ["analyst", "admin"],
       verdict: ["proceed", "watch", "pass"],
+      visual_kind: ["page", "image", "chart"],
+      visual_status: ["none", "pending", "running", "done", "failed"],
     },
   },
 } as const

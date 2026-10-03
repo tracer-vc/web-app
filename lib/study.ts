@@ -191,7 +191,7 @@ export async function artifactRunDoc(
         CLAIM_TYPE_LABELS[c.type],
         c.confidence ? CONFIDENCE_LABELS[c.confidence] : "—",
         c.links.map((l) => l.sourceCode).join(", ") || "—",
-        c.links[0] ? `"${c.links[0].excerpt}"` : "—",
+        c.links[0] ? `${c.links[0].visual ? `[${c.links[0].visual.locator}] ` : ""}"${c.links[0].excerpt}"` : "—",
       ]),
     },
     { kind: "h2", text: "Appendix: Sources" },

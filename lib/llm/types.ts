@@ -9,6 +9,9 @@ export type PromptDef<Input, Schema extends z.ZodObject> = {
   system: string;
   user: (input: Input) => string;
   schema: Schema;
+  // Images sent with the user message (decision 45). llm_calls logs their
+  // labels and sizes, not the image data.
+  images?: (input: Input) => { label: string; mimeType: string; base64: string }[];
   // Rule checks the JSON schema can't express (e.g. "Pass needs a reopen
   // condition"). Return human-readable violations; empty means valid.
   validate?: (output: z.infer<Schema>, input: Input) => string[];

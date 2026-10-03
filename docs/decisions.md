@@ -16,7 +16,7 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 4. **LLM.** OpenAI, model `gpt-6-luna` as the default. The model name is stored per fund in `funds.llm_model`; the API key comes from `OPENAI_API_KEY`.
 5. **Web search.** Tavily.
 6. **Company / Media tabs.** Out of scope for now. If built later, populated only from items already in the Source Table (no LinkedIn/X scraping).
-7. **OCR.** None. Documents without extractable text are flagged "no text extracted".
+7. **OCR.** ~~None. Documents without extractable text are flagged "no text extracted".~~ Replaced by decision 45: visual content (including scans) is read by the model.
 8. **Hosting.** Vercel. Long pipeline steps (2b, 3, 5) run as Inngest functions; route handlers enqueue and return 202.
 
 ## C. Rules
@@ -156,6 +156,18 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
       - Artifact files contain the Decision Snapshot and Thesis Card plus appendices (Claim Table, Sources, Uncertainty List, Conflict Register), so every ID can be looked up without the app. With PDF and HTML, each artifact run also gets its Evidence Pack `.xlsx`.
       - Baseline files contain the memo and its numbered References.
       - PDFs are generated with `pdf-lib`'s standard fonts; characters outside their character set are mapped to close equivalents.
+
+## O. Visual content
+
+45. **Reading images, scans and charts** (agreed 2026-10-03 with the user; replaces decision 7).
+    - **What is read:** every PDF page (rendered on the server), images embedded in PPTX and DOCX, and uploaded images (PNG, JPEG, WebP). Native PowerPoint/Word charts are read from their data in the file, not by the model.
+      - Skipped: images under 2 KB, repeated images (logos) and formats the model can't read (EMF, WMF, SVG, TIFF).
+      - At most 40 pages, images and charts per document; the summary names what was left out.
+    - **When:** at upload, in a background job after text extraction. The Quick Screen draft and the Source Table wait until it has finished.
+    - **How (V1):** one model call per image, with the text already extracted from that page or slide. The model transcribes only what the image adds: chart values with labels and units, tables, diagram labels, text in screenshots or scans, legible customer/partner logos. It must be faithful (no interpretation, no estimating, "[illegible]" where unreadable) and reports decorative images as not informative.
+    - **As evidence (the user's choice: citable, flagged):** informative content is appended to the document's text as labelled blocks ("[Slide 5 · image 2 — AI transcription of the image]", "[Slide 4 · chart 1 — chart data read from the file]"). Claims can cite it verbatim like any text; R4 is unchanged, and R1 is unchanged. `document_visuals` records each block's position and the stored image. The trace drawer marks such links "From Slide 5 · image 2 · AI transcription", shows the image next to the excerpt, and asks the analyst to check the excerpt against the image. The Claim Table and exports mark these claims.
+    - **Integrity:** the text only grows by appending (database check) and is frozen once the Source Table exists, so offsets stay valid. A scan or image upload without a text layer becomes usable once its images have been read. Removing a document removes its images. Study copies carry the same images and text.
+    - **Rendering:** PDF pages are rendered with `unpdf` and `@napi-rs/canvas`. The native module is imported at runtime and traced into deployments (`next.config.ts`), because bundling it needs file-system links the development drive doesn't support.
 
 ## Scope
 

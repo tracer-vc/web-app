@@ -72,6 +72,7 @@ export async function evidencePackSheets(supabase: Supabase, id: string, configI
       { header: "Sources", key: "sources", width: 10 },
       { header: "Excerpts", key: "excerpts", width: 70 },
       { header: "Links marked wrong", key: "wrong", width: 12 },
+      { header: "Read from (image / chart)", key: "visual", width: 26 },
       { header: "Conflicts", key: "conflicts", width: 16 },
     ],
     claims.claims.map((c) => ({
@@ -83,6 +84,7 @@ export async function evidencePackSheets(supabase: Supabase, id: string, configI
       sources: c.links.map((l) => l.sourceCode).join(", "),
       excerpts: c.links.map((l) => `${l.sourceCode}: "${l.excerpt}"`).join("\n"),
       wrong: c.links.filter((l) => l.markedWrong).map((l) => l.sourceCode).join(", "),
+      visual: c.links.filter((l) => l.visual).map((l) => `${l.sourceCode} ${l.visual!.locator}`).join(", "),
       conflicts: c.conflicts.map((x) => `${x.code} (${x.status})`).join(", "),
     })),
   );

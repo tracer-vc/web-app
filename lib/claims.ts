@@ -16,7 +16,7 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
     supabase
       .from("claims")
       .select(
-        "id, code, statement, type, confidence, confidence_basis, links:claim_sources(id, source_id, excerpt, excerpt_start, excerpt_end, marked_wrong_at, source:sources(code, title, tier, party)), coverage:claim_prompt_coverage(prompt_id), arguments:counter_argument_claims(argument:counter_arguments(rank)), falsifiers:falsifier_claims(falsifier:falsifiers(code))",
+        "id, code, statement, type, confidence, confidence_basis, links:claim_sources(id, source_id, excerpt, excerpt_start, excerpt_end, marked_wrong_at, source:sources(code, title, tier, party, document_id)), coverage:claim_prompt_coverage(prompt_id), arguments:counter_argument_claims(argument:counter_arguments(rank)), falsifiers:falsifier_claims(falsifier:falsifiers(code))",
       )
       .eq("evaluation_id", evaluationId),
     supabase
@@ -38,6 +38,22 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
       .limit(1),
   ]);
   for (const r of [claims, conflicts, uncertainties, prompts, runs]) if (r.error) throw r.error;
+
+  // Excerpts quoted from an image or chart block (decision 45). A Source Table
+  // copies the document text as is, so offsets in both are the same.
+  const documentIds = [...new Set(claims.data!.flatMap((c) => c.links.map((l) => l.source.document_id)).filter((d): d is string => !!d))];
+  const { data: visuals, error: vError } = documentIds.length
+    ? await supabase
+        .from("document_visuals")
+        .select("id, document_id, locator, kind, storage_path, text_start, text_end")
+        .in("document_id", documentIds)
+        .eq("informative", true)
+    : { data: [], error: null };
+  if (vError) throw vError;
+  const visualOf = (documentId: string | null, start: number, end: number) => {
+    const v = visuals!.find((x) => x.document_id === documentId && start < x.text_end! && end > x.text_start!);
+    return v ? { id: v.id, documentId: v.document_id, locator: v.locator, kind: v.kind, hasImage: !!v.storage_path } : null;
+  };
 
   const claimCode = new Map(claims.data!.map((c) => [c.id, c.code]));
   const conflictCode = new Map(conflicts.data!.map((c) => [c.id, c.code]));
@@ -67,6 +83,7 @@ export async function loadClaimTable(supabase: Supabase, evaluationId: string, c
             start: l.excerpt_start,
             end: l.excerpt_end,
             markedWrong: l.marked_wrong_at !== null,
+            visual: visualOf(l.source.document_id, l.excerpt_start, l.excerpt_end),
           })),
         promptIds: c.coverage.map((p) => p.prompt_id),
         citedBy: [
