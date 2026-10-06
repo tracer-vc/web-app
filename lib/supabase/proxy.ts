@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
 
 // /api/inngest is called by Inngest itself (no user session); the SDK verifies
 // request signatures in cloud mode.
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/api/inngest"];
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/auth", "/api/inngest"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

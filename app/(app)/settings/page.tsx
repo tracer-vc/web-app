@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
+import { ChangePassword } from "./change-password";
 import { Preferences } from "./preferences";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default async function PreferencesPage() {
         Personal settings for your account.
         {user.role !== "admin" && " The fund's framework configuration is edited by fund admins."}
       </p>
-      <Preferences devMode={user.devMode} />
+      <div className="flex flex-col gap-5">
+        <Preferences devMode={user.devMode} />
+        <ChangePassword />
+      </div>
     </div>
   );
 }

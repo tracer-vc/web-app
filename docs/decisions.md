@@ -10,6 +10,8 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
    - Admins add members in the app (Fund settings → Team): email, name, initial password, role `analyst` or `admin`. No email is sent; the admin passes the password on. More than one admin per fund is allowed.
    - Profiles are created only by server code (service role), never from user-supplied metadata, so sign-up can only ever create a new fund, never join an existing one.
 3. **Auth.** Email + password via Supabase Auth.
+   - Every member can change their password in Settings → Preferences; the current password is required.
+   - "Forgot password?" on the login form sends a reset link (same answer whether or not the email has an account). The link goes through `/auth/confirm`, which sets a signed, httpOnly reset cookie (15 minutes) for that user; `/reset-password` sets a new password only with that cookie, so an ordinary open session can't skip the current-password check.
 
 ## B. External services
 

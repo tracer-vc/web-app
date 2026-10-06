@@ -1,2 +1,2 @@
-// Shared by the sign-up form and the add-member form (server-validated).
+// Shared by the sign-up, add-member and change-password forms (server-validated).
 export const MIN_PASSWORD_LENGTH = 8;

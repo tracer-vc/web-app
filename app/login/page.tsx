@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 const ERRORS: Record<string, string> = {
   confirm: "That confirmation link is invalid or has expired. Sign in, or sign up again.",
   onboarding: "Your email is confirmed, but the fund couldn't be set up. Try signing in.",
+  reset: "That reset link is invalid or has expired. Request a new one below.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

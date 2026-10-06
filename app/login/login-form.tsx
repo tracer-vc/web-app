@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signIn } from "@/app/actions/auth";
 import { AuthForm } from "../auth-shell";
@@ -23,10 +24,15 @@ export function LoginForm() {
               required
             />
           </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-body font-medium">Password</span>
-            <input className="input h-10" name="password" type="password" autoComplete="current-password" required />
-          </label>
+          <div className="flex flex-col gap-1.5">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-body font-medium">Password</span>
+              <input className="input h-10" name="password" type="password" autoComplete="current-password" required />
+            </label>
+            <Link href="/forgot-password" className="self-end text-body no-underline hover:underline">
+              Forgot password?
+            </Link>
+          </div>
         </>
       }
       actions={

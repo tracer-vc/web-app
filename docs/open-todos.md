@@ -10,6 +10,8 @@ Things that need doing outside the code (accounts, dashboards, keys) or a decisi
 
 ## Supabase settings
 
+- [ ] **"Reset password" email template.** Authentication → Emails → Reset password: the default link only works in the browser where the reset was requested (PKCE). For any device, use `<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password">Reset password</a>`. Do the same for "Confirm signup" (`type=email`) if it still uses `{{ .ConfirmationURL }}`.
+
 - [ ] **Leaked password protection.** Authentication → Providers → Email: enable "Prevent use of leaked passwords" (the security advisor warns about it; may need the Pro plan).
 
 ## Keys
