@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NavHighlight } from "@/app/motion";
 import { requireUser } from "@/lib/auth";
 import {
   PIPELINE_STEPS,
@@ -71,6 +72,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/deals">) {
                   aria-current={filter === f.key ? "page" : undefined}
                   className="seg-opt"
                 >
+                  {filter === f.key && <NavHighlight id="deal-filter" />}
                   {f.label}
                 </Link>
               ))}
@@ -278,7 +280,7 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
                 className="flex h-6 w-[7px] items-end rounded-[2px] bg-[var(--color-neutral-800)]"
               >
                 <span
-                  className="w-full rounded-[2px] bg-[var(--color-accent)]"
+                  className="grow-y w-full rounded-[2px] bg-[var(--color-accent)]"
                   style={{ height: `${Math.max(s.score, 0.3) * 20}%` }}
                 />
               </span>

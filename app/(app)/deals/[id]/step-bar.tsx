@@ -51,7 +51,7 @@ export function StepBar({
             )}
             {progress !== undefined && (
               <div className="mt-2 mb-0.5 h-1 max-w-sm overflow-hidden rounded bg-[var(--color-neutral-900)]" data-testid="run-progress">
-                <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${Math.max(progress, 3)}%` }} />
+                <div className="h-full bg-[var(--color-accent)] transition-[width] duration-500 ease-out" style={{ width: `${Math.max(progress, 3)}%` }} />
               </div>
             )}
           </div>

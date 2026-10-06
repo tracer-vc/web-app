@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { Drawer } from "@/app/motion";
 import type { ClaimTableView } from "@/lib/claim-shared";
 import type { CounterCaseView } from "@/lib/counter-case-shared";
 import { effectiveScore, type DimensionAssessmentView, type DimensionsView } from "@/lib/dimension-shared";
@@ -246,18 +247,24 @@ export function DimensionsTab({
           ))}
       </StepBar>
 
-      {open && <DimensionDrawer key={open.id} evaluationId={evaluationId} a={open} onOpen={setTrace} onClose={() => setTrace(null)} />}
-      {trace && !trace.startsWith("D") && (
-        <TraceDrawer
-          key={trace}
-          code={trace}
-          evaluationId={evaluationId}
-          view={counterCase}
-          claimTable={claimTable}
-          onOpen={setTrace}
-          onClose={() => setTrace(null)}
-        />
-      )}
+      <Drawer open={Boolean(open)}>
+        {open && (
+          <DimensionDrawer key={open.id} evaluationId={evaluationId} a={open} onOpen={setTrace} onClose={() => setTrace(null)} />
+        )}
+      </Drawer>
+      <Drawer open={Boolean(trace && !trace.startsWith("D"))}>
+        {trace && !trace.startsWith("D") && (
+          <TraceDrawer
+            key={trace}
+            code={trace}
+            evaluationId={evaluationId}
+            view={counterCase}
+            claimTable={claimTable}
+            onOpen={setTrace}
+            onClose={() => setTrace(null)}
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -272,7 +279,8 @@ function ScoreCell({ a, onOpen }: { a: DimensionAssessmentView; onOpen: (code: s
           {[1, 2, 3, 4, 5].map((n) => (
             <span
               key={n}
-              className={`h-2 w-3.5 rounded-sm ${n <= shown ? "bg-[var(--color-accent)]" : "bg-[var(--color-neutral-800)]"}`}
+              className={`h-2 w-3.5 rounded-sm ${n <= shown ? "grow-x bg-[var(--color-accent)]" : "bg-[var(--color-neutral-800)]"}`}
+              style={n <= shown ? { animationDelay: `${(n - 1) * 40}ms` } : undefined}
             />
           ))}
         </span>
@@ -355,8 +363,8 @@ function DimensionDrawer({
   }
 
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl"
+    <div
+      className="flex flex-col gap-4"
       data-testid="dimension-drawer"
     >
       <div className="flex items-start gap-3">
@@ -449,6 +457,6 @@ function DimensionDrawer({
           </p>
         )}
       </div>
-    </aside>
+    </div>
   );
 }

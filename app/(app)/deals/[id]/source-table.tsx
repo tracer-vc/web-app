@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { LuArrowRight } from "react-icons/lu";
+import { Drawer } from "@/app/motion";
 import { flashTo } from "./jump";
 import { TIER_LABELS, type SourceTableView, type SourceView, type Tier } from "@/lib/source-shared";
 import { conflictTagClass, ID_TAG_CLASS } from "./id-tag";
@@ -134,15 +135,17 @@ export function SourceTable({ evaluationId, table }: { evaluationId: string; tab
         </p>
       </div>
 
-      {open && (
-        <TraceDrawer
-          key={open.id}
-          evaluationId={evaluationId}
-          source={open}
-          prompts={prompts}
-          onClose={() => setOpenId(null)}
-        />
-      )}
+      <Drawer open={Boolean(open)}>
+        {open && (
+          <TraceDrawer
+            key={open.id}
+            evaluationId={evaluationId}
+            source={open}
+            prompts={prompts}
+            onClose={() => setOpenId(null)}
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -161,7 +164,7 @@ export function TierSummary({ sources }: { sources: SourceView[] }) {
           <span>{TIER_LABELS[t.tier]}</span>
           <span className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
             <span
-              className="block h-full bg-[var(--color-accent-400)]"
+              className="grow-x block h-full bg-[var(--color-accent-400)]"
               style={{ width: `${sources.length ? (t.n / sources.length) * 100 : 0}%` }}
             />
           </span>
@@ -228,8 +231,8 @@ function TraceDrawer({
   const informs = prompts.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => source.promptIds.includes(p.id));
 
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl"
+    <div
+      className="flex flex-col gap-4"
       data-testid="trace-drawer"
     >
       <div className="flex items-start gap-3">
@@ -298,6 +301,6 @@ function TraceDrawer({
           {text ?? "Loading…"}
         </pre>
       </div>
-    </aside>
+    </div>
   );
 }

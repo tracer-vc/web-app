@@ -19,6 +19,7 @@ import { loadEvaluation } from "@/lib/evaluations";
 import { isRunActive } from "@/lib/source-shared";
 import { loadSourceTable } from "@/lib/sources";
 import { createClient } from "@/lib/supabase/server";
+import { FadeIn } from "@/app/motion";
 import { ClaimsTab } from "./claims-tab";
 import { CounterCaseTab } from "./counter-case-tab";
 import { DealSidebar } from "./deal-sidebar";
@@ -63,58 +64,61 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
             </Link>
           </p>
         )}
-        {tab === "quick-screen" ? (
-          <QuickScreenTab
-            evaluationId={deal.id}
-            fundId={deal.fundId}
-            questions={deal.questions}
-            answers={deal.answers}
-            documents={deal.documents}
-            memo={deal.memo}
-            editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
-          />
-        ) : tab === "evidence" ? (
-          <EvidenceSection deal={deal} supabase={supabase} />
-        ) : tab === "claims" ? (
-          <ClaimsTab
-            key={deal.updatedAt}
-            hasOutputs={deal.status === "complete"}
-            evaluationId={deal.id}
-            canExtract={deal.status === "collecting" || deal.status === "extracting"}
-            table={await loadClaimTable(supabase, deal.id, deal.configId)}
-            conflicts={await loadConflictRegister(supabase, deal.id)}
-            canStressTest={deal.status === "extracting"}
-            stressTestStarted={deal.currentStep >= 4}
-          />
-        ) : tab === "counter-case" ? (
-          <CounterCaseTab
-            key={deal.updatedAt}
-            hasOutputs={deal.status === "complete"}
-            evaluationId={deal.id}
-            canRun={deal.status === "stress_testing"}
-            view={await loadCounterCase(supabase, deal.id, deal.configId)}
-            claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
-            conflicts={await loadConflictRegister(supabase, deal.id)}
-            canScore={deal.status === "stress_testing"}
-            scoringStarted={deal.currentStep >= 5}
-          />
-        ) : tab === "dimensions" ? (
-          <DimensionsTab
-            key={deal.updatedAt}
-            hasOutputs={deal.status === "complete"}
-            evaluationId={deal.id}
-            canRun={deal.status === "scoring"}
-            view={await loadDimensions(supabase, deal.id, deal.configId)}
-            counterCase={await loadCounterCase(supabase, deal.id, deal.configId)}
-            claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
-            canSynthesize={deal.status === "scoring"}
-            synthesisStarted={deal.currentStep >= 6}
-          />
-        ) : tab === "study" ? (
-          <StudySection deal={deal} supabase={supabase} />
-        ) : (
-          <OutputsSection deal={deal} supabase={supabase} doc={tab} />
-        )}
+        {/* Re-keyed per tab: switching tabs fades the new step in; live refreshes of the same tab don't. */}
+        <FadeIn key={tab}>
+          {tab === "quick-screen" ? (
+            <QuickScreenTab
+              evaluationId={deal.id}
+              fundId={deal.fundId}
+              questions={deal.questions}
+              answers={deal.answers}
+              documents={deal.documents}
+              memo={deal.memo}
+              editable={QUICK_SCREEN_STATUSES.includes(deal.status)}
+            />
+          ) : tab === "evidence" ? (
+            <EvidenceSection deal={deal} supabase={supabase} />
+          ) : tab === "claims" ? (
+            <ClaimsTab
+              key={deal.updatedAt}
+              hasOutputs={deal.status === "complete"}
+              evaluationId={deal.id}
+              canExtract={deal.status === "collecting" || deal.status === "extracting"}
+              table={await loadClaimTable(supabase, deal.id, deal.configId)}
+              conflicts={await loadConflictRegister(supabase, deal.id)}
+              canStressTest={deal.status === "extracting"}
+              stressTestStarted={deal.currentStep >= 4}
+            />
+          ) : tab === "counter-case" ? (
+            <CounterCaseTab
+              key={deal.updatedAt}
+              hasOutputs={deal.status === "complete"}
+              evaluationId={deal.id}
+              canRun={deal.status === "stress_testing"}
+              view={await loadCounterCase(supabase, deal.id, deal.configId)}
+              claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
+              conflicts={await loadConflictRegister(supabase, deal.id)}
+              canScore={deal.status === "stress_testing"}
+              scoringStarted={deal.currentStep >= 5}
+            />
+          ) : tab === "dimensions" ? (
+            <DimensionsTab
+              key={deal.updatedAt}
+              hasOutputs={deal.status === "complete"}
+              evaluationId={deal.id}
+              canRun={deal.status === "scoring"}
+              view={await loadDimensions(supabase, deal.id, deal.configId)}
+              counterCase={await loadCounterCase(supabase, deal.id, deal.configId)}
+              claimTable={await loadClaimTable(supabase, deal.id, deal.configId)}
+              canSynthesize={deal.status === "scoring"}
+              synthesisStarted={deal.currentStep >= 6}
+            />
+          ) : tab === "study" ? (
+            <StudySection deal={deal} supabase={supabase} />
+          ) : (
+            <OutputsSection deal={deal} supabase={supabase} doc={tab} />
+          )}
+        </FadeIn>
       </div>
     </>
   );

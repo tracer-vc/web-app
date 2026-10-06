@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { Drawer } from "@/app/motion";
 import type { ClaimTableView } from "@/lib/claim-shared";
 import type { ConflictView } from "@/lib/conflict-shared";
 import type { CounterCaseView, FalsifierView, UncertaintyListItem } from "@/lib/counter-case-shared";
@@ -306,17 +307,19 @@ export function CounterCaseTab({
           ))}
       </StepBar>
 
-      {trace && (
-        <TraceDrawer
-          key={trace}
-          code={trace}
-          evaluationId={evaluationId}
-          view={view}
-          claimTable={claimTable}
-          onOpen={setTrace}
-          onClose={() => setTrace(null)}
-        />
-      )}
+      <Drawer open={Boolean(trace)}>
+        {trace && (
+          <TraceDrawer
+            key={trace}
+            code={trace}
+            evaluationId={evaluationId}
+            view={view}
+            claimTable={claimTable}
+            onOpen={setTrace}
+            onClose={() => setTrace(null)}
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -345,8 +348,8 @@ export function TraceDrawer({
   const u = code.startsWith("U") ? view.uncertainties.find((x) => x.code === code) : undefined;
   const f = code.startsWith("F") ? view.falsifiers.find((x) => x.code === code) : undefined;
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl"
+    <div
+      className="flex flex-col gap-4"
       data-testid={u ? "uncertainty-drawer" : f ? "falsifier-drawer" : "trace-drawer"}
     >
       <div className="flex items-start gap-3">
@@ -362,7 +365,7 @@ export function TraceDrawer({
       </div>
       {u && <UncertaintyBody u={u} onOpen={onOpen} />}
       {f && <FalsifierBody f={f} onOpen={onOpen} />}
-    </aside>
+    </div>
   );
 }
 

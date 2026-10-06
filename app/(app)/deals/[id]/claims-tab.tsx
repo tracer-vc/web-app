@@ -11,6 +11,7 @@ import {
   type ClaimType,
   type ClaimView,
 } from "@/lib/claim-shared";
+import { Drawer } from "@/app/motion";
 import { CONFLICT_STATUS_LABELS, CONFLICT_STATUS_SHORT, type ConflictView } from "@/lib/conflict-shared";
 import { isRunActive, TIER_LABELS, type RunView } from "@/lib/source-shared";
 import { ConflictRegister } from "./conflict-register";
@@ -377,16 +378,18 @@ export function ClaimsTab({
           ))}
       </StepBar>
 
-      {open && (
-        <ClaimDrawer
-          key={open.id}
-          evaluationId={evaluationId}
-          claim={open}
-          prompts={prompts}
-          onOpen={(code) => setOpenId(claims.find((c) => c.code === code)?.id ?? openId)}
-          onClose={() => setOpenId(null)}
-        />
-      )}
+      <Drawer open={Boolean(open)}>
+        {open && (
+          <ClaimDrawer
+            key={open.id}
+            evaluationId={evaluationId}
+            claim={open}
+            prompts={prompts}
+            onOpen={(code) => setOpenId(claims.find((c) => c.code === code)?.id ?? openId)}
+            onClose={() => setOpenId(null)}
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -408,8 +411,8 @@ export function ClaimDrawer({
   const answers = prompts.map((p, i) => ({ ...p, n: i + 1 })).filter((p) => claim.promptIds.includes(p.id));
 
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl"
+    <div
+      className="flex flex-col gap-4"
       data-testid="claim-drawer"
     >
       <div className="flex items-start gap-3">
@@ -514,7 +517,7 @@ export function ClaimDrawer({
       </div>
 
       {shownLink && <SourceText key={shownLink.id} evaluationId={evaluationId} link={shownLink} />}
-    </aside>
+    </div>
   );
 }
 
@@ -609,6 +612,7 @@ function EvidenceLink({
 function SourceText({ evaluationId, link }: { evaluationId: string; link: ClaimLinkView }) {
   const [text, setText] = useState<string | null>(null);
   const markRef = useRef<HTMLElement>(null);
+  const preRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -621,8 +625,14 @@ function SourceText({ evaluationId, link }: { evaluationId: string; link: ClaimL
     };
   }, [evaluationId, link.sourceId]);
 
+  // Centre the excerpt inside the text box only; scrollIntoView would also
+  // scroll the drawer and hide its header.
   useEffect(() => {
-    markRef.current?.scrollIntoView({ block: "center" });
+    const pre = preRef.current;
+    const mark = markRef.current;
+    if (!pre || !mark) return;
+    const m = mark.getBoundingClientRect();
+    pre.scrollTop += m.top - pre.getBoundingClientRect().top - (pre.clientHeight - m.height) / 2;
   }, [text]);
 
   // Offsets are code points (decision: same unit as Postgres length()).
@@ -633,6 +643,7 @@ function SourceText({ evaluationId, link }: { evaluationId: string; link: ClaimL
         {link.sourceCode} · source text, excerpt highlighted
       </div>
       <pre
+        ref={preRef}
         className="max-h-[45vh] overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-meta whitespace-pre-wrap"
         data-testid="source-text"
       >

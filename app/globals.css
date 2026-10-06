@@ -468,6 +468,8 @@ main td:first-child {
   color: var(--color-neutral-500);
 }
 .sidebar-item {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -482,10 +484,18 @@ main td:first-child {
   color: var(--color-text);
   background: var(--color-hover);
 }
+/* The selected item's background is a NavHighlight (app/motion.tsx) that
+   glides between items; the item itself only changes colour. */
 .sidebar-item[aria-current="page"],
 .sidebar-item[aria-current="step"] {
   color: var(--color-accent-text);
+}
+.nav-highlight {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--color-accent-tint);
+  border-radius: inherit;
 }
 .sidebar-item-locked,
 .sidebar-item-locked:hover {
@@ -509,6 +519,8 @@ main td:first-child {
   border-radius: var(--radius-md);
 }
 .seg-opt {
+  position: relative;
+  isolation: isolate;
   padding: 4px 12px;
   font-size: 13px;
   color: var(--color-neutral-300);
@@ -521,7 +533,6 @@ main td:first-child {
 }
 .seg-opt[aria-current="page"] {
   color: var(--color-accent-text);
-  background: var(--color-accent-tint);
 }
 
 @layer components {
@@ -577,6 +588,50 @@ main .data-table tbody tr:hover {
   animation: flash-highlight 2.2s ease-out;
 }
 
+/* Bars that grow to their value when they first appear (score pips, tier
+   bars, the deal list's score columns). Same timing as app/motion.tsx. */
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .grow-x {
+    transform-origin: left;
+    animation: grow-x 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .grow-y {
+    transform-origin: bottom;
+    animation: grow-y 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* <details> opens and closes with a height transition where the browser
+     supports animating to auto (Chrome/Edge); elsewhere it opens instantly. */
+  @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+    details {
+      interpolate-size: allow-keywords;
+    }
+    details::details-content {
+      height: 0;
+      opacity: 0;
+      overflow: clip;
+      transition:
+        height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.2s ease-out,
+        content-visibility 0.2s allow-discrete;
+    }
+    details[open]::details-content {
+      height: auto;
+      opacity: 1;
+    }
+  }
+}
+
 /* Open select list: browsers with customizable selects (Chrome/Edge) draw it
    like the account menu; others keep the native list. Kept outside the layers
    because ::picker() needs the opt-in on both the select and its picker. */
@@ -601,6 +656,26 @@ main .data-table tbody tr:hover {
     box-shadow:
       0 8px 24px rgb(23 32 42 / 0.1),
       0 1px 2px rgb(23 32 42 / 0.06);
+  }
+  /* Fades in and drops 4px from the field, like the account menu. */
+  @media (prefers-reduced-motion: no-preference) {
+    select.input::picker(select) {
+      transition:
+        opacity 0.15s ease-out,
+        translate 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+        display 0.15s allow-discrete,
+        overlay 0.15s allow-discrete;
+    }
+    select.input:not(:open)::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+    @starting-style {
+      select.input:open::picker(select) {
+        opacity: 0;
+        translate: 0 -4px;
+      }
+    }
   }
   select.input option {
     padding: 6px 10px;

@@ -25,6 +25,7 @@ import {
   LuTrendingUp,
   LuTriangleAlert,
 } from "react-icons/lu";
+import { Drawer } from "@/app/motion";
 import { CLAIM_TYPE_LABELS, CONFIDENCE_LABELS, type ClaimTableView } from "@/lib/claim-shared";
 import { CONFLICT_STATUS_LABELS, CONFLICT_STATUS_SHORT, type ConflictView } from "@/lib/conflict-shared";
 import type { CounterCaseView } from "@/lib/counter-case-shared";
@@ -110,16 +111,18 @@ export function OutputsTab({
       ) : (
         <EvidencePack outputs={outputs} bundle={bundle} onOpen={setTrace} />
       )}
-      {trace && (
-        <OutputTrace
-          key={trace}
-          code={trace}
-          evaluationId={evaluationId}
-          bundle={bundle}
-          onOpen={setTrace}
-          onClose={() => setTrace(null)}
-        />
-      )}
+      <Drawer open={Boolean(trace)}>
+        {trace && (
+          <OutputTrace
+            key={trace}
+            code={trace}
+            evaluationId={evaluationId}
+            bundle={bundle}
+            onOpen={setTrace}
+            onClose={() => setTrace(null)}
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -180,7 +183,7 @@ function GeneratePanel({ evaluationId, initialRun, canRun }: { evaluationId: str
             Step 6 · {run.status === "queued" ? "Waiting for the background worker…" : `Writing outputs · ${run.progress}%`}
           </div>
           <div className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
-            <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${Math.max(run.progress, 3)}%` }} />
+            <div className="h-full bg-[var(--color-accent)] transition-[width] duration-500 ease-out" style={{ width: `${Math.max(run.progress, 3)}%` }} />
           </div>
         </div>
       )}
@@ -479,7 +482,8 @@ function ThesisCard({
                     {[1, 2, 3, 4, 5].map((n) => (
                       <span
                         key={n}
-                        className={`h-2 w-4 rounded-sm ${n <= score ? "bg-[var(--color-accent)]" : "bg-[var(--color-neutral-800)]"}`}
+                        className={`h-2 w-4 rounded-sm ${n <= score ? "grow-x bg-[var(--color-accent)]" : "bg-[var(--color-neutral-800)]"}`}
+                        style={n <= score ? { animationDelay: `${(n - 1) * 40}ms` } : undefined}
                       />
                     ))}
                   </span>
@@ -942,8 +946,8 @@ function OutputTrace({
     );
   }
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl print:hidden"
+    <div
+      className="flex flex-col gap-4"
       data-testid={kind === "S" ? "source-drawer" : kind === "D" ? "dimension-drawer" : "conflict-drawer"}
     >
       <div className="flex items-start gap-3">
@@ -957,7 +961,7 @@ function OutputTrace({
       {kind === "S" && <SourceBody code={code} evaluationId={evaluationId} bundle={bundle} onOpen={onOpen} />}
       {kind === "D" && <DimensionBody code={code} bundle={bundle} onOpen={onOpen} />}
       {kind === "CR" && <ConflictBody code={code} bundle={bundle} onOpen={onOpen} />}
-    </aside>
+    </div>
   );
 }
 

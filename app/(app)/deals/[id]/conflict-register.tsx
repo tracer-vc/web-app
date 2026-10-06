@@ -9,6 +9,7 @@ import {
   type ConflictStatus,
   type ConflictView,
 } from "@/lib/conflict-shared";
+import { Drawer } from "@/app/motion";
 import { conflictTagClass, RowTag } from "./id-tag";
 
 const STATUSES: ConflictStatus[] = ["open", "resolved_a", "resolved_b", "unresolvable"];
@@ -55,8 +56,18 @@ export function ConflictRegister({
         An open claim conflict lowers both claims&apos; confidence one level (decision 9); recording a resolution lifts it.
         Open conflicts don&apos;t block later steps; they are shown as open in the outputs.
       </p>
-      {open && <ConflictDrawer
-          evaluationId={evaluationId} conflict={open} conflicts={conflicts} onOpen={setOpenId} onClose={() => setOpenId(null)} />}
+      <Drawer open={Boolean(open)}>
+        {open && (
+          <ConflictDrawer
+            key={open.id}
+            evaluationId={evaluationId}
+            conflict={open}
+            conflicts={conflicts}
+            onOpen={setOpenId}
+            onClose={() => setOpenId(null)}
+          />
+        )}
+      </Drawer>
     </section>
   );
 }
@@ -191,8 +202,8 @@ function ConflictDrawer({
   const byCode = (code: string) => conflicts.find((c) => c.code === code);
   const related = [conflict.parentCode, ...conflict.childCodes].filter((c): c is string => !!c);
   return (
-    <aside
-      className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl"
+    <div
+      className="flex flex-col gap-4"
       data-testid="conflict-drawer"
     >
       <div className="flex items-start gap-3">
@@ -254,6 +265,6 @@ function ConflictDrawer({
           </div>
         </div>
       )}
-    </aside>
+    </div>
   );
 }

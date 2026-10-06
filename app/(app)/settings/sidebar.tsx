@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LuSlidersHorizontal, LuUsers } from "react-icons/lu";
+import { NavHighlight } from "@/app/motion";
 import { CONFIG_SECTIONS, toConfigSection } from "./config-sections";
 import { useUnsaved } from "./unsaved";
 
@@ -48,6 +49,7 @@ export function SettingsSidebar({ isAdmin }: { isAdmin: boolean }) {
         aria-current={pathname === "/settings" ? "page" : undefined}
         className="sidebar-item"
       >
+        {pathname === "/settings" && <NavHighlight id="settings-nav" />}
         <LuSlidersHorizontal aria-hidden className="sidebar-icon" />
         Preferences
       </Link>
@@ -61,6 +63,7 @@ export function SettingsSidebar({ isAdmin }: { isAdmin: boolean }) {
             aria-current={pathname === "/settings/team" ? "page" : undefined}
             className="sidebar-item"
           >
+            {pathname === "/settings/team" && <NavHighlight id="settings-nav" />}
             <LuUsers aria-hidden className="sidebar-icon" />
             Team
           </Link>
@@ -77,6 +80,7 @@ export function SettingsSidebar({ isAdmin }: { isAdmin: boolean }) {
                 className="sidebar-item"
                 data-testid={`settings-section-${key}`}
               >
+                {onConfig && section === key && <NavHighlight id="settings-nav" />}
                 {label}
               </Link>
             );

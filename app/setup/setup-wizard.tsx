@@ -11,6 +11,7 @@ import { ConfigSectionBody } from "../(app)/settings/config-section-body";
 import type { ConfigSection } from "../(app)/settings/config-sections";
 import { PlainLanguage } from "../(app)/settings/plain";
 import { AddMemberForm } from "../(app)/settings/team/add-member-form";
+import { FadeIn, NavHighlight } from "../motion";
 
 type Step = {
   key: string;
@@ -175,6 +176,8 @@ export function SetupWizard({
 }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
+  // 1 when moving forward, -1 when going back: the next step slides in from that side.
+  const [direction, setDirection] = useState(1);
   const [reached, setReached] = useState(0);
   const [model, setModel] = useState<Model>(() => toModel(draft));
   const [saved, setSaved] = useState(() => JSON.stringify(toBody(toModel(draft))));
@@ -222,6 +225,7 @@ export function SetupWizard({
     startTransition(async () => {
       try {
         await save();
+        setDirection(to > index ? 1 : -1);
         setIndex(to);
         setReached((r) => Math.max(r, to));
         window.scrollTo({ top: 0 });
@@ -297,6 +301,7 @@ export function SetupWizard({
               aria-current={current ? "step" : undefined}
               className={`sidebar-item w-full text-left ${reachable || current ? "" : "sidebar-item-locked"}`}
             >
+              {current && <NavHighlight id="setup-nav" />}
               <span
                 className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-meta tabular-nums ${
                   done
@@ -321,29 +326,31 @@ export function SetupWizard({
             last ? "mx-auto flex min-h-[calc(100dvh-60px-220px)] max-w-[880px] items-center justify-center" : "max-w-[880px]"
           }
         >
-          {step.key === "welcome" ? (
-            <Welcome name={displayName} fundName={fundName} />
-          ) : step.key === "team" ? (
-            <TeamStep />
-          ) : step.key === "done" ? (
-            <Done fundName={fundName} model={model} />
-          ) : (
-            <div className="flex flex-col gap-12">
-              {step.key === "defaults" && (
-                <p className="text-muted -mb-6 text-reading leading-relaxed">
-                  These settings work for most funds, so you can usually leave them as they are. The confidence levels are
-                  fixed.
-                </p>
-              )}
-              {step.sections!.map((section) => (
-                <div key={section}>
-                  <PlainLanguage>
-                    <ConfigSectionBody section={section} view={model} shown={draft} update={update} fundName={fundName} />
-                  </PlainLanguage>
-                </div>
-              ))}
-            </div>
-          )}
+          <FadeIn key={step.key} x={8 * direction}>
+            {step.key === "welcome" ? (
+              <Welcome name={displayName} fundName={fundName} />
+            ) : step.key === "team" ? (
+              <TeamStep />
+            ) : step.key === "done" ? (
+              <Done fundName={fundName} model={model} />
+            ) : (
+              <div className="flex flex-col gap-12">
+                {step.key === "defaults" && (
+                  <p className="text-muted -mb-6 text-reading leading-relaxed">
+                    These settings work for most funds, so you can usually leave them as they are. The confidence levels are
+                    fixed.
+                  </p>
+                )}
+                {step.sections!.map((section) => (
+                  <div key={section}>
+                    <PlainLanguage>
+                      <ConfigSectionBody section={section} view={model} shown={draft} update={update} fundName={fundName} />
+                    </PlainLanguage>
+                  </div>
+                ))}
+              </div>
+            )}
+          </FadeIn>
         </div>
 
         {/* Setup bar: pinned to the bottom, like the pipeline's step bar. */}

@@ -9,6 +9,7 @@ import {
   type EvaluationView,
   type PipelineTab,
 } from "@/lib/evaluation-shared";
+import { NavHighlight } from "@/app/motion";
 
 const OUTPUT_ICONS = {
   "thesis-card": LuFileText,
@@ -64,6 +65,7 @@ export function DealSidebar({
         const Icon = OUTPUT_ICONS[s.key];
         return unlocked ? (
           <Link key={s.key} href={href(s.key)} aria-current={tab === s.key ? "page" : undefined} className="sidebar-item">
+            {tab === s.key && <NavHighlight id="deal-nav" />}
             <Icon aria-hidden className="sidebar-icon" />
             {s.label}
           </Link>
@@ -96,6 +98,7 @@ export function DealSidebar({
         );
         return unlocked ? (
           <Link key={s.key} href={href(s.key)} aria-current={tab === s.key ? "page" : undefined} className="sidebar-item">
+            {tab === s.key && <NavHighlight id="deal-nav" />}
             {marker}
             {s.label}
           </Link>
@@ -111,6 +114,7 @@ export function DealSidebar({
         <>
           <div className="sidebar-group">Developer</div>
           <Link href={href("study")} aria-current={tab === "study" ? "page" : undefined} className="sidebar-item">
+            {tab === "study" && <NavHighlight id="deal-nav" />}
             <LuFlaskConical aria-hidden className="sidebar-icon" />
             Study
           </Link>
