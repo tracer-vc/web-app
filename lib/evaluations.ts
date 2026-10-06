@@ -17,7 +17,9 @@ export async function listDeals(supabase: Supabase): Promise<DealRow[]> {
        memo:quick_screen_memos(verdict, verdict_overridden_at),
        decision:decisions(classification),
        conflicts(status),
-       uncertainties(status, decision_critical)`,
+       uncertainties(status, decision_critical),
+       assessments:dimension_assessments(score, override_score, dimension:dimensions(title, position)),
+       runs:pipeline_runs(status, superseded_at)`,
     )
     .is("study_parent_id", null) // study copies are listed in the Study tab only
     .order("updated_at", { ascending: false });
@@ -37,6 +39,10 @@ export async function listDeals(supabase: Supabase): Promise<DealRow[]> {
     openCriticalUncertainties: e.uncertainties.filter((u) => u.status === "open" && u.decision_critical).length,
     configVersion: e.config.version,
     updatedAt: e.updated_at,
+    scores: [...e.assessments]
+      .sort((a, b) => (a.dimension?.position ?? 0) - (b.dimension?.position ?? 0))
+      .map((a) => ({ label: a.dimension?.title ?? "Dimension", score: a.override_score ?? a.score })),
+    running: e.runs.some((r) => !r.superseded_at && (r.status === "queued" || r.status === "running")),
   }));
 }
 

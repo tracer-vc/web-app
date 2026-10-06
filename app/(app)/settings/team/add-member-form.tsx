@@ -12,15 +12,15 @@ export function AddMemberForm() {
   return (
     <form key={formKey} action={action} className="grid gap-4 sm:grid-cols-2">
       <label className="flex flex-col gap-1.5">
-        <span className="text-muted text-xs">Name</span>
+        <span className="text-muted text-meta">Name</span>
         <input className="input" name="display_name" required defaultValue={state?.values?.displayName} />
       </label>
       <label className="flex flex-col gap-1.5">
-        <span className="text-muted text-xs">Email</span>
+        <span className="text-muted text-meta">Email</span>
         <input className="input" name="email" type="email" required defaultValue={state?.values?.email} />
       </label>
       <label className="flex flex-col gap-1.5">
-        <span className="text-muted text-xs">Initial password (at least {MIN_PASSWORD_LENGTH} characters)</span>
+        <span className="text-muted text-meta">Initial password (at least {MIN_PASSWORD_LENGTH} characters)</span>
         <input
           className="input"
           name="password"
@@ -31,7 +31,7 @@ export function AddMemberForm() {
         />
       </label>
       <label className="flex flex-col gap-1.5">
-        <span className="text-muted text-xs">Role</span>
+        <span className="text-muted text-meta">Role</span>
         <select className="input" name="role" defaultValue={state?.values?.role ?? "analyst"}>
           <option value="analyst">Analyst: runs evaluations</option>
           <option value="admin">Admin: also edits fund settings and team</option>
@@ -42,11 +42,11 @@ export function AddMemberForm() {
           {pending ? "Adding…" : "Add member"}
         </button>
         {state?.error && (
-          <p role="alert" className="text-danger text-[13px]">
+          <p role="alert" className="text-danger text-body">
             {state.error}
           </p>
         )}
-        {state?.added && <p className="text-[13px]">{state.added}</p>}
+        {state?.added && <p className="text-body">{state.added}</p>}
       </div>
     </form>
   );

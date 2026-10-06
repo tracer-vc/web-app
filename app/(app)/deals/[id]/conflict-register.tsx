@@ -9,6 +9,7 @@ import {
   type ConflictStatus,
   type ConflictView,
 } from "@/lib/conflict-shared";
+import { conflictTagClass, RowTag } from "./id-tag";
 
 const STATUSES: ConflictStatus[] = ["open", "resolved_a", "resolved_b", "unresolvable"];
 
@@ -28,21 +29,14 @@ export function ConflictRegister({
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const open = conflicts.find((c) => c.id === openId) ?? null;
-  const openCount = conflicts.filter((c) => c.status === "open").length;
   if (conflicts.length === 0) return null;
 
   return (
     <section className="card gap-3 p-4" data-testid="conflict-register">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">{title}</div>
-        <span className="text-muted text-xs">
-          {conflicts.length} conflict{conflicts.length === 1 ? "" : "s"} · {openCount} open · both sides retained · status is
-          mandatory
-        </span>
-      </div>
+      <div className="text-panel font-semibold">{title}</div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-[13px]">
-          <thead className="text-muted text-xs">
+        <table className="w-full min-w-[760px] text-left text-body">
+          <thead className="text-muted text-meta">
             <tr className="border-b border-[var(--color-divider)]">
               <th className="w-14 py-2 pr-3 font-normal">ID</th>
               <th className="py-2 pr-3 font-normal">Side A</th>
@@ -57,23 +51,25 @@ export function ConflictRegister({
           </tbody>
         </table>
       </div>
-      <p className="text-muted text-[11px]">
+      <p className="text-muted text-meta">
         An open claim conflict lowers both claims&apos; confidence one level (decision 9); recording a resolution lifts it.
         Open conflicts don&apos;t block later steps; they are shown as open in the outputs.
       </p>
-      {open && <ConflictDrawer conflict={open} conflicts={conflicts} onOpen={setOpenId} onClose={() => setOpenId(null)} />}
+      {open && <ConflictDrawer
+          evaluationId={evaluationId} conflict={open} conflicts={conflicts} onOpen={setOpenId} onClose={() => setOpenId(null)} />}
     </section>
   );
 }
 
-function Side({ side }: { side: ConflictSideView }) {
+function Side({ evaluationId, side }: { evaluationId: string; side: ConflictSideView }) {
   return (
     <div className="flex flex-col gap-0.5">
       <div>
-        <span className="font-mono text-[11px] text-[var(--color-neutral-300)]">{side.code}</span> {side.text}
+        <RowTag evaluationId={evaluationId} code={side.code} className="mr-1.5 align-[1px]" />
+        {side.text}
       </div>
-      <div className="text-muted text-[11px]">{side.meta}</div>
-      <div className="text-muted text-xs">“{side.passage}”</div>
+      <div className="text-muted text-meta">{side.meta}</div>
+      <div className="text-muted text-meta">“{side.passage}”</div>
     </div>
   );
 }
@@ -111,21 +107,30 @@ function ConflictRow({ evaluationId, conflict, onOpen }: { evaluationId: string;
   }
 
   return (
-    <tr className="border-b border-[var(--color-divider)] align-top" data-testid="conflict-row" data-code={conflict.code}>
+    <tr
+      id={`conflict-${conflict.code}`}
+      className="border-b border-[var(--color-divider)] align-top"
+      data-testid="conflict-row"
+      data-code={conflict.code}
+    >
       <td className="py-2 pr-3">
-        <button className="font-mono text-[11px] underline" onClick={onOpen}>
+        <button
+          type="button"
+          onClick={onOpen}
+          title="Open the conflict"
+          className={conflictTagClass(conflict.status === "open")}
+        >
           {conflict.code}
         </button>
-        <div className="text-muted text-[10px]">{conflict.kind}</div>
       </td>
       <td className="py-2 pr-3">
-        <Side side={conflict.sideA} />
+        <Side evaluationId={evaluationId} side={conflict.sideA} />
       </td>
       <td className="py-2 pr-3">
-        <Side side={conflict.sideB} />
+        <Side evaluationId={evaluationId} side={conflict.sideB} />
       </td>
       <td className="py-2">
-        <div className="mb-1 text-xs">{conflict.description}</div>
+        <div className="mb-1 text-meta">{conflict.description}</div>
         <div className="flex flex-col gap-1.5">
           <select
             className="input"
@@ -140,7 +145,7 @@ function ConflictRow({ evaluationId, conflict, onOpen }: { evaluationId: string;
             ))}
           </select>
           <textarea
-            className="input min-h-16 text-xs"
+            className="input min-h-16 text-meta"
             aria-label={`Rationale for ${conflict.code}`}
             placeholder="Rationale (required to resolve): which side holds and why"
             maxLength={MAX_RATIONALE_LENGTH}
@@ -148,18 +153,18 @@ function ConflictRow({ evaluationId, conflict, onOpen }: { evaluationId: string;
             onChange={(e) => setRationale(e.target.value)}
           />
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn btn-primary text-xs" onClick={record} disabled={pending || !changed}>
+            <button className="btn btn-primary text-meta" onClick={record} disabled={pending || !changed}>
               {pending ? "Saving…" : "Record resolution"}
             </button>
-            {saved && <span className="text-xs">Recorded and logged.</span>}
+            {saved && <span className="text-meta">Recorded and logged.</span>}
           </div>
           {error && (
-            <p role="alert" className="text-danger text-xs">
+            <p role="alert" className="text-danger text-meta">
               {error}
             </p>
           )}
           {conflict.status !== "open" && conflict.resolvedAt && (
-            <p className="text-muted text-[11px]" data-testid="resolution-meta">
+            <p className="text-muted text-meta" data-testid="resolution-meta">
               {CONFLICT_STATUS_LABELS[conflict.status]} by {conflict.resolvedBy ?? "a former member"} ·{" "}
               {fmtDateTime(conflict.resolvedAt)}
             </p>
@@ -171,11 +176,13 @@ function ConflictRow({ evaluationId, conflict, onOpen }: { evaluationId: string;
 }
 
 function ConflictDrawer({
+  evaluationId,
   conflict,
   conflicts,
   onOpen,
   onClose,
 }: {
+  evaluationId: string;
   conflict: ConflictView;
   conflicts: ConflictView[];
   onOpen: (id: string) => void;
@@ -190,16 +197,16 @@ function ConflictDrawer({
     >
       <div className="flex items-start gap-3">
         <div>
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">
+          <div className="mb-1.5 text-meta font-medium text-[var(--color-accent-text)]">
             Conflict {conflict.code} · {conflict.kind}
           </div>
-          <h3 className="text-lg leading-snug">{conflict.description}</h3>
+          <h3 className="text-section leading-snug">{conflict.description}</h3>
         </div>
         <button className="btn ml-auto" onClick={onClose} aria-label="Close">
           ×
         </button>
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-meta">
         <span className={`tag ${conflict.status === "open" ? "text-danger tag-outline" : "tag-accent"}`}>
           {CONFLICT_STATUS_LABELS[conflict.status]}
         </span>
@@ -211,31 +218,36 @@ function ConflictDrawer({
         return (
           <div
             key={k}
-            className={`rounded-md border p-3 text-[13px] ${wins ? "border-[var(--color-accent)]" : "border-[var(--color-divider)]"}`}
+            className={`rounded-md border p-3 text-body ${wins ? "border-[var(--color-accent)]" : "border-[var(--color-divider)]"}`}
           >
-            <div className="text-muted mb-1 text-xs">
+            <div className="text-muted mb-1 text-meta">
               Side {k}
               {wins && " · holds"}
             </div>
-            <Side side={side} />
+            <Side evaluationId={evaluationId} side={side} />
           </div>
         );
       })}
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Rationale</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Rationale</div>
         {conflict.rationale ? conflict.rationale : <span className="text-muted">No resolution recorded yet.</span>}
         {conflict.status !== "open" && conflict.resolvedAt && (
-          <div className="text-muted mt-1 text-xs">
+          <div className="text-muted mt-1 text-meta">
             by {conflict.resolvedBy ?? "a former member"} · {fmtDateTime(conflict.resolvedAt)}
           </div>
         )}
       </div>
       {related.length > 0 && (
-        <div className="text-[13px]">
-          <div className="text-muted mb-1 text-xs">{conflict.parentCode ? "Repeats source conflict" : "Repeated by claim conflicts"}</div>
+        <div className="text-body">
+          <div className="text-muted mb-1 text-meta">{conflict.parentCode ? "Repeats source conflict" : "Repeated by claim conflicts"}</div>
           <div className="flex gap-2">
             {related.map((code) => (
-              <button key={code} className="tag tag-neutral" onClick={() => byCode(code) && onOpen(byCode(code)!.id)}>
+              <button
+                key={code}
+                type="button"
+                className={conflictTagClass(byCode(code)?.status === "open")}
+                onClick={() => byCode(code) && onOpen(byCode(code)!.id)}
+              >
                 {code}
               </button>
             ))}

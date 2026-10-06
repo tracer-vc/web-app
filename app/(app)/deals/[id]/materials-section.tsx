@@ -144,10 +144,9 @@ export function MaterialsSection({
   return (
     <section className="card gap-3">
       <div className="flex flex-wrap items-baseline gap-2">
-        <h2 className="text-lg">Materials</h2>
-        <span className="text-muted text-[13px]">
-          {documents.length} of {MAX_DOCUMENTS} documents · the AI answers the Quick Screen from these; Evidence
-          Collection reuses them
+        <h2 className="text-panel font-semibold">Materials</h2>
+        <span className="text-muted text-body">
+          {documents.length} of {MAX_DOCUMENTS} documents
         </span>
       </div>
 
@@ -163,13 +162,13 @@ export function MaterialsSection({
             setDragging(false);
             void addFiles(e.dataTransfer.files);
           }}
-          className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-5 text-center text-[13px] ${
+          className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-5 text-center text-body ${
             dragging ? "border-[var(--color-accent)]" : "border-[var(--color-neutral-700)]"
           }`}
         >
           <span>Drop pitch deck, founder profiles, press, technical docs</span>
-          <span className="text-muted text-xs">
-            PDF, PPTX, DOCX, HTML, TXT, PNG, JPEG, WebP · up to 20 MB each · charts, tables and images are read too
+          <span className="text-muted text-meta">
+            PDF, PPTX, DOCX, HTML, TXT, PNG, JPEG, WebP · up to 20 MB each
           </span>
           <button className="btn btn-primary" onClick={() => input.current?.click()} disabled={busy}>
             Choose files
@@ -190,13 +189,13 @@ export function MaterialsSection({
       )}
 
       {error && (
-        <p role="alert" className="text-danger text-[13px]">
+        <p role="alert" className="text-danger text-body">
           {error}
         </p>
       )}
 
       {(documents.length > 0 || uploads.length > 0) && (
-        <ul className="flex flex-col divide-y divide-[var(--color-divider)] text-[13px]">
+        <ul className="flex flex-col divide-y divide-[var(--color-divider)] text-body">
           {documents.map((d) => (
             <DocumentRow
               key={d.id}
@@ -208,11 +207,11 @@ export function MaterialsSection({
           {uploads.map((u) => (
             <li key={u.key} className="flex items-center gap-3 py-2">
               <span className="flex-1 truncate">{u.filename}</span>
-              <span className={`text-xs ${u.state === "error" ? "text-danger" : "text-muted"}`} data-testid="upload-state">
+              <span className={`text-meta ${u.state === "error" ? "text-danger" : "text-muted"}`} data-testid="upload-state">
                 {u.state === "uploading" ? "uploading…" : u.state === "extracting" ? "extracting…" : u.message}
               </span>
               {u.state === "error" && (
-                <button className="btn px-2 py-1 text-xs" onClick={() => setUploads((l) => l.filter((x) => x.key !== u.key))}>
+                <button className="btn px-2 py-1 text-meta" onClick={() => setUploads((l) => l.filter((x) => x.key !== u.key))}>
                   Dismiss
                 </button>
               )}
@@ -250,7 +249,7 @@ function DocumentRow({
     <li className="py-2" data-testid="document-row">
       <div className="flex items-center gap-3">
         <span className="flex-1 truncate">{doc.filename}</span>
-        <span className="text-muted text-xs">
+        <span className="text-muted text-meta">
           {TYPES[doc.mimeType]?.label ?? doc.mimeType} · {size(doc.bytes)}
         </span>
         <span
@@ -270,23 +269,23 @@ function DocumentRow({
           </span>
         )}
         {doc.status === "extracted" && (
-          <button className="btn px-2 py-1 text-xs" onClick={toggle} aria-expanded={open}>
+          <button className="btn px-2 py-1 text-meta" onClick={toggle} aria-expanded={open}>
             {open ? "Hide text" : "View text"}
           </button>
         )}
         {onRemove && (
-          <button className="btn px-2 py-1 text-xs" aria-label={`Remove ${doc.filename}`} onClick={onRemove}>
+          <button className="btn px-2 py-1 text-meta" aria-label={`Remove ${doc.filename}`} onClick={onRemove}>
             Remove
           </button>
         )}
       </div>
       {(doc.visualSummary || doc.visualError) && !readingImages && (
-        <p className={`mt-1 text-xs ${doc.visualStatus === "failed" ? "text-danger" : "text-muted"}`} data-testid="visual-summary">
+        <p className={`mt-1 text-meta ${doc.visualStatus === "failed" ? "text-danger" : "text-muted"}`} data-testid="visual-summary">
           {doc.visualStatus === "failed" ? doc.visualError : doc.visualSummary}
         </p>
       )}
       {open && (
-        <pre className="mt-2 max-h-72 overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-xs whitespace-pre-wrap">
+        <pre className="mt-2 max-h-72 overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-meta whitespace-pre-wrap">
           {text}
         </pre>
       )}

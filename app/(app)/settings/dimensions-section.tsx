@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { LuChevronDown } from "react-icons/lu";
 import { RowList, SectionHeader, newKey, type Row } from "./sections";
+import { usePlain } from "./plain";
 
 export type DimensionRow = Row<{
   title: string;
@@ -37,6 +39,7 @@ export function DimensionsSection({
   collectionPrompts: Row<{ question: string }>[];
   onChange?: (dimensions: DimensionRow[]) => void;
 }) {
+  const { pick } = usePlain();
   const readOnly = !onChange;
   const [open, setOpen] = useState<string | null>(dimensions[0]?.key ?? null);
 
@@ -52,7 +55,10 @@ export function DimensionsSection({
     <>
       <SectionHeader
         title="Evaluation dimensions"
-        intro="About ten lenses. Each has a question, claim coverage to look for, concrete prompts, and high/low-score signals. Removing a dimension leaves it out of the next published version; evaluations on earlier versions keep it."
+        intro={pick(
+          "About ten lenses. Each has a question, claim coverage to look for, concrete prompts, and high/low-score signals. Removing a dimension leaves it out of the next published version; evaluations on earlier versions keep it.",
+          "The areas every deal is scored on from 0 to 5, such as the team or the competitive advantage. For each area, say what to look at, which questions to answer, and what a high or a low score looks like.",
+        )}
       />
       <div className="flex flex-col gap-3">
         {dimensions.map((d, i) => {
@@ -65,15 +71,24 @@ export function DimensionsSection({
                   aria-expanded={isOpen}
                   onClick={() => setOpen(isOpen ? null : d.key)}
                 >
-                  <span className="text-muted w-7 text-xs tabular-nums">D{i + 1}</span>
-                  <span className="text-[15px]">{d.title || <span className="text-muted">Untitled dimension</span>}</span>
-                  <span className="text-muted text-xs">
-                    {d.prompts.length} prompt{d.prompts.length === 1 ? "" : "s"}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">
+                      {d.title || <span className="text-muted font-normal">Untitled dimension</span>}
+                    </span>
+                    <span className="text-muted block text-meta tabular-nums">
+                      {pick(
+                        `D${i + 1} · ${d.prompts.length} prompt${d.prompts.length === 1 ? "" : "s"}`,
+                        `${d.prompts.length} question${d.prompts.length === 1 ? "" : "s"}`,
+                      )}
+                    </span>
                   </span>
-                  <span className="text-muted ml-auto text-xs">{isOpen ? "▾" : "▸"}</span>
+                  <LuChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 text-[var(--color-neutral-500)] transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {!readOnly && (
-                  <div className="flex">
+                  <div className="flex gap-1">
                     <button className="btn px-2 py-1" aria-label="Move dimension up" disabled={i === 0} onClick={() => move(i, -1)}>
                       ↑
                     </button>
@@ -120,7 +135,7 @@ export function DimensionsSection({
                       onChange={(e) => set(d.key, { question: e.target.value })}
                     />
                   </Field>
-                  <Field label="Claim coverage (what to look for)">
+                  <Field label={pick("Claim coverage (what to look for)", "What to look for")}>
                     <textarea
                       className="input min-h-14"
                       value={d.claimCoverage}
@@ -128,13 +143,13 @@ export function DimensionsSection({
                       onChange={(e) => set(d.key, { claimCoverage: e.target.value })}
                     />
                   </Field>
-                  <Field label="Concrete prompts">
+                  <Field label={pick("Concrete prompts", "Questions to answer")}>
                     <RowList
                       compact
                       rows={d.prompts}
                       onChange={readOnly ? undefined : (prompts) => set(d.key, { prompts })}
                       newRow={() => ({ prompt: "" })}
-                      addLabel="+ Add concrete prompt"
+                      addLabel={pick("+ Add concrete prompt", "+ Add question")}
                       renderRow={(row, setRow, ro) => (
                         <textarea
                           className="input min-h-10"
@@ -147,7 +162,7 @@ export function DimensionsSection({
                     />
                   </Field>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="High-score signals">
+                    <Field label={pick("High-score signals", "What a high score looks like")}>
                       <textarea
                         className="input min-h-14"
                         value={d.highScoreSignals}
@@ -155,7 +170,7 @@ export function DimensionsSection({
                         onChange={(e) => set(d.key, { highScoreSignals: e.target.value })}
                       />
                     </Field>
-                    <Field label="Low-score signals">
+                    <Field label={pick("Low-score signals", "What a low score looks like")}>
                       <textarea
                         className="input min-h-14"
                         value={d.lowScoreSignals}
@@ -164,7 +179,7 @@ export function DimensionsSection({
                       />
                     </Field>
                   </div>
-                  <Field label="Disqualifying threshold (R3)">
+                  <Field label={pick("Disqualifying threshold (R3)", "Rule the deal out below")}>
                     <select
                       className="input max-w-xs"
                       aria-label="Disqualifying threshold"
@@ -174,21 +189,26 @@ export function DimensionsSection({
                         set(d.key, { disqualifyingBelow: e.target.value === "" ? null : Number(e.target.value) })
                       }
                     >
-                      <option value="">None: never disqualifying</option>
+                      <option value="">{pick("None: never disqualifying", "Never rule a deal out on this area")}</option>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <option key={n} value={n}>
-                          A score below {n} is disqualifying
+                          {pick(`A score below ${n} is disqualifying`, `Rule the deal out if it scores below ${n}`)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Required Collection Prompts (an uncovered one caps the score)">
+                  <Field
+                    label={pick(
+                      "Required Collection Prompts (an uncovered one caps the score)",
+                      "Research questions this area depends on (an unanswered one caps the score)",
+                    )}
+                  >
                     {collectionPrompts.length === 0 ? (
-                      <p className="text-muted text-[13px]">No Collection Prompts yet.</p>
+                      <p className="text-muted text-body">No Collection Prompts yet.</p>
                     ) : (
                       <div className="flex flex-col gap-1">
                         {collectionPrompts.map((p, pi) => (
-                          <label key={p.key} className="flex items-start gap-2 text-[13px]">
+                          <label key={p.key} className="flex items-start gap-2 text-body">
                             <input
                               type="checkbox"
                               className="mt-1"
@@ -227,10 +247,10 @@ export function DimensionsSection({
             setOpen(d.key);
           }}
         >
-          + Add dimension
+          {pick("+ Add dimension", "+ Add area")}
         </button>
       )}
-      {readOnly && dimensions.length === 0 && <p className="text-muted text-[13px]">None.</p>}
+      {readOnly && dimensions.length === 0 && <p className="text-muted text-body">None.</p>}
     </>
   );
 }
@@ -238,7 +258,7 @@ export function DimensionsSection({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-muted text-xs">{label}</span>
+      <span className="text-muted text-meta">{label}</span>
       {children}
     </div>
   );

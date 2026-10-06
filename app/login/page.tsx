@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { AuthShell } from "../auth-shell";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -20,23 +21,21 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const message = typeof error === "string" ? ERRORS[error] : undefined;
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="card w-full max-w-sm">
-        <div className="nav-brand mb-2">
-          <span className="nav-brand-dot" />
-          Tracer
-        </div>
-        <p className="text-muted mb-3 text-[13px]">Sign in with your fund account.</p>
-        {message && (
-          <p role="alert" className="text-danger mb-2 text-[13px]">
-            {message}
-          </p>
-        )}
-        <LoginForm />
-        <p className="text-muted mt-4 text-[13px]">
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in with your fund account."
+      footer={
+        <>
           New fund? <Link href="/signup">Create a fund account</Link>
+        </>
+      }
+    >
+      {message && (
+        <p role="alert" className="text-danger mb-4 text-body">
+          {message}
         </p>
-      </div>
-    </main>
+      )}
+      <LoginForm />
+    </AuthShell>
   );
 }

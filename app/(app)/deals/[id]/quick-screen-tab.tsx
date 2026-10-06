@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -12,6 +11,7 @@ import {
   type Verdict,
 } from "@/lib/evaluation-shared";
 import { MaterialsSection } from "./materials-section";
+import { ContinueLink, StepBar } from "./step-bar";
 
 const NEXT_STEP: Record<Verdict, string> = {
   proceed: "Proceed to full evaluation: Evidence Collection builds the Source Table from these materials.",
@@ -52,6 +52,7 @@ export function QuickScreenTab({
   const allAnswered = questions.every((q) => answers[q.id]?.trim());
   const changed = questions.some((q) => (answers[q.id] ?? "").trim() !== (saved[q.id]?.answer ?? "").trim());
   const hasAnswers = questions.some((q) => saved[q.id] || answers[q.id]?.trim());
+  const answeredCount = questions.filter((q) => answers[q.id]?.trim()).length;
 
   function draft() {
     if (hasAnswers && !confirm("Replace the current answers with new drafts from the materials?")) return;
@@ -101,26 +102,9 @@ export function QuickScreenTab({
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <h2 className="mb-1 text-[22px]">Quick Screen</h2>
-              <p className="text-muted text-[13px]">
-                {questions.length} fund-defined question{questions.length === 1 ? "" : "s"} · 1–2 sentences each
-              </p>
-            </div>
-            {editable && (
-              <button
-                className="btn btn-primary ml-auto"
-                onClick={draft}
-                disabled={pending || readable === 0 || readingImages}
-                title={readable === 0 ? "Upload at least one document with readable text first" : undefined}
-              >
-                {drafting ? "Drafting answers…" : readingImages ? "Reading images…" : "Draft answers from materials"}
-              </button>
-            )}
-          </div>
+          <h2 className="text-page">Quick Screen</h2>
           {editable && readable === 0 && (
-            <p className="text-muted text-[13px]">
+            <p className="text-muted text-body">
               Upload materials and the AI drafts the answers from them, or type the answers yourself.
             </p>
           )}
@@ -137,28 +121,13 @@ export function QuickScreenTab({
             />
           ))}
 
-          {editable && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                className="btn btn-primary"
-                onClick={generate}
-                disabled={pending || !allAnswered || (!!memo && !changed)}
-              >
-                {generating ? "Generating memo…" : memo ? "Regenerate memo" : "Generate memo"}
-              </button>
-              {!allAnswered && <span className="text-muted text-[13px]">Every question needs an answer.</span>}
-              {memo && !changed && allAnswered && (
-                <span className="text-muted text-[13px]">Change an answer to regenerate.</span>
-              )}
-            </div>
-          )}
           {notice && (
-            <p role="status" className="text-[13px]">
+            <p role="status" className="text-body">
               {notice}
             </p>
           )}
           {error && (
-            <p role="alert" className="text-danger text-[13px]">
+            <p role="alert" className="text-danger text-body">
               {error}
             </p>
           )}
@@ -168,8 +137,8 @@ export function QuickScreenTab({
           {memo ? (
             <MemoCard evaluationId={evaluationId} memo={memo} editable={editable} />
           ) : (
-            <div className="card text-[13px]">
-              <h2 className="text-lg">Quick Screen memo</h2>
+            <div className="card text-body">
+              <h2 className="text-panel font-semibold">Quick Screen memo</h2>
               <p className="text-muted">
                 Upload materials, draft and review the answers, then generate. The memo states a preliminary thesis, a
                 Proceed / Watch / Pass verdict with one-sentence justification, and the two most decision-critical
@@ -179,6 +148,50 @@ export function QuickScreenTab({
           )}
         </section>
       </div>
+
+      <StepBar
+        step={1}
+        title="Quick Screen"
+        done={memo?.verdict === "proceed"}
+        status={
+          generating
+            ? "Generating the memo…"
+            : !memo
+              ? allAnswered
+                ? "All questions answered · generate the memo"
+                : `${answeredCount} of ${questions.length} question${questions.length === 1 ? "" : "s"} answered`
+              : memo.verdict === "proceed"
+                ? changed && editable
+                  ? "Answers changed since the memo · regenerate it, or continue with the current memo"
+                  : "Verdict Proceed · ready for Evidence Collection"
+                : memo.verdict === "watch"
+                  ? "Verdict Watch · paused until the gating variable resolves. Edit the verdict in the memo to continue."
+                  : "Verdict Pass · assessment discontinued. Edit the verdict in the memo to continue."
+        }
+      >
+        {editable && (
+          <button
+            className={`btn ${answeredCount === 0 && !memo ? "btn-primary" : ""}`}
+            onClick={draft}
+            disabled={pending || readable === 0 || readingImages}
+            title={readable === 0 ? "Upload at least one document with readable text first" : undefined}
+          >
+            {drafting ? "Drafting answers…" : readingImages ? "Reading images…" : "Draft answers"}
+          </button>
+        )}
+        {editable && (!memo || changed) && (
+          <button
+            className={`btn ${memo || answeredCount === 0 ? "" : "btn-primary"}`}
+            onClick={generate}
+            disabled={pending || !allAnswered || (!!memo && !changed)}
+          >
+            {generating ? "Generating memo…" : memo ? "Regenerate memo" : "Generate memo"}
+          </button>
+        )}
+        {memo?.verdict === "proceed" && (
+          <ContinueLink href={`/deals/${evaluationId}?tab=evidence`} label="Continue to Evidence Collection" />
+        )}
+      </StepBar>
     </div>
   );
 }
@@ -204,7 +217,7 @@ function AnswerCard({
 
   return (
     <div className="card gap-2 p-4" data-testid="answer-card">
-      <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium">
+      <div className="flex flex-wrap items-center gap-2 text-body font-medium">
         <span>
           <span className="text-muted tabular-nums">{index + 1}.</span> {question.label}
         </span>
@@ -214,7 +227,7 @@ function AnswerCard({
           </span>
         )}
       </div>
-      <span className="text-muted text-[13px]">{question.question}</span>
+      <span className="text-muted text-body">{question.question}</span>
       <textarea
         className="input min-h-20"
         aria-label={question.label}
@@ -224,10 +237,10 @@ function AnswerCard({
         onChange={(e) => onChange(e.target.value)}
       />
       {edited && saved.aiAnswer && (
-        <p className="text-muted text-xs">AI draft: “{saved.aiAnswer}”</p>
+        <p className="text-muted text-meta">AI draft: “{saved.aiAnswer}”</p>
       )}
       {saved?.citations.length ? (
-        <details className="text-xs">
+        <details className="text-meta">
           <summary className="text-muted cursor-pointer">
             {saved.citations.length} excerpt{saved.citations.length === 1 ? "" : "s"} from the materials
           </summary>
@@ -274,13 +287,13 @@ function MemoCard({ evaluationId, memo, editable }: { evaluationId: string; memo
   return (
     <div className="card gap-4">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg">Quick Screen memo</h2>
+        <h2 className="text-panel font-semibold">Quick Screen memo</h2>
         <span className="tag tag-neutral ml-auto" data-testid="memo-verdict">
           {VERDICT_LABELS[memo.verdict]}
         </span>
       </div>
       {memo.overridden && (
-        <p className="text-[13px]">
+        <p className="text-body">
           <span className="tag tag-neutral">overridden</span>{" "}
           <span className="text-muted">
             P1 said {VERDICT_LABELS[memo.originalVerdict]}; changed by {memo.overridden.by ?? "a fund member"} on{" "}
@@ -302,25 +315,20 @@ function MemoCard({ evaluationId, memo, editable }: { evaluationId: string; memo
       {memo.reevalTrigger && <Block title="Re-evaluation trigger">{memo.reevalTrigger}</Block>}
       <Block title="Next step">{NEXT_STEP[memo.verdict]}</Block>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {memo.verdict === "proceed" && (
-          <Link href={`/deals/${evaluationId}?tab=evidence`} className="btn btn-primary no-underline">
-            Continue to Evidence Collection
-          </Link>
-        )}
-        {editable && !overriding && (
+      {editable && !overriding && (
+        <div>
           <button className="btn" onClick={() => setOverriding(true)}>
             Edit verdict
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {overriding && (
         <div className="flex flex-col gap-2 border-t border-[var(--color-divider)] pt-3">
-          <span className="text-muted text-xs">Override the verdict (logged)</span>
-          <div className="flex gap-2">
+          <span className="text-muted text-meta">Override the verdict (logged)</span>
+          <div className="flex flex-col gap-2">
             <select
-              className="input w-36"
+              className="input w-44 self-start"
               aria-label="Verdict"
               value={verdict}
               onChange={(e) => setVerdict(e.target.value as Verdict)}
@@ -332,7 +340,7 @@ function MemoCard({ evaluationId, memo, editable }: { evaluationId: string; memo
               ))}
             </select>
             <textarea
-              className="input min-h-9 flex-1"
+              className="input min-h-16"
               aria-label="Reason for override"
               placeholder="Why you override the memo's verdict (required, written to the log)"
               value={reason}
@@ -352,7 +360,7 @@ function MemoCard({ evaluationId, memo, editable }: { evaluationId: string; memo
             </button>
           </div>
           {error && (
-            <p role="alert" className="text-danger text-[13px]">
+            <p role="alert" className="text-danger text-body">
               {error}
             </p>
           )}
@@ -364,8 +372,8 @@ function MemoCard({ evaluationId, memo, editable }: { evaluationId: string; memo
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="text-[13.5px] leading-relaxed">
-      <div className="text-muted mb-0.5 text-xs">{title}</div>
+    <div className="text-reading leading-relaxed">
+      <div className="text-muted mb-0.5 text-meta">{title}</div>
       <div>{children}</div>
     </div>
   );

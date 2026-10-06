@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
   CLAIM_TYPE_LABELS,
@@ -14,7 +14,11 @@ import {
 import { CONFLICT_STATUS_LABELS, CONFLICT_STATUS_SHORT, type ConflictView } from "@/lib/conflict-shared";
 import { isRunActive, TIER_LABELS, type RunView } from "@/lib/source-shared";
 import { ConflictRegister } from "./conflict-register";
+import { Hint } from "./hint";
+import { flashTo } from "./jump";
+import { conflictTagClass, ID_TAG_CLASS, PLAIN_TAG_CLASS, RowTag, tagClassFor } from "./id-tag";
 import { RerunControl, RunCallsLink } from "./rerun-control";
+import { ContinueLink, NextIcon, StepBar } from "./step-bar";
 
 const FILTERS = ["all", "fact", "inference", "speculation"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -94,7 +98,11 @@ export function ClaimsTab({
 
   const count = (t: ClaimType) => claims.filter((c) => c.type === t).length;
   const conf = (l: string) => claims.filter((c) => c.confidence === l).length;
-  const shown = filter === "all" ? claims : claims.filter((c) => c.type === filter);
+  // ?source=S# (from the Source Table's claim counts): claims citing that source.
+  const sourceFilter = useSearchParams().get("source");
+  const shown = (filter === "all" ? claims : claims.filter((c) => c.type === filter)).filter(
+    (c) => !sourceFilter || c.links.some((l) => l.sourceCode === sourceFilter),
+  );
   const openConflicts = new Set(claims.flatMap((c) => c.conflicts.filter((x) => x.status === "open").map((x) => x.code)));
   const links = claims.flatMap((c) => c.links);
   const markedWrong = links.filter((l) => l.markedWrong).length;
@@ -102,35 +110,17 @@ export function ClaimsTab({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-1 text-[22px]">Claim Extraction</h2>
-        <p className="text-muted text-[13px]">
-          Source Table → atomic claims (C#), each Fact or Inference with a verbatim excerpt and S#; duplicates merged,
-          contradictions recorded, confidence assigned by rule.
+        <h2 className="mb-1 text-page">Claim Extraction</h2>
+        <p className="text-muted text-body">
+          Individual claims pulled from your sources, each quoting its source word for word. Duplicates are merged,
+          contradictions recorded and confidence set by rule.
         </p>
       </div>
 
-      {(claims.length === 0 || run) && (
+      {run && !active && (
         <section className="card gap-3">
-          {claims.length === 0 && !active && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={extract} disabled={!canExtract || pending}>
-                {run?.status === "failed" ? "Try again" : "Extract claims"}
-              </button>
-              <span className="text-muted text-[13px]">Runs over every source in the Source Table.</span>
-            </div>
-          )}
-          {active && run && (
-            <div className="flex flex-col gap-1.5" data-testid="run-progress">
-              <div className="text-[13px]">
-                Step 3 · {run.status === "queued" ? "Waiting for the background worker…" : `Extracting claims · ${run.progress}%`}
-              </div>
-              <div className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
-                <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${Math.max(run.progress, 3)}%` }} />
-              </div>
-            </div>
-          )}
           {run && !active && (
-            <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
+            <div className="flex flex-col gap-1 text-body" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
                   Claim extraction failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
@@ -139,12 +129,12 @@ export function ClaimsTab({
                 <p>Claim Table built{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
               )}
               {run.warnings.map((w) => (
-                <p key={w} className="text-danger text-xs" data-testid="run-warning">
+                <p key={w} className="text-danger text-meta" data-testid="run-warning">
                   ⚠ {w}
                 </p>
               ))}
               {run.notes.map((n) => (
-                <p key={n} className="text-muted text-xs">
+                <p key={n} className="text-muted text-meta">
                   {n}
                 </p>
               ))}
@@ -152,7 +142,7 @@ export function ClaimsTab({
             </div>
           )}
           {error && claims.length === 0 && (
-            <p role="alert" className="text-danger text-[13px]">
+            <p role="alert" className="text-danger text-body">
               {error}
             </p>
           )}
@@ -161,7 +151,7 @@ export function ClaimsTab({
 
       {claims.length > 0 && (
         <section className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-meta">
             <span className="text-muted mr-2">
               {claims.length} claims · {count("fact")} Fact · {count("inference")} Inference · {count("speculation")}{" "}
               Speculation · H {conf("high")} · M {conf("medium")} · L {conf("low")} · {openConflicts.size} open conflict
@@ -173,11 +163,22 @@ export function ClaimsTab({
                 </span>
               )}
             </span>
-            <div className="ml-auto flex gap-1" role="group" aria-label="Filter by type">
+            {sourceFilter && (
+              <Link
+                href={`/deals/${evaluationId}?tab=claims`}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--color-accent-tint)] px-2.5 py-1 text-meta font-medium text-[var(--color-accent-text)] no-underline hover:bg-[var(--color-accent-800)]"
+                title="Show all claims"
+                data-testid="source-filter"
+              >
+                Citing {sourceFilter} · {shown.length}
+                <span aria-hidden>×</span>
+              </Link>
+            )}
+            <div className={`${sourceFilter ? "" : "ml-auto "}flex gap-1`} role="group" aria-label="Filter by type">
               {FILTERS.map((f) => (
                 <button
                   key={f}
-                  className={`btn px-2.5 py-1 text-xs ${filter === f ? "btn-primary" : ""}`}
+                  className={`btn px-2.5 py-1 text-meta ${filter === f ? "btn-primary" : ""}`}
                   aria-pressed={filter === f}
                   onClick={() => setFilter(f)}
                 >
@@ -186,9 +187,9 @@ export function ClaimsTab({
               ))}
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-[13px]" data-testid="claim-table">
-              <thead className="text-muted text-xs">
+          <div className="panel overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-body" data-testid="claim-table">
+              <thead className="text-muted text-meta">
                 <tr className="border-b border-[var(--color-divider)]">
                   <th className="w-11 py-2 pr-3 font-normal">ID</th>
                   <th className="py-2 pr-3 font-normal">Claim</th>
@@ -202,30 +203,40 @@ export function ClaimsTab({
                 {shown.map((c) => (
                   <tr
                     key={c.id}
+                    id={`claim-${c.code}`}
                     onClick={() => setOpenId(c.id)}
-                    className="cursor-pointer border-b border-[var(--color-divider)] align-top hover:bg-[var(--color-surface)]"
+                    className="cursor-pointer border-b border-[var(--color-divider)] align-top hover:bg-[var(--color-hover)]"
                     data-testid="claim-row"
                     data-type={c.type}
                   >
-                    <td className="py-2 pr-3 font-mono text-[11px] text-[var(--color-neutral-300)]">{c.code}</td>
+                    <td className="py-2 pr-3">
+                      <button type="button" className={ID_TAG_CLASS} title={`Trace ${c.code}`}>
+                        {c.code}
+                      </button>
+                    </td>
                     <td className="py-2 pr-3">
                       {c.statement}
                       {c.conflicts.map((x) => (
-                        <span
+                        <button
                           key={x.id}
-                          className={`tag ml-1.5 ${x.status === "open" ? "text-danger" : "tag-neutral"}`}
-                          title={`${x.description} (contradicts ${x.otherCode})`}
+                          type="button"
+                          className={`${conflictTagClass(x.status === "open")} ml-1.5 gap-1 align-[1px]`}
+                          title={`${x.description} (contradicts ${x.otherCode}). Click to see it in the Conflict Register.`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            flashTo(`conflict-${x.code}`);
+                          }}
                           data-testid="claim-conflict-badge"
                         >
-                          {x.status === "open" && "⚠ "}
-                          {x.code} · {CONFLICT_STATUS_SHORT[x.status]}
-                        </span>
+                          {x.code}
+                          <span className="font-sans">· {CONFLICT_STATUS_SHORT[x.status]}</span>
+                        </button>
                       ))}
                     </td>
                     <td className="py-2 pr-3">
                       <span className={`tag ${TYPE_TAG[c.type]}`}>{CLAIM_TYPE_LABELS[c.type]}</span>
                     </td>
-                    <td className="text-muted py-2 pr-3 text-xs" data-testid="claim-excerpt">
+                    <td className="text-muted py-2 pr-3" data-testid="claim-excerpt">
                       {c.links.length ? (
                         <span className={c.links[0].markedWrong ? "line-through" : ""}>“{c.links[0].excerpt}”</span>
                       ) : (
@@ -238,17 +249,18 @@ export function ClaimsTab({
                         </span>
                       )}
                     </td>
-                    <td className="py-2 pr-3 font-mono text-[11px]" data-testid="claim-sources">
-                      {c.links.length
-                        ? c.links.map((l, i) => (
-                            <span key={l.id} className={l.markedWrong ? "text-muted line-through" : ""}>
-                              {i > 0 && ", "}
-                              {l.sourceCode}
-                            </span>
-                          ))
-                        : "—"}
+                    <td className="py-2 pr-3" data-testid="claim-sources">
+                      {c.links.length ? (
+                        <span className="flex flex-wrap gap-1">
+                          {c.links.map((l) => (
+                            <RowTag key={l.id} evaluationId={evaluationId} code={l.sourceCode} muted={l.markedWrong} />
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-muted text-meta">—</span>
+                      )}
                     </td>
-                    <td className="py-2 text-xs" data-testid="claim-confidence">
+                    <td className="py-2" data-testid="claim-confidence">
                       {c.confidence ? CONFIDENCE_LABELS[c.confidence] : <span className="text-muted">—</span>}
                     </td>
                   </tr>
@@ -256,65 +268,68 @@ export function ClaimsTab({
               </tbody>
             </table>
           </div>
-          <p className="text-muted text-[11px]">
+          <p className="text-muted text-meta">
             Speculation carries no evidence link by definition; any statement resting on it is marked as unsupported.
           </p>
         </section>
       )}
 
       {(claims.length > 0 || uncertainties.length > 0) && (
-        <section className="card gap-2 p-4" data-testid="uncertainties">
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">
-            Uncovered Collection Prompts → Uncertainty List
+        <section className="card gap-0 overflow-hidden p-0" data-testid="uncertainties">
+          <div className="px-4 pt-4 pb-3 text-panel font-semibold">
+            <Hint info="Written by the sufficiency rule: a required Collection Prompt without an answering Fact or Inference becomes an uncertainty. The full Uncertainty List is completed with the counter-case.">
+              Uncertainty List (Uncovered Collection Prompts)
+            </Hint>
           </div>
           {uncertainties.length === 0 ? (
-            <p className="text-muted text-[13px]">Every required Collection Prompt has an answering Fact or Inference.</p>
+            <p className="text-muted px-4 pb-4 text-body">
+              Every required Collection Prompt has an answering Fact or Inference.
+            </p>
           ) : (
-            uncertainties.map((u) => (
-              <div key={u.id} className="border-t border-[var(--color-divider)] pt-2 text-[13px]" data-testid="uncertainty">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-mono text-[11px]">{u.code}</span>
-                  <span className="flex-1">{u.question}</span>
-                  <span className={`tag ${u.decisionCritical ? "tag-accent" : "tag-neutral"}`}>
-                    {u.decisionCritical ? "Decision-critical" : "Nice to know"}
-                  </span>
-                  {u.fromPrompt && <span className="tag tag-outline">from prompt {u.fromPrompt}</span>}
-                </div>
-                <p className="text-muted mt-1 text-xs">{u.whyUnresolved}</p>
-                {u.minEvidence && <p className="text-muted text-xs">Minimum evidence: {u.minEvidence}</p>}
-              </div>
-            ))
+            <div className="overflow-x-auto">
+              <table className="data-table w-full min-w-[820px] text-left text-body">
+                <thead>
+                  <tr>
+                    <th className="w-14">ID</th>
+                    <th className="w-[28%]">Open question</th>
+                    <th>Why it&apos;s open</th>
+                    <th>Evidence that would resolve it</th>
+                    <th className="w-36">Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {uncertainties.map((u) => (
+                    <tr key={u.id} data-testid="uncertainty">
+                      <td>
+                        <span className={PLAIN_TAG_CLASS}>
+                          {u.code}
+                        </span>
+                      </td>
+                      <td className="font-medium">{u.question}</td>
+                      <td className="text-[var(--color-neutral-300)]">{u.whyUnresolved}</td>
+                      <td className="text-[var(--color-neutral-300)]">{u.minEvidence ?? <span className="text-muted">—</span>}</td>
+                      <td>
+                        <span className={`tag ${u.decisionCritical ? "tag-accent" : "tag-neutral"}`}>
+                          {u.decisionCritical ? "Decision-critical" : "Nice to know"}
+                        </span>
+                        {u.fromPrompt && (
+                          <div className="text-muted mt-1 text-meta">Collection Prompt {u.fromPrompt}</div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-          <p className="text-muted text-[11px]">
-            Written by the sufficiency rule: a required prompt without an answering Fact or Inference becomes an
-            uncertainty. The full Uncertainty List is completed with the counter-case.
-          </p>
         </section>
       )}
 
       <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} />
 
       {claims.length > 0 && !active && (
-        <section className="card gap-2" data-testid="next-step">
-          {stressTestStarted ? (
-            <Link href={`/deals/${evaluationId}?tab=counter-case`}>Counter-Case →</Link>
-          ) : (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={stressTest} disabled={!canStressTest || pending}>
-                Stress-test thesis
-              </button>
-              <span className="text-muted text-[13px]">
-                Next step: the three strongest arguments against, the full Uncertainty List and falsifiers, all citing
-                this Claim Table. Review links and conflicts first.
-              </span>
-            </div>
-          )}
-          {error && (
-            <p role="alert" className="text-danger text-[13px]">
-              {error}
-            </p>
-          )}
-          <div className="border-t border-[var(--color-divider)] pt-2">
+        <section className="flex flex-col gap-2">
+          <div>
             <RerunControl
               evaluationId={evaluationId}
               step={3}
@@ -325,6 +340,42 @@ export function ClaimsTab({
           </div>
         </section>
       )}
+
+      <StepBar
+        error={error}
+        step={3}
+        title="Claim Extraction"
+        done={claims.length > 0 && !active}
+        progress={active && run ? run.progress : undefined}
+        status={
+          active && run
+            ? run.status === "queued"
+              ? "Waiting for the background worker…"
+              : `Extracting claims · ${run.progress}%`
+            : claims.length > 0
+              ? `${claims.length} claim${claims.length === 1 ? "" : "s"} extracted` +
+                (stressTestStarted ? "" : " · review links and conflicts, then stress-test the thesis")
+              : run?.status === "failed"
+                ? "The last run failed · try again"
+                : "Extract atomic claims from every source in the Source Table"
+        }
+      >
+        {claims.length === 0 && !active && (
+          <button className="btn btn-primary" onClick={extract} disabled={!canExtract || pending}>
+            {run?.status === "failed" ? "Try again" : "Extract claims"}
+          </button>
+        )}
+        {claims.length > 0 &&
+          !active &&
+          (stressTestStarted ? (
+            <ContinueLink href={`/deals/${evaluationId}?tab=counter-case`} label="Continue to Counter-Case" />
+          ) : (
+            <button className="btn btn-primary" onClick={stressTest} disabled={!canStressTest || pending}>
+              Stress-test thesis
+              <NextIcon />
+            </button>
+          ))}
+      </StepBar>
 
       {open && (
         <ClaimDrawer
@@ -363,15 +414,15 @@ export function ClaimDrawer({
     >
       <div className="flex items-start gap-3">
         <div>
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">Claim {claim.code}</div>
-          <h3 className="text-lg leading-snug">{claim.statement}</h3>
+          <div className="mb-1.5 text-meta font-medium text-[var(--color-accent-text)]">Claim {claim.code}</div>
+          <h3 className="text-section leading-snug">{claim.statement}</h3>
         </div>
         <button className="btn ml-auto" onClick={onClose} aria-label="Close">
           ×
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-meta">
         <span className={`tag ${TYPE_TAG[claim.type]}`}>{CLAIM_TYPE_LABELS[claim.type]}</span>
         {claim.confidence && (
           <span className="tag tag-neutral" data-testid="drawer-confidence">
@@ -380,12 +431,12 @@ export function ClaimDrawer({
         )}
       </div>
       {claim.basis && (
-        <p className="text-muted text-xs" data-testid="confidence-rule">
+        <p className="text-muted text-meta" data-testid="confidence-rule">
           R1 · {claim.basis.rule}
         </p>
       )}
       {claim.type === "speculation" && (
-        <p className="text-muted text-[13px]">
+        <p className="text-muted text-body">
           Speculation carries no evidence link by definition. Any statement resting on it is marked as unsupported.
         </p>
       )}
@@ -393,7 +444,7 @@ export function ClaimDrawer({
       {claim.conflicts.map((x) => (
         <div
           key={x.id}
-          className={`rounded-md border p-3 text-[13px] ${
+          className={`rounded-md border p-3 text-body ${
             x.status === "open" ? "border-[var(--color-danger)]/40" : "border-[var(--color-divider)]"
           }`}
           data-testid="drawer-conflict"
@@ -401,9 +452,9 @@ export function ClaimDrawer({
           <div className={x.status === "open" ? "text-danger" : ""}>
             {x.status === "open" ? "⚠ In conflict" : "Conflict"} · {x.code} · {CONFLICT_STATUS_LABELS[x.status]}
           </div>
-          <div className="text-muted text-xs">
+          <div className="text-muted text-meta">
             Contradicts{" "}
-            <button className="underline" onClick={() => onOpen(x.otherCode)}>
+            <button className={`${ID_TAG_CLASS} align-[1px]`} onClick={() => onOpen(x.otherCode)}>
               {x.otherCode}
             </button>
             {x.parentCode && <> · repeats source conflict {x.parentCode}</>} · {x.description}
@@ -412,8 +463,8 @@ export function ClaimDrawer({
       ))}
 
       {claim.links.length > 0 && (
-        <div className="flex flex-col gap-2 text-[13px]">
-          <div className="text-muted text-xs">Evidence links</div>
+        <div className="flex flex-col gap-2 text-body">
+          <div className="text-muted text-meta">Evidence links</div>
           {claim.links.map((l) => (
             <EvidenceLink
               key={l.id}
@@ -427,8 +478,8 @@ export function ClaimDrawer({
         </div>
       )}
 
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Collection Prompts it answers</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Collection Prompts it answers</div>
         {answers.length ? (
           <ul className="flex flex-col gap-1">
             {answers.map((p) => (
@@ -441,15 +492,21 @@ export function ClaimDrawer({
           <span className="text-muted">None.</span>
         )}
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Cited by</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Cited by</div>
         {claim.citedBy.length ? (
           <div className="flex flex-wrap gap-1.5" data-testid="cited-by">
-            {claim.citedBy.map((c) => (
-              <span key={c} className="tag tag-neutral">
-                {c}
-              </span>
-            ))}
+            {claim.citedBy.map((c) =>
+              /^(C|S|U|F|D|CR)\d+$/.test(c) ? (
+                <button key={c} type="button" className={tagClassFor(c)} onClick={() => onOpen(c)}>
+                  {c}
+                </button>
+              ) : (
+                <span key={c} className="tag tag-neutral">
+                  {c}
+                </span>
+              ),
+            )}
           </div>
         ) : (
           <span className="text-muted">Not cited yet.</span>
@@ -505,8 +562,8 @@ function EvidenceLink({
       data-marked-wrong={link.markedWrong}
     >
       <button onClick={onSelect} className="block w-full text-left">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-mono">{link.sourceCode}</span>
+        <div className="flex flex-wrap items-center gap-2 text-meta">
+          <span className={ID_TAG_CLASS}>{link.sourceCode}</span>
           <span>{link.sourceTitle}</span>
           <span className="tag tag-neutral">{TIER_LABELS[link.tier]}</span>
           <span className="text-muted">party: {link.party}</span>
@@ -514,7 +571,7 @@ function EvidenceLink({
         </div>
         <div className={`mt-1 ${link.markedWrong ? "text-muted line-through" : ""}`}>“{link.excerpt}”</div>
         {link.visual && (
-          <div className="mt-2 flex flex-col gap-1.5 text-xs" data-testid="visual-origin">
+          <div className="mt-2 flex flex-col gap-1.5 text-meta" data-testid="visual-origin">
             <span className="tag tag-outline w-fit">
               From {link.visual.locator} ·{" "}
               {link.visual.kind === "chart" ? "chart data read from the file" : "AI transcription of the image"}
@@ -535,11 +592,11 @@ function EvidenceLink({
         )}
       </button>
       <div className="mt-2 flex items-center gap-2">
-        <button className="btn px-2.5 py-1 text-xs" onClick={() => mark(!link.markedWrong)} disabled={pending}>
+        <button className="btn px-2.5 py-1 text-meta" onClick={() => mark(!link.markedWrong)} disabled={pending}>
           {pending ? "Saving…" : link.markedWrong ? "Unmark link" : "Mark link as wrong"}
         </button>
         {error && (
-          <span role="alert" className="text-danger text-xs">
+          <span role="alert" className="text-danger text-meta">
             {error}
           </span>
         )}
@@ -571,12 +628,12 @@ function SourceText({ evaluationId, link }: { evaluationId: string; link: ClaimL
   // Offsets are code points (decision: same unit as Postgres length()).
   const chars = text === null ? [] : Array.from(text);
   return (
-    <div className="text-[13px]">
-      <div className="text-muted mb-1 text-xs">
+    <div className="text-body">
+      <div className="text-muted mb-1 text-meta">
         {link.sourceCode} · source text, excerpt highlighted
       </div>
       <pre
-        className="max-h-[45vh] overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-xs whitespace-pre-wrap"
+        className="max-h-[45vh] overflow-auto rounded-md bg-[var(--color-bg)] p-3 text-meta whitespace-pre-wrap"
         data-testid="source-text"
       >
         {text === null ? (

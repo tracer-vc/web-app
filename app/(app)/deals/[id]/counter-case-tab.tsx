@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { ClaimTableView } from "@/lib/claim-shared";
@@ -10,6 +9,8 @@ import { isRunActive, type RunView } from "@/lib/source-shared";
 import { ClaimDrawer } from "./claims-tab";
 import { ConflictRegister } from "./conflict-register";
 import { RerunControl, RunCallsLink } from "./rerun-control";
+import { ContinueLink, NextIcon, StepBar } from "./step-bar";
+import { ID_TAG_CLASS, tagClassFor } from "./id-tag";
 
 // Step 4 (ui_design.html): Counter-Case (prompt → argument → mechanism → C#),
 // Uncertainty List (U#) and Falsification Criteria (F#). Every ID opens its
@@ -84,7 +85,7 @@ export function CounterCaseTab({
   const critical = view.uncertainties.filter((u) => u.decisionCritical).length;
   const Id = ({ code }: { code: string }) => (
     <button
-      className="font-mono text-[11px] text-[var(--color-accent-300)] underline"
+      className={`${ID_TAG_CLASS} align-[1px]`}
       onClick={() => setTrace(code)}
       data-testid="trace-id"
       data-code={code}
@@ -106,35 +107,17 @@ export function CounterCaseTab({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-1 text-[22px]">Counter-Case</h2>
-        <p className="text-muted text-[13px]">
-          The strongest case against, the questions the sources cannot answer, and the conditions that would reject the
-          thesis — each citing the Claim Table.
+        <h2 className="mb-1 text-page">Counter-Case</h2>
+        <p className="text-muted text-body">
+          The strongest arguments against this deal, what the sources can&apos;t answer, and what would prove the
+          thesis wrong.
         </p>
       </div>
 
-      {(!done || run) && (
+      {run && !active && (
         <section className="card gap-3">
-          {!done && !active && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={start} disabled={!canRun || pending}>
-                {run?.status === "failed" ? "Try again" : "Stress-test thesis"}
-              </button>
-              <span className="text-muted text-[13px]">Runs P8 → P9 → P10 over the Claim Table.</span>
-            </div>
-          )}
-          {active && run && (
-            <div className="flex flex-col gap-1.5" data-testid="run-progress">
-              <div className="text-[13px]">
-                Step 4 · {run.status === "queued" ? "Waiting for the background worker…" : `Stress-testing · ${run.progress}%`}
-              </div>
-              <div className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
-                <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${Math.max(run.progress, 3)}%` }} />
-              </div>
-            </div>
-          )}
           {run && !active && (
-            <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
+            <div className="flex flex-col gap-1 text-body" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
                   The counter-case run failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
@@ -143,12 +126,12 @@ export function CounterCaseTab({
                 <p>Counter-case built{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
               )}
               {run.warnings.map((w) => (
-                <p key={w} className="text-danger text-xs" data-testid="run-warning">
+                <p key={w} className="text-danger text-meta" data-testid="run-warning">
                   ⚠ {w}
                 </p>
               ))}
               {run.notes.map((n) => (
-                <p key={n} className="text-muted text-xs">
+                <p key={n} className="text-muted text-meta">
                   {n}
                 </p>
               ))}
@@ -156,7 +139,7 @@ export function CounterCaseTab({
             </div>
           )}
           {error && !done && (
-            <p role="alert" className="text-danger text-[13px]">
+            <p role="alert" className="text-danger text-body">
               {error}
             </p>
           )}
@@ -166,23 +149,23 @@ export function CounterCaseTab({
       {done && (
         <section className="flex flex-col gap-3" data-testid="counter-arguments">
           <div className="flex flex-wrap items-baseline gap-2">
-            <h3 className="text-lg">Three strongest arguments against</h3>
-            <span className="text-muted text-xs">ranked · rank 1 sets the failure case</span>
+            <h3 className="text-section font-semibold">Three strongest arguments against</h3>
+            <span className="text-muted text-meta">ranked · rank 1 sets the failure case</span>
           </div>
           {view.arguments.map((a) => (
-            <article key={a.id} className="card gap-2 p-4 text-[13px]" data-testid="counter-argument" data-rank={a.rank}>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
+            <article key={a.id} className="card gap-2 p-4 text-body" data-testid="counter-argument" data-rank={a.rank}>
+              <div className="flex flex-wrap items-center gap-2 text-meta">
                 <span className="tag tag-accent">#{a.rank}</span>
                 <span className="text-muted">
                   {a.prompt ? `Counter-Case Prompt ${a.prompt.position}: ${a.prompt.text}` : "Not tied to one Counter-Case Prompt"}
                 </span>
               </div>
-              <p className="text-[15px] leading-snug">{a.argument}</p>
+              <p className="text-reading leading-snug">{a.argument}</p>
               <p>
                 <span className="text-muted">Mechanism: </span>
                 {a.mechanism}
               </p>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-meta">
                 <span className="text-muted">Rests on</span>
                 <Ids codes={a.claimCodes} />
               </div>
@@ -194,14 +177,14 @@ export function CounterCaseTab({
       {done && (
         <section className="flex flex-col gap-3" data-testid="uncertainty-list">
           <div className="flex flex-wrap items-baseline gap-2">
-            <h3 className="text-lg">Uncertainty List</h3>
-            <span className="text-muted text-xs">
+            <h3 className="text-section font-semibold">Uncertainty List</h3>
+            <span className="text-muted text-meta">
               {view.uncertainties.length} questions the sources cannot answer · {critical} decision-critical
             </span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-[13px]">
-              <thead className="text-muted text-xs">
+          <div className="panel overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-body">
+              <thead className="text-muted text-meta">
                 <tr className="border-b border-[var(--color-divider)]">
                   <th className="w-11 py-2 pr-3 font-normal">ID</th>
                   <th className="py-2 pr-3 font-normal">Open question</th>
@@ -218,16 +201,16 @@ export function CounterCaseTab({
                       <Id code={u.code} />
                     </td>
                     <td className="py-2 pr-3">{u.question}</td>
-                    <td className="text-muted py-2 pr-3 text-xs">{u.whyUnresolved}</td>
+                    <td className="text-muted py-2 pr-3">{u.whyUnresolved}</td>
                     <td className="py-2 pr-3">
                       <span className={`tag ${u.decisionCritical ? "tag-accent" : "tag-neutral"}`} data-testid="critical-flag">
                         {u.decisionCritical ? "Decision-critical" : "Nice to know"}
                       </span>
                     </td>
-                    <td className="text-muted py-2 pr-3 text-xs" data-testid="uncertainty-origin">
+                    <td className="text-muted py-2 pr-3" data-testid="uncertainty-origin">
                       {u.origin}
                     </td>
-                    <td className="text-muted py-2 text-xs">{u.minEvidence ?? "—"}</td>
+                    <td className="text-muted py-2">{u.minEvidence ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -239,12 +222,12 @@ export function CounterCaseTab({
       {done && (
         <section className="flex flex-col gap-3" data-testid="falsifiers">
           <div className="flex flex-wrap items-baseline gap-2">
-            <h3 className="text-lg">Falsification Criteria</h3>
-            <span className="text-muted text-xs">observable conditions that reject or revise the thesis</span>
+            <h3 className="text-section font-semibold">Falsification Criteria</h3>
+            <span className="text-muted text-meta">observable conditions that reject or revise the thesis</span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-[13px]">
-              <thead className="text-muted text-xs">
+          <div className="panel overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-body">
+              <thead className="text-muted text-meta">
                 <tr className="border-b border-[var(--color-divider)]">
                   <th className="w-11 py-2 pr-3 font-normal">ID</th>
                   <th className="py-2 pr-3 font-normal">Criterion</th>
@@ -259,7 +242,7 @@ export function CounterCaseTab({
                       <Id code={f.code} />
                     </td>
                     <td className="py-2 pr-3">{f.criterion}</td>
-                    <td className="text-muted py-2 pr-3 text-xs">{f.outcomeCheck}</td>
+                    <td className="text-muted py-2 pr-3">{f.outcomeCheck}</td>
                     <td className="py-2">
                       <Ids codes={[...f.claimCodes, ...f.uncertaintyCodes]} />
                     </td>
@@ -274,26 +257,8 @@ export function CounterCaseTab({
       {done && <ConflictRegister evaluationId={evaluationId} conflicts={conflicts} />}
 
       {done && !active && (
-        <section className="card gap-2" data-testid="next-step">
-          {scoringStarted ? (
-            <Link href={`/deals/${evaluationId}?tab=dimensions`}>Dimensions →</Link>
-          ) : (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={score} disabled={!canScore || pending}>
-                Score dimensions
-              </button>
-              <span className="text-muted text-[13px]">
-                Next step: each fund-defined dimension answered from the Claim Table, its strongest counter-signal named,
-                and scored 0–5 against the anchors.
-              </span>
-            </div>
-          )}
-          {error && (
-            <p role="alert" className="text-danger text-[13px]">
-              {error}
-            </p>
-          )}
-          <div className="border-t border-[var(--color-divider)] pt-2">
+        <section className="flex flex-col gap-2">
+          <div>
             <RerunControl
               evaluationId={evaluationId}
               step={4}
@@ -304,6 +269,42 @@ export function CounterCaseTab({
           </div>
         </section>
       )}
+
+      <StepBar
+        error={error}
+        step={4}
+        title="Counter-Case"
+        done={done && !active}
+        progress={active && run ? run.progress : undefined}
+        status={
+          active && run
+            ? run.status === "queued"
+              ? "Waiting for the background worker…"
+              : `Stress-testing the thesis · ${run.progress}%`
+            : done
+              ? `${view.arguments.length} counter-arguments · ${view.uncertainties.length} uncertainties · ${view.falsifiers.length} falsifiers` +
+                (scoringStarted ? "" : " · then score the dimensions")
+              : run?.status === "failed"
+                ? "The last run failed · try again"
+                : "Stress-test the thesis: the strongest arguments against, open uncertainties and falsifiers"
+        }
+      >
+        {!done && !active && (
+          <button className="btn btn-primary" onClick={start} disabled={!canRun || pending}>
+            {run?.status === "failed" ? "Try again" : "Stress-test thesis"}
+          </button>
+        )}
+        {done &&
+          !active &&
+          (scoringStarted ? (
+            <ContinueLink href={`/deals/${evaluationId}?tab=dimensions`} label="Continue to Dimensions" />
+          ) : (
+            <button className="btn btn-primary" onClick={score} disabled={!canScore || pending}>
+              Score dimensions
+              <NextIcon />
+            </button>
+          ))}
+      </StepBar>
 
       {trace && (
         <TraceDrawer
@@ -350,10 +351,10 @@ export function TraceDrawer({
     >
       <div className="flex items-start gap-3">
         <div>
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">
+          <div className="mb-1.5 text-meta font-medium text-[var(--color-accent-text)]">
             {u ? "Uncertainty" : f ? "Falsifier" : "Not found"} {code}
           </div>
-          <h3 className="text-lg leading-snug">{u?.question ?? f?.criterion ?? "This ID is not in this deal."}</h3>
+          <h3 className="text-section leading-snug">{u?.question ?? f?.criterion ?? "This ID is not in this deal."}</h3>
         </div>
         <button className="btn ml-auto" onClick={onClose} aria-label="Close">
           ×
@@ -370,7 +371,7 @@ function Chips({ codes, onOpen }: { codes: string[]; onOpen: (code: string) => v
   return (
     <div className="flex flex-wrap gap-1.5">
       {codes.map((c) => (
-        <button key={c} className="tag tag-neutral" onClick={() => onOpen(c)}>
+        <button key={c} type="button" className={tagClassFor(c)} onClick={() => onOpen(c)}>
           {c}
         </button>
       ))}
@@ -381,22 +382,22 @@ function Chips({ codes, onOpen }: { codes: string[]; onOpen: (code: string) => v
 function UncertaintyBody({ u, onOpen }: { u: UncertaintyListItem; onOpen: (code: string) => void }) {
   return (
     <>
-      <div className="flex flex-wrap gap-2 text-xs">
+      <div className="flex flex-wrap gap-2 text-meta">
         <span className={`tag ${u.decisionCritical ? "tag-accent" : "tag-neutral"}`}>
           {u.decisionCritical ? "Decision-critical" : "Nice to know"}
         </span>
         <span className="tag tag-outline">{u.origin}</span>
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Why unresolved</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Why unresolved</div>
         {u.whyUnresolved}
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Minimum evidence check</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Minimum evidence check</div>
         {u.minEvidence ?? <span className="text-muted">Not stated.</span>}
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Tested by falsifiers</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Tested by falsifiers</div>
         <Chips codes={u.falsifierCodes} onOpen={onOpen} />
       </div>
     </>
@@ -406,16 +407,16 @@ function UncertaintyBody({ u, onOpen }: { u: UncertaintyListItem; onOpen: (code:
 function FalsifierBody({ f, onOpen }: { f: FalsifierView; onOpen: (code: string) => void }) {
   return (
     <>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Outcome check</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Outcome check</div>
         {f.outcomeCheck}
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Claims it tests</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Claims it tests</div>
         <Chips codes={f.claimCodes} onOpen={onOpen} />
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Uncertainties it tests</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Uncertainties it tests</div>
         <Chips codes={f.uncertaintyCodes} onOpen={onOpen} />
       </div>
     </>

@@ -12,7 +12,10 @@ export type CurrentUser = {
   role: Enums<"user_role">;
   fundId: string;
   fundName: string;
-  activeConfigVersion: number | null;
+  // Personal preference: show developer views (model calls, Study tab).
+  devMode: boolean;
+  // The fund finished the guided setup (its config v1 is published).
+  fundSetupDone: boolean;
 };
 
 // Verified session + profile for the current request, or null when logged out.
@@ -26,17 +29,10 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, role, fund_id, funds(name)")
+    .select("id, display_name, role, fund_id, dev_mode, funds(name, setup_completed_at)")
     .eq("id", claims.sub)
     .maybeSingle();
   if (!profile || !profile.funds) return null;
-
-  // RLS limits framework_configs to the user's fund.
-  const { data: config } = await supabase
-    .from("framework_configs")
-    .select("version")
-    .eq("is_active", true)
-    .maybeSingle();
 
   const email = typeof claims.email === "string" ? claims.email : null;
 
@@ -47,7 +43,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     role: profile.role,
     fundId: profile.fund_id,
     fundName: profile.funds.name,
-    activeConfigVersion: config?.version ?? null,
+    devMode: profile.dev_mode,
+    fundSetupDone: profile.funds.setup_completed_at !== null,
   };
 });
 

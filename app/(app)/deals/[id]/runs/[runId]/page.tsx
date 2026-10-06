@@ -46,32 +46,32 @@ export default async function RunPage({ params }: PageProps<"/deals/[id]/runs/[r
 
   return (
     <>
-      <p className="mb-2 text-[13px]">
+      <p className="mb-2 text-body">
         <Link href={`/deals/${id}`}>← {run.evaluation.company.name}</Link>
       </p>
-      <h1 className="mb-1.5 text-3xl">
+      <h1 className="mb-1.5 text-page">
         Step {run.step} · {STEP_LABELS[run.step] ?? "Run"}
       </h1>
-      <p className="text-muted mb-6 text-[13px]" data-testid="run-status">
+      <p className="text-muted mb-6 text-body" data-testid="run-status">
         {run.status}
         {run.superseded_at && " · superseded by a re-run"} · started {fmt(run.started_at)} · finished {fmt(run.finished_at)} ·{" "}
         {list.length} model call{list.length === 1 ? "" : "s"}, {failed.length} rejected or failed
       </p>
 
       {(run.error || run.warnings.length > 0 || run.notes.length > 0) && (
-        <section className="card mb-6 gap-1 text-[13px]">
+        <section className="card mb-6 gap-1 text-body">
           {run.error && (
             <p role="alert" className="text-danger" data-testid="run-error">
               {run.error}
             </p>
           )}
           {run.warnings.map((w) => (
-            <p key={w} className="text-danger text-xs">
+            <p key={w} className="text-danger text-meta">
               ⚠ {w}
             </p>
           ))}
           {run.notes.map((n) => (
-            <p key={n} className="text-muted text-xs">
+            <p key={n} className="text-muted text-meta">
               {n}
             </p>
           ))}
@@ -85,7 +85,7 @@ export default async function RunPage({ params }: PageProps<"/deals/[id]/runs/[r
           return (
             <details
               key={c.id}
-              className={`card gap-2 p-3 text-[13px] ${bad ? "border border-[var(--color-danger)]/50" : ""}`}
+              className={`card gap-2 p-3 text-body ${bad ? "border border-[var(--color-danger)]/50" : ""}`}
               open={bad}
               data-testid="llm-call"
               data-failed={bad}
@@ -99,12 +99,12 @@ export default async function RunPage({ params }: PageProps<"/deals/[id]/runs/[r
                 <span className="text-muted"> · {fmt(c.created_at)}</span>
               </summary>
               {c.error && (
-                <p className="text-danger text-xs" data-testid="call-error">
+                <p className="text-danger text-meta" data-testid="call-error">
                   {c.error}
                 </p>
               )}
               {errors.length > 0 && (
-                <ul className="text-danger list-disc pl-5 text-xs">
+                <ul className="text-danger list-disc pl-5 text-meta">
                   {errors.map((e, i) => (
                     <li key={i}>{e}</li>
                   ))}
@@ -112,14 +112,14 @@ export default async function RunPage({ params }: PageProps<"/deals/[id]/runs/[r
               )}
               <div className="grid gap-2 md:grid-cols-2">
                 <div>
-                  <div className="text-muted mb-1 text-xs">Input</div>
-                  <pre className="max-h-80 overflow-auto rounded bg-[var(--color-bg)] p-2 text-[11px] whitespace-pre-wrap">
+                  <div className="text-muted mb-1 text-meta">Input</div>
+                  <pre className="max-h-80 overflow-auto rounded bg-[var(--color-bg)] p-2 text-meta whitespace-pre-wrap">
                     {JSON.stringify(c.input, null, 2)}
                   </pre>
                 </div>
                 <div>
-                  <div className="text-muted mb-1 text-xs">Output</div>
-                  <pre className="max-h-80 overflow-auto rounded bg-[var(--color-bg)] p-2 text-[11px] whitespace-pre-wrap">
+                  <div className="text-muted mb-1 text-meta">Output</div>
+                  <pre className="max-h-80 overflow-auto rounded bg-[var(--color-bg)] p-2 text-meta whitespace-pre-wrap">
                     {c.output === null ? "—" : JSON.stringify(c.output, null, 2)}
                   </pre>
                 </div>
@@ -127,7 +127,7 @@ export default async function RunPage({ params }: PageProps<"/deals/[id]/runs/[r
             </details>
           );
         })}
-        {list.length === 0 && <p className="text-muted text-[13px]">No model calls were made in this run.</p>}
+        {list.length === 0 && <p className="text-muted text-body">No model calls were made in this run.</p>}
       </div>
     </>
   );

@@ -6,7 +6,7 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 
 1. **Roles.** `admin` edits fund settings (framework config). `analyst` and `admin` both run evaluations. All members of a fund see all of that fund's deals.
 2. **Onboarding** (revised 2026-10-01; replaces "one fund, seeded accounts only").
-   - Funds sign up themselves at `/signup` (fund name, name, email, password). The email must be confirmed; on confirmation the app creates the fund, makes the person its `admin`, and gives the fund its own published config v1 (copy of the default template).
+   - Funds sign up themselves at `/signup` (fund name, name, email, password). The email must be confirmed; on confirmation the app creates the fund, makes the person its `admin`, and gives the fund a draft config v1 (copy of the default template), which the guided setup publishes (decision 47).
    - Admins add members in the app (Fund settings → Team): email, name, initial password, role `analyst` or `admin`. No email is sent; the admin passes the password on. More than one admin per fund is allowed.
    - Profiles are created only by server code (service role), never from user-supplied metadata, so sign-up can only ever create a new fund, never join an existing one.
 3. **Auth.** Email + password via Supabase Auth.
@@ -168,6 +168,23 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - **As evidence (the user's choice: citable, flagged):** informative content is appended to the document's text as labelled blocks ("[Slide 5 · image 2 — AI transcription of the image]", "[Slide 4 · chart 1 — chart data read from the file]"). Claims can cite it verbatim like any text; R4 is unchanged, and R1 is unchanged. `document_visuals` records each block's position and the stored image. The trace drawer marks such links "From Slide 5 · image 2 · AI transcription", shows the image next to the excerpt, and asks the analyst to check the excerpt against the image. The Claim Table and exports mark these claims.
     - **Integrity:** the text only grows by appending (database check) and is frozen once the Source Table exists, so offsets stay valid. A scan or image upload without a text layer becomes usable once its images have been read. Removing a document removes its images. Study copies carry the same images and text.
     - **Rendering:** PDF pages are rendered with `unpdf` and `@napi-rs/canvas`. The native module is imported at runtime and traced into deployments (`next.config.ts`), because bundling it needs file-system links the development drive doesn't support.
+
+## P. Interface
+
+46. **Light theme and dev mode** (agreed 2026-10-03 with the user).
+    - **Theme:** the app is light only: background #f7f8fa, white surfaces, text #17202a, teal accent #0f9b84 (accent text #0d6b5b), neutral ramp #17202a to #f1f3f6. The tokens are defined in `app/globals.css`.
+    - **Dev mode:** a personal toggle under Settings → Your preferences, for admins and analysts alike (stored as `profiles.dev_mode`, set via `set_dev_mode`; off by default). It only changes what is shown: the "Model calls for this run" links and, for admins, the Study tab appear only when it is on. Access is unchanged; the run pages and the study routes keep their own checks.
+    - **Navigation:** the top bar has no page links. The Tracer logo leads to the deals list, and the avatar opens an account menu with Settings (every member), Team (admins) and Sign out. Settings has a fixed sidebar: Preferences (`/settings`, everyone), Team (`/settings/team`) and the fund configuration sections (`/settings/config?section=…`), the last two admin-only (decision 1). Switching configuration sections keeps unsaved draft edits; leaving the configuration with unsaved edits asks first.
+    - **Deal page:** a fixed sidebar like the settings one holds the deal summary (company, Quick Screen verdict, status, evaluator, config version), the five pipeline steps (done / current / locked), the three outputs and, in dev mode for admins, Study. The content area shows only the selected step.
+    - **Step bar:** every pipeline step ends in a bar pinned to the bottom of the window: "Step N of 5 · <step>", the step's state in one line (progress while it runs, errors in red), and the one primary action that moves the deal forward (start the step, or continue to the next). Secondary controls (draft answers, re-run, change materials, edit verdict) stay with the content they affect.
+    - **Type:** no all-caps text; table headers and section labels use normal capitalisation. One size per role, defined as theme tokens in `app/globals.css`: `text-page` 24px (page/step headings), `text-section` 16px (headings above tables and panel groups, drawer titles), `text-panel` 14px (titles inside cards), `text-reading` 14px (output documents, memo text, arguments), `text-body` 13px (every table cell and panel text), `text-meta` 12px (table headers, labels, lines under a cell, notes), `text-tag` 11px (tags and ID chips). Display sizes (thesis statement, verdict, stat numbers) stay explicit.
+
+## Q. Guided fund setup
+
+47. **Guided fund setup** (agreed 2026-10-05 with the user).
+    - A new fund's first admin is taken to `/setup` before the dashboard. The wizard walks through the fund-specific parts of the framework configuration, each pre-filled from the default template: Quick Screen questions, Collection Prompts, Counter-Case Prompts, Evaluation dimensions, Score anchors, Proceed / Watch / Pass, then one "Review the defaults" step (source tiers, confidence rules read-only, sufficiency rule), an optional "Your team" step (add analysts/admins), and "Ready".
+    - Versions: the template is created as draft v1 at sign-up; each step saves the draft; finishing (`complete_fund_setup()`) publishes it as v1 and sets `funds.setup_completed_at`. "Skip and use the defaults" publishes the template unchanged. Until then the fund has no active config, so no deal can be created; analysts who are added early see a notice. Funds created before this change count as set up.
+    - Afterwards the configuration is changed in Settings as before (new draft, new version).
 
 ## Scope
 

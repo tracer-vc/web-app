@@ -1429,18 +1429,21 @@ export type Database = {
           id: string
           llm_model: string
           name: string
+          setup_completed_at: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           llm_model?: string
           name: string
+          setup_completed_at?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           llm_model?: string
           name?: string
+          setup_completed_at?: string | null
         }
         Relationships: []
       }
@@ -1599,6 +1602,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          dev_mode: boolean
           display_name: string | null
           fund_id: string
           id: string
@@ -1606,6 +1610,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dev_mode?: boolean
           display_name?: string | null
           fund_id: string
           id: string
@@ -1613,6 +1618,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dev_mode?: boolean
           display_name?: string | null
           fund_id?: string
           id?: string
@@ -2177,6 +2183,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_fund_setup: { Args: never; Returns: number }
       create_config_draft: { Args: never; Returns: string }
       create_study_copy: {
         Args: { p_actor_id: string; p_parent_id: string }
@@ -2290,6 +2297,7 @@ export type Database = {
         Returns: number
       }
       save_config_draft: { Args: { p_config: Json }; Returns: undefined }
+      set_dev_mode: { Args: { p_enabled: boolean }; Returns: undefined }
     }
     Enums: {
       answer_origin: "analyst" | "ai"

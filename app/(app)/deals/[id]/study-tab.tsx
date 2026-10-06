@@ -64,8 +64,8 @@ export function StudyTab({
   return (
     <div className="flex flex-col gap-6" data-testid="study-tab">
       <div>
-        <h2 className="mb-1 text-[22px]">Study 2</h2>
-        <p className="text-muted text-[13px]">
+        <h2 className="mb-1 text-page">Study 2</h2>
+        <p className="text-muted text-body">
           Artifact runs repeat steps 2b–6 on hidden copies of this deal (same documents, Quick Screen and config version).
           Baseline memos use the same LLM, Source Table texts and fund config, without the claim layer, sufficiency rule or
           conflict register. Visible to fund admins only.
@@ -74,13 +74,13 @@ export function StudyTab({
 
       <section className="card gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-lg">Artifact runs</h3>
-          <button className="btn btn-primary ml-auto text-xs" onClick={() => post("artifact", "Couldn't start the artifact run.")} disabled={pending}>
+          <h3 className="text-section font-semibold">Artifact runs</h3>
+          <button className="btn btn-primary ml-auto text-meta" onClick={() => post("artifact", "Couldn't start the artifact run.")} disabled={pending}>
             Run artifact again
           </button>
         </div>
-        <table className="w-full text-left text-[13px]" data-testid="artifact-runs">
-          <thead className="text-muted text-xs">
+        <table className="w-full text-left text-body" data-testid="artifact-runs">
+          <thead className="text-muted text-meta">
             <tr>
               <th className="py-1 pr-3 font-normal">Run</th>
               <th className="py-1 pr-3 font-normal">Status</th>
@@ -113,9 +113,9 @@ export function StudyTab({
 
       <section className="card gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-lg">Baseline memos</h3>
+          <h3 className="text-section font-semibold">Baseline memos</h3>
           <button
-            className="btn btn-primary ml-auto text-xs"
+            className="btn btn-primary ml-auto text-meta"
             onClick={() => post("baseline", "Couldn't start the baseline.")}
             disabled={pending || !study.original.hasSources}
             title={study.original.hasSources ? undefined : "The baseline reads the Source Table; build it first."}
@@ -123,9 +123,9 @@ export function StudyTab({
             Run baseline
           </button>
         </div>
-        {study.baselines.length === 0 && <p className="text-muted text-[13px]">No baseline memo yet.</p>}
+        {study.baselines.length === 0 && <p className="text-muted text-body">No baseline memo yet.</p>}
         {study.baselines.map((b) => (
-          <details key={b.id} className="border-t border-[var(--color-divider)] pt-2 text-[13px]" data-testid="baseline-run" data-status={b.status}>
+          <details key={b.id} className="border-t border-[var(--color-divider)] pt-2 text-body" data-testid="baseline-run" data-status={b.status}>
             <summary className="cursor-pointer">
               Baseline run {b.run} · {b.status}
               {b.recommendation && ` · ${VERDICT_LABELS[b.recommendation]}`} · {fmt(b.createdAt)}
@@ -137,9 +137,9 @@ export function StudyTab({
       </section>
 
       <section className="card gap-3" data-testid="study-export">
-        <h3 className="text-lg">Export for reviewers</h3>
-        <p className="text-muted text-[13px]">One file per completed run, zipped with a README; readable without the app.</p>
-        <div className="flex flex-wrap gap-4 text-[13px]">
+        <h3 className="text-section font-semibold">Export for reviewers</h3>
+        <p className="text-muted text-body">One file per completed run, zipped with a README; readable without the app.</p>
+        <div className="flex flex-wrap gap-4 text-body">
           {FORMATS.map((f) => (
             <label key={f.value} className="flex items-center gap-2">
               <input type="radio" name="format" value={f.value} checked={format === f.value} onChange={() => setFormat(f.value)} />
@@ -153,7 +153,7 @@ export function StudyTab({
       </section>
 
       {error && (
-        <p role="alert" className="text-danger text-[13px]">
+        <p role="alert" className="text-danger text-body">
           {error}
         </p>
       )}
@@ -169,19 +169,19 @@ function BlockView({ blocks }: { blocks: Block[] }) {
           case "h1":
           case "h2":
             return (
-              <h4 key={i} className="mt-3 text-base">
+              <h4 key={i} className="text-panel mt-3 font-semibold">
                 {b.text}
               </h4>
             );
           case "h3":
             return (
-              <div key={i} className="mt-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase">
+              <div key={i} className="mt-2 text-meta font-medium text-[var(--color-accent-text)]">
                 {b.text}
               </div>
             );
           case "meta":
             return (
-              <p key={i} className="text-muted text-xs">
+              <p key={i} className="text-muted text-meta">
                 {b.text}
               </p>
             );
@@ -197,7 +197,7 @@ function BlockView({ blocks }: { blocks: Block[] }) {
             );
           case "table":
             return (
-              <table key={i} className="w-full text-left text-xs">
+              <table key={i} className="w-full text-left text-meta">
                 <thead className="text-muted">
                   <tr>
                     {b.head.map((h) => (

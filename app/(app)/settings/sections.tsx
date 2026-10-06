@@ -10,6 +10,7 @@ import {
   type TierDefinitions,
   type VersionSummary,
 } from "@/lib/config-shared";
+import { usePlain } from "./plain";
 
 // `key` is a client-only React key; `id` is the database row id (absent for
 // rows added in this session).
@@ -20,8 +21,8 @@ export const newKey = () => crypto.randomUUID();
 export function SectionHeader({ title, intro }: { title: string; intro: string }) {
   return (
     <>
-      <h2 className="mb-1.5 text-[22px]">{title}</h2>
-      <p className="text-muted mb-6 max-w-[640px] text-[13.5px] leading-relaxed">{intro}</p>
+      <h1 className="mb-1.5 text-page">{title}</h1>
+      <p className="text-muted mb-6 max-w-[640px] text-body leading-relaxed">{intro}</p>
     </>
   );
 }
@@ -62,7 +63,7 @@ export function RowList<T extends object>({
             key={row.key}
             className={compact ? "flex items-start gap-2" : "card flex-row items-start gap-3 p-4"}
           >
-            <span className="text-muted w-5 pt-2 text-right text-xs tabular-nums">{i + 1}</span>
+            <span className="text-muted w-5 pt-2 text-right text-meta tabular-nums">{i + 1}</span>
             <div className="flex-1">
               {renderRow(
                 row,
@@ -71,7 +72,7 @@ export function RowList<T extends object>({
               )}
             </div>
             {!readOnly && (
-              <div className={`flex ${compact ? "flex-row" : "flex-col"}`}>
+              <div className={`flex gap-1 ${compact ? "flex-row" : "flex-col"}`}>
                 <button className="btn px-2 py-1" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
                   ↑
                 </button>
@@ -104,10 +105,10 @@ export function RowList<T extends object>({
           >
             {addLabel}
           </button>
-          {atMax && <span className="text-muted text-[13px]">{maxMessage}</span>}
+          {atMax && <span className="text-muted text-body">{maxMessage}</span>}
         </div>
       )}
-      {readOnly && rows.length === 0 && <p className="text-muted text-[13px]">None.</p>}
+      {readOnly && rows.length === 0 && <p className="text-muted text-body">None.</p>}
     </>
   );
 }
@@ -119,25 +120,29 @@ export function TiersSection({
   tiers: TierDefinitions;
   onChange?: (tiers: TierDefinitions) => void;
 }) {
+  const { pick } = usePlain();
   return (
     <>
       <SectionHeader
         title="Source tiers"
-        intro="A tier fixes how much confidence a source can justify. It informs conflict resolution but never decides it."
+        intro={pick(
+          "A tier fixes how much confidence a source can justify. It informs conflict resolution but never decides it.",
+          "How far each kind of source can be trusted, from Primary (the company's own documents, official filings) to Tertiary (blogs, social media). The more trustworthy the source, the more weight a fact from it can carry.",
+        )}
       />
       {TIERS.map((tier) => (
         <div key={tier} className="card mb-3 flex-row items-start gap-4 p-4">
           <span className="tag tag-neutral mt-0.5 w-20 justify-center capitalize">{tier}</span>
           <div className="flex flex-1 flex-col gap-1.5">
             <textarea
-              className="input min-h-14 text-[13px]"
+              className="input min-h-14 text-body"
               aria-label={`${tier} definition`}
               value={tiers[tier].definition}
               readOnly={!onChange}
               onChange={(e) => onChange?.({ ...tiers, [tier]: { ...tiers[tier], definition: e.target.value } })}
             />
             <label className="flex flex-col gap-1">
-              <span className="text-muted text-xs">Examples</span>
+              <span className="text-muted text-meta">Examples</span>
               <input
                 className="input"
                 value={tiers[tier].examples}
@@ -155,15 +160,19 @@ export function TiersSection({
 // R1 is a fixed mechanism (decision 9): shown so a reader can recompute a
 // label, never edited.
 export function ConfidenceSection({ rules }: { rules: ConfidenceRules }) {
+  const { pick } = usePlain();
   return (
     <>
       <SectionHeader
         title="Confidence rules"
-        intro="Assigned by rule from tier and independence, so a reader can recompute a label from the visible links. Computed by code, never chosen by the model; not configurable."
+        intro={pick(
+          "Assigned by rule from tier and independence, so a reader can recompute a label from the visible links. Computed by code, never chosen by the model; not configurable.",
+          "How sure Tracer is about each fact: High, Medium or Low, depending on how many independent sources confirm it and how trustworthy they are. These levels are fixed, so anyone can check how a rating came about.",
+        )}
       />
       <div className="card p-4">
-        <table className="w-full text-left text-[13px]">
-          <thead className="text-muted text-xs">
+        <table className="w-full text-left text-body">
+          <thead className="text-muted text-meta">
             <tr>
               <th className="w-28 pb-2 font-normal">Level</th>
               <th className="pb-2 font-normal">Rule</th>
@@ -179,9 +188,19 @@ export function ConfidenceSection({ rules }: { rules: ConfidenceRules }) {
           </tbody>
         </table>
       </div>
-      <p className="text-muted mt-3 text-[13px]">
-        A claim in an open conflict is downgraded {rules.open_conflict_downgrade === 1 ? "one level" : `${rules.open_conflict_downgrade} levels`}.{" "}
-        {rules.independence}
+      <p className="text-muted mt-3 text-body">
+        {pick(
+          <>
+            A claim in an open conflict is downgraded{" "}
+            {rules.open_conflict_downgrade === 1 ? "one level" : `${rules.open_conflict_downgrade} levels`}.{" "}
+            {rules.independence}
+          </>,
+          <>
+            A fact that another source contradicts drops{" "}
+            {rules.open_conflict_downgrade === 1 ? "one level" : `${rules.open_conflict_downgrade} levels`} until someone
+            settles the contradiction. Sources from the same publisher count as one.
+          </>,
+        )}
       </p>
     </>
   );
@@ -211,31 +230,48 @@ export function SufficiencySection({
     />
   );
 
+  const { plain, pick } = usePlain();
   const rows = [
-    { id: rule.locked[0]?.id ?? "SR1", body: rule.locked[0]?.rule, scope: "claims", effect: "claim cannot be saved", locked: true },
+    {
+      id: rule.locked[0]?.id ?? "SR1",
+      body: pick(rule.locked[0]?.rule, "Every fact has to point to a source and quote it word for word."),
+      scope: pick("claims", "facts"),
+      effect: pick("claim cannot be saved", "the fact is not kept"),
+      locked: true,
+    },
     {
       id: "SR2",
       body: (
         <>
-          A dimension score must cite between {num(rule.min, (min) => onChange?.({ min }), "Minimum claims per score")}
-          and {num(rule.max, (max) => onChange?.({ max }), "Maximum claims per score")} claims.
+          {pick("A dimension score must cite between", "Each score has to rest on between")}
+          {num(rule.min, (min) => onChange?.({ min }), "Minimum claims per score")}
+          and {num(rule.max, (max) => onChange?.({ max }), "Maximum claims per score")} {pick("claims", "facts")}.
         </>
       ),
-      scope: "dimensions",
-      effect: "score not assigned",
+      scope: pick("dimensions", "scores"),
+      effect: pick("score not assigned", "no score is given"),
       locked: false,
     },
-    { id: rule.locked[1]?.id ?? "SR3", body: rule.locked[1]?.rule, scope: "prompts", effect: "U# created", locked: true },
+    {
+      id: rule.locked[1]?.id ?? "SR3",
+      body: pick(rule.locked[1]?.rule, "A required research question that no fact answers is flagged as an open question."),
+      scope: pick("prompts", "research questions"),
+      effect: pick("U# created", "an open question is flagged"),
+      locked: true,
+    },
     {
       id: "SR4",
       body: (
         <>
-          A dimension whose required Collection Prompt is uncovered cannot score above
+          {pick(
+            "A dimension whose required Collection Prompt is uncovered cannot score above",
+            "While a research question an area depends on is unanswered, the area cannot score above",
+          )}
           {num(rule.cap, (cap) => onChange?.({ cap }), "Score cap")}.
         </>
       ),
-      scope: "dimensions",
-      effect: "score capped",
+      scope: pick("dimensions", "scores"),
+      effect: pick("score capped", "the score is capped"),
       locked: false,
     },
   ];
@@ -244,15 +280,18 @@ export function SufficiencySection({
     <>
       <SectionHeader
         title="Sufficiency rule"
-        intro="Explicit predicates over claim types, confidence and coverage. Applied mechanically to every statement, prompt and dimension; the outcome is always shown."
+        intro={pick(
+          "Explicit predicates over claim types, confidence and coverage. Applied mechanically to every statement, prompt and dimension; the outcome is always shown.",
+          "When there is enough evidence: how many facts a score has to rest on, and how high a score can go while an important question is still unanswered. Applied the same way to every deal.",
+        )}
       />
       {rows.map((r) => (
         <div key={r.id} className="card mb-3 flex-row items-start gap-4 p-4">
-          <span className="text-muted w-10 pt-0.5 text-xs">{r.id}</span>
-          <div className="flex-1 text-[13.5px]">
+          {!plain && <span className="text-muted w-10 pt-0.5 text-meta">{r.id}</span>}
+          <div className="flex-1 text-body">
             <div>{r.body}</div>
-            <div className="text-muted mt-1 text-xs">
-              Applies to: {r.scope} · On failure: {r.effect}
+            <div className="text-muted mt-1 text-meta">
+              Applies to: {r.scope} · {pick("On failure", "If not met")}: {r.effect}
             </div>
           </div>
           {r.locked ? LOCK : <span className="tag tag-neutral">Editable</span>}
@@ -277,17 +316,23 @@ export function AnchorsSection({
   anchors: ScoreAnchors;
   onChange?: (anchors: ScoreAnchors) => void;
 }) {
+  const { pick } = usePlain();
   return (
     <>
       <SectionHeader
         title="Score anchors"
-        intro="Fixed interpretations the system must match before assigning a score. Scores make reasoning comparable, not certain."
+        intro={pick(
+          "Fixed interpretations the system must match before assigning a score. Scores make reasoning comparable, not certain.",
+          "What each score from 0 to 5 means, so a 3 means the same on every deal and for every analyst. Scores make deals comparable; they don't make them certain.",
+        )}
       />
       {ANCHOR_KEYS.map((k) => (
         <div key={k} className="card mb-3 flex-row items-start gap-4 p-4">
-          <span className="w-10 pt-2 text-lg tabular-nums">{ANCHOR_LABELS[k]}</span>
+          <span className="tag tag-neutral mt-2 w-12 shrink-0 justify-center tabular-nums">
+            {ANCHOR_LABELS[k]}
+          </span>
           <textarea
-            className="input min-h-14 flex-1 text-[13px]"
+            className="input min-h-14 flex-1 text-body"
             aria-label={`Anchor ${ANCHOR_LABELS[k]}`}
             value={anchors[k]}
             readOnly={!onChange}
@@ -307,8 +352,8 @@ export function VersionsSection({ versions }: { versions: VersionSummary[] }) {
         intro="Every evaluation records the version it ran under. Changing configuration never rewrites a past evaluation."
       />
       <div className="card overflow-x-auto p-4">
-        <table className="w-full text-left text-[13px]">
-          <thead className="text-muted text-xs">
+        <table className="w-full text-left text-body">
+          <thead className="text-muted text-meta">
             <tr>
               <th className="pb-2 font-normal">Version</th>
               <th className="pb-2 font-normal">Status</th>
@@ -329,7 +374,7 @@ export function VersionsSection({ versions }: { versions: VersionSummary[] }) {
                 <td className="text-muted py-2 pr-4">{new Date(v.date).toLocaleDateString("en-GB")}</td>
                 <td className="py-2 pr-4">{v.author ?? "—"}</td>
                 <td className="py-2 text-right">
-                  {v.status === "published" && !v.isActive && <Link href={`/settings?v=${v.version}`}>View</Link>}
+                  {v.status === "published" && !v.isActive && <Link href={`/settings/config?section=versions&v=${v.version}`}>View</Link>}
                 </td>
               </tr>
             ))}

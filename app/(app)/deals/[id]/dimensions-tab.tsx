@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { ClaimTableView } from "@/lib/claim-shared";
@@ -9,6 +8,8 @@ import { effectiveScore, type DimensionAssessmentView, type DimensionsView } fro
 import { isRunActive, type RunView } from "@/lib/source-shared";
 import { TraceDrawer } from "./counter-case-tab";
 import { RerunControl, RunCallsLink } from "./rerun-control";
+import { ContinueLink, NextIcon, StepBar } from "./step-bar";
+import { ID_TAG_CLASS, tagClassFor } from "./id-tag";
 
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -87,7 +88,7 @@ export function DimensionsTab({
 
   const Id = ({ code }: { code: string }) => (
     <button
-      className="font-mono text-[11px] text-[var(--color-accent-300)] underline"
+      className={`${ID_TAG_CLASS} align-[1px]`}
       onClick={() => setTrace(code)}
       data-testid="trace-id"
       data-code={code}
@@ -100,41 +101,23 @@ export function DimensionsTab({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-1 text-[22px]">Dimension Analysis</h2>
-        <p className="text-muted text-[13px]">
-          {view.dimensionCount} fund-defined dimension{view.dimensionCount === 1 ? "" : "s"} · each score cites{" "}
-          {view.range.min}–{view.range.max} claims · a required prompt left open caps the score at {view.scoreCap}
+        <h2 className="mb-1 text-page">Dimension Analysis</h2>
+        <p className="text-muted text-body">
+          Each dimension is scored 0–5 and backed by {view.range.min}–{view.range.max} claims; an unanswered required
+          question caps it at {view.scoreCap}.
           {mean && (
             <>
               {" "}
-              · Mean <span data-testid="dimension-mean">{mean}</span>
+              Average score: <span data-testid="dimension-mean">{mean}</span>.
             </>
           )}
         </p>
       </div>
 
-      {(!done || run) && (
+      {run && !active && (
         <section className="card gap-3">
-          {!done && !active && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={start} disabled={!canRun || pending}>
-                {run?.status === "failed" ? "Try again" : "Score dimensions"}
-              </button>
-              <span className="text-muted text-[13px]">Runs P11 once per dimension over the Claim Table.</span>
-            </div>
-          )}
-          {active && run && (
-            <div className="flex flex-col gap-1.5" data-testid="run-progress">
-              <div className="text-[13px]">
-                Step 5 · {run.status === "queued" ? "Waiting for the background worker…" : `Scoring dimensions · ${run.progress}%`}
-              </div>
-              <div className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
-                <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${Math.max(run.progress, 3)}%` }} />
-              </div>
-            </div>
-          )}
           {run && !active && (
-            <div className="flex flex-col gap-1 text-[13px]" data-testid="run-result">
+            <div className="flex flex-col gap-1 text-body" data-testid="run-result">
               {run.status === "failed" ? (
                 <p role="alert" className="text-danger">
                   Dimension scoring failed: {(run.error ?? "unknown error").replace(/\.$/, "")}. Try again.
@@ -143,12 +126,12 @@ export function DimensionsTab({
                 <p>Dimensions scored{run.status === "done_with_warnings" ? " with warnings" : ""}.</p>
               )}
               {run.warnings.map((w) => (
-                <p key={w} className="text-danger text-xs">
+                <p key={w} className="text-danger text-meta">
                   ⚠ {w}
                 </p>
               ))}
               {run.notes.map((n) => (
-                <p key={n} className="text-muted text-xs">
+                <p key={n} className="text-muted text-meta">
                   {n}
                 </p>
               ))}
@@ -156,7 +139,7 @@ export function DimensionsTab({
             </div>
           )}
           {error && !done && (
-            <p role="alert" className="text-danger text-[13px]">
+            <p role="alert" className="text-danger text-body">
               {error}
             </p>
           )}
@@ -164,36 +147,36 @@ export function DimensionsTab({
       )}
 
       {done && (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-[13px]" data-testid="dimension-table">
-            <thead className="text-muted text-xs">
-              <tr className="border-b border-[var(--color-divider)]">
-                <th className="w-11 py-2 pr-3 font-normal">ID</th>
-                <th className="w-48 py-2 pr-3 font-normal">Dimension</th>
-                <th className="py-2 pr-3 font-normal">Prompts &amp; answers</th>
-                <th className="w-56 py-2 pr-3 font-normal">Strongest counter signal</th>
-                <th className="w-36 py-2 font-normal">Score</th>
+        <div className="panel overflow-x-auto">
+          <table className="data-table w-full min-w-[900px] text-left text-body" data-testid="dimension-table">
+            <thead>
+              <tr>
+                <th className="w-14">ID</th>
+                <th className="w-52">Dimension</th>
+                <th>Prompts &amp; answers</th>
+                <th className="w-64">Strongest counter-signal</th>
+                <th className="w-40">Score</th>
               </tr>
             </thead>
             <tbody>
               {assessments.map((a) => (
-                <tr key={a.id} className="border-b border-[var(--color-divider)] align-top" data-testid="dimension-row" data-code={a.code}>
-                  <td className="py-2 pr-3">
+                <tr key={a.id} data-testid="dimension-row" data-code={a.code}>
+                  <td>
                     <Id code={a.code} />
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     <div className="font-medium">{a.title}</div>
-                    <div className="text-muted text-xs">{a.question}</div>
+                    <div className="text-muted mt-1 text-meta leading-relaxed">{a.question}</div>
                   </td>
-                  <td className="py-2 pr-3">
-                    <ol className="flex flex-col gap-1.5">
+                  <td>
+                    <ol className="flex flex-col divide-y divide-[var(--color-neutral-800)]">
                       {a.answers.map((x, i) => (
-                        <li key={i}>
-                          <div className="text-muted text-[11px]">{x.prompt}</div>
-                          <div>
-                            {x.answer}{" "}
+                        <li key={i} className="py-3 first:pt-0 last:pb-0">
+                          <div className="mb-1 leading-snug font-medium">{x.prompt}</div>
+                          <div className="leading-relaxed text-[var(--color-neutral-300)]">
+                            {x.answer}
                             {x.claimCodes.map((c) => (
-                              <span key={c} className="mr-1">
+                              <span key={c} className="ml-1">
                                 <Id code={c} />
                               </span>
                             ))}
@@ -202,8 +185,8 @@ export function DimensionsTab({
                       ))}
                     </ol>
                   </td>
-                  <td className="text-muted py-2 pr-3 text-xs">{a.counterSignal}</td>
-                  <td className="py-2">
+                  <td className="leading-relaxed text-[var(--color-neutral-300)]">{a.counterSignal}</td>
+                  <td>
                     <ScoreCell a={a} onOpen={setTrace} />
                   </td>
                 </tr>
@@ -214,26 +197,8 @@ export function DimensionsTab({
       )}
 
       {done && !active && (
-        <section className="card gap-2" data-testid="next-step">
-          {synthesisStarted ? (
-            <Link href={`/deals/${evaluationId}?tab=thesis-card`}>Thesis Card →</Link>
-          ) : (
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="btn btn-primary" onClick={synthesize} disabled={!canSynthesize || pending}>
-                Generate outputs
-              </button>
-              <span className="text-muted text-[13px]">
-                Next step: Thesis Card, Proceed / Watch / Pass by rule, and Decision Snapshot, every statement citing the
-                tables. Review overrides and conflicts first.
-              </span>
-            </div>
-          )}
-          {error && (
-            <p role="alert" className="text-danger text-[13px]">
-              {error}
-            </p>
-          )}
-          <div className="border-t border-[var(--color-divider)] pt-2">
+        <section className="flex flex-col gap-2">
+          <div>
             <RerunControl
               evaluationId={evaluationId}
               step={5}
@@ -244,6 +209,42 @@ export function DimensionsTab({
           </div>
         </section>
       )}
+
+      <StepBar
+        error={error}
+        step={5}
+        title="Dimensions"
+        done={done && !active}
+        progress={active && run ? run.progress : undefined}
+        status={
+          active && run
+            ? run.status === "queued"
+              ? "Waiting for the background worker…"
+              : `Scoring dimensions · ${run.progress}%`
+            : done
+              ? `${assessments.length} dimension${assessments.length === 1 ? "" : "s"} scored` +
+                (synthesisStarted ? "" : " · review the scores, then generate the outputs")
+              : run?.status === "failed"
+                ? "The last run failed · try again"
+                : "Score each fund-defined dimension 0–5 from the Claim Table"
+        }
+      >
+        {!done && !active && (
+          <button className="btn btn-primary" onClick={start} disabled={!canRun || pending}>
+            {run?.status === "failed" ? "Try again" : "Score dimensions"}
+          </button>
+        )}
+        {done &&
+          !active &&
+          (synthesisStarted ? (
+            <ContinueLink href={`/deals/${evaluationId}?tab=thesis-card`} label="Open the Thesis Card" />
+          ) : (
+            <button className="btn btn-primary" onClick={synthesize} disabled={!canSynthesize || pending}>
+              Generate outputs
+              <NextIcon />
+            </button>
+          ))}
+      </StepBar>
 
       {open && <DimensionDrawer key={open.id} evaluationId={evaluationId} a={open} onOpen={setTrace} onClose={() => setTrace(null)} />}
       {trace && !trace.startsWith("D") && (
@@ -266,22 +267,29 @@ function ScoreCell({ a, onOpen }: { a: DimensionAssessmentView; onOpen: (code: s
   const disqualifying = a.disqualifyingBelow !== null && shown < a.disqualifyingBelow;
   return (
     <div className="flex flex-col gap-1" data-testid="dimension-score">
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl tabular-nums">{shown}</span>
-        <span className="text-muted text-xs">/ 5</span>
-        {disqualifying && <span className="tag text-danger">disqualifying</span>}
+      <div className="flex items-center gap-2.5">
+        <span className="flex gap-0.5" aria-hidden>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <span
+              key={n}
+              className={`h-2 w-3.5 rounded-sm ${n <= shown ? "bg-[var(--color-accent)]" : "bg-[var(--color-neutral-800)]"}`}
+            />
+          ))}
+        </span>
+        <span className="font-semibold tabular-nums">{shown}/5</span>
       </div>
+      {disqualifying && <span className="tag text-danger w-fit">disqualifying</span>}
       {a.cappedBy && (
-        <div className="text-muted text-[11px]" data-testid="capped-note">
+        <div className="text-muted text-meta" data-testid="capped-note">
           capped by{" "}
-          <button className="underline" onClick={() => onOpen(a.cappedBy!)}>
+          <button className={`${ID_TAG_CLASS} align-[1px]`} onClick={() => onOpen(a.cappedBy!)}>
             {a.cappedBy}
           </button>{" "}
           (proposed {a.proposedScore})
         </div>
       )}
       {a.override && (
-        <div className="text-[11px]" data-testid="override-note">
+        <div className="text-muted text-meta" data-testid="override-note">
           Overridden by analyst · model score {a.score}
         </div>
       )}
@@ -293,7 +301,7 @@ function Chips({ codes, onOpen }: { codes: string[]; onOpen: (code: string) => v
   return (
     <div className="flex flex-wrap gap-1.5">
       {codes.map((c) => (
-        <button key={c} className="tag tag-neutral" onClick={() => onOpen(c)}>
+        <button key={c} type="button" className={tagClassFor(c)} onClick={() => onOpen(c)}>
           {c}
         </button>
       ))}
@@ -353,26 +361,26 @@ function DimensionDrawer({
     >
       <div className="flex items-start gap-3">
         <div>
-          <div className="text-[10px] tracking-widest text-[var(--color-accent)] uppercase">Dimension {a.code}</div>
-          <h3 className="text-lg leading-snug">{a.title}</h3>
-          <p className="text-muted text-xs">{a.question}</p>
+          <div className="mb-1.5 text-meta font-medium text-[var(--color-accent-text)]">Dimension {a.code}</div>
+          <h3 className="text-section leading-snug">{a.title}</h3>
+          <p className="text-muted text-meta">{a.question}</p>
         </div>
         <span className="ml-auto text-3xl tabular-nums">{effectiveScore(a)}</span>
         <button className="btn" onClick={onClose} aria-label="Close">
           ×
         </button>
       </div>
-      <p className="text-muted text-[13px]" data-testid="anchor-text">
+      <p className="text-muted text-body" data-testid="anchor-text">
         {a.anchor}
       </p>
-      <div className="flex flex-col gap-1 text-xs">
+      <div className="flex flex-col gap-1 text-meta">
         <div>
           Model score {a.proposedScore}
           {a.cappedBy ? (
             <>
               {" "}
               → capped to {a.score} by{" "}
-              <button className="underline" onClick={() => onOpen(a.cappedBy!)}>
+              <button className={`${ID_TAG_CLASS} align-[1px]`} onClick={() => onOpen(a.cappedBy!)}>
                 {a.cappedBy}
               </button>{" "}
               (a required Collection Prompt has no answering claim)
@@ -389,23 +397,23 @@ function DimensionDrawer({
       </div>
 
       {a.answers.map((x, i) => (
-        <div key={i} className="text-[13px]">
-          <div className="text-muted mb-1 text-xs">{x.prompt}</div>
+        <div key={i} className="text-body">
+          <div className="text-muted mb-1 text-meta">{x.prompt}</div>
           <div className="mb-1">{x.answer}</div>
           {x.claimCodes.length > 0 && <Chips codes={x.claimCodes} onOpen={onOpen} />}
         </div>
       ))}
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Strongest counter signal</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Strongest counter signal</div>
         {a.counterSignal}
       </div>
-      <div className="text-[13px]">
-        <div className="text-muted mb-1 text-xs">Claims justifying the score</div>
+      <div className="text-body">
+        <div className="text-muted mb-1 text-meta">Claims justifying the score</div>
         <Chips codes={a.claimCodes} onOpen={onOpen} />
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-[var(--color-divider)] pt-4 text-[13px]">
-        <div className="text-muted text-xs">Override score (logged; the model score is kept)</div>
+      <div className="flex flex-col gap-2 border-t border-[var(--color-divider)] pt-4 text-body">
+        <div className="text-muted text-meta">Override score (logged; the model score is kept)</div>
         <div className="flex flex-wrap gap-2">
           <select className="input w-24" aria-label="Override score" value={score} onChange={(e) => setScore(e.target.value)}>
             <option value="">—</option>
@@ -436,7 +444,7 @@ function DimensionDrawer({
           {saved && <span>Saved and logged.</span>}
         </div>
         {error && (
-          <p role="alert" className="text-danger text-xs">
+          <p role="alert" className="text-danger text-meta">
             {error}
           </p>
         )}

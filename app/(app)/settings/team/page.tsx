@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -15,8 +14,8 @@ export default async function TeamPage() {
   if (user.role !== "admin") {
     return (
       <>
-        <h1 className="mb-1.5 text-3xl">Team</h1>
-        <p className="text-muted text-[13px]">Not allowed. Only fund admins can manage the team.</p>
+        <h1 className="mb-1.5 text-page">Team</h1>
+        <p className="text-muted text-body">Not allowed. Only fund admins can manage the team.</p>
       </>
     );
   }
@@ -41,18 +40,15 @@ export default async function TeamPage() {
 
   return (
     <>
-      <p className="mb-2 text-[13px]">
-        <Link href="/settings">← Fund settings</Link>
-      </p>
-      <h1 className="mb-1.5 text-3xl">Team</h1>
-      <p className="text-muted mb-8 text-[13px]">
+      <h1 className="mb-1.5 text-page">Team</h1>
+      <p className="text-muted mb-8 text-body">
         Everyone here sees all of {user.fundName}&apos;s deals. Admins also edit fund settings and
         the team.
       </p>
 
       <div className="card mb-8 overflow-x-auto">
-        <table className="w-full text-left text-[13px]">
-          <thead className="text-muted text-xs">
+        <table className="w-full text-left text-body">
+          <thead className="text-muted text-meta">
             <tr>
               <th className="pb-2 font-normal">Name</th>
               <th className="pb-2 font-normal">Email</th>
@@ -79,8 +75,8 @@ export default async function TeamPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-lg">Add a member</h2>
-        <p className="text-muted mb-2 text-[13px]">
+        <h2 className="text-section font-semibold">Add a member</h2>
+        <p className="text-muted mb-2 text-body">
           The account works immediately. Send them the email and password yourself.
         </p>
         <AddMemberForm />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useDevMode } from "../../dev-mode";
 import type { RunView } from "@/lib/source-shared";
 
 // What a re-run from each step clears (decision 20).
@@ -23,6 +24,7 @@ export function RerunControl({
   start,
   hasOutputs,
   action = "Re-run",
+  buttonClassName = "text-meta",
 }: {
   evaluationId: string;
   step: number;
@@ -30,6 +32,7 @@ export function RerunControl({
   start?: { path: string; tab: string };
   hasOutputs: boolean;
   action?: string;
+  buttonClassName?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -69,32 +72,32 @@ export function RerunControl({
 
   if (!open) {
     return (
-      <button className="btn text-xs print:hidden" onClick={() => setOpen(true)} data-testid={`rerun-${step}`}>
+      <button className={`btn print:hidden ${buttonClassName}`} onClick={() => setOpen(true)} data-testid={`rerun-${step}`}>
         {action} {label}
       </button>
     );
   }
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-[var(--color-danger)]/50 p-3 text-[13px] print:hidden" data-testid="rerun-confirm">
+    <div className="flex flex-col gap-2 rounded-md border border-[var(--color-danger)]/50 p-3 text-body print:hidden" data-testid="rerun-confirm">
       <p>
         {action} {label}: this clears {CLEARS[step]}. IDs are renumbered on the next run. The reset is logged.
       </p>
       {hasOutputs && (
         <label className="flex items-start gap-2">
-          <input type="checkbox" className="mt-1" checked={full} onChange={(e) => setFull(e.target.checked)} data-testid="confirm-full-reset" />
+          <input type="checkbox" className="mt-0.5" checked={full} onChange={(e) => setFull(e.target.checked)} data-testid="confirm-full-reset" />
           <span>Outputs exist and their IDs are frozen. I confirm a full reset.</span>
         </label>
       )}
       <div className="flex gap-2">
-        <button className="btn btn-primary text-xs" onClick={confirm} disabled={pending || (hasOutputs && !full)}>
+        <button className="btn btn-primary text-meta" onClick={confirm} disabled={pending || (hasOutputs && !full)}>
           {pending ? "Working…" : start ? `Clear and ${action.toLowerCase()}` : "Clear and continue"}
         </button>
-        <button className="btn text-xs" onClick={() => setOpen(false)} disabled={pending}>
+        <button className="btn text-meta" onClick={() => setOpen(false)} disabled={pending}>
           Cancel
         </button>
       </div>
       {error && (
-        <p role="alert" className="text-danger text-xs">
+        <p role="alert" className="text-danger text-meta">
           {error}
         </p>
       )}
@@ -103,9 +106,11 @@ export function RerunControl({
 }
 
 // Link from a finished run to its model calls (failures, validation errors).
+// Developer view: shown only in dev mode.
 export function RunCallsLink({ evaluationId, run }: { evaluationId: string; run: RunView }) {
+  if (!useDevMode()) return null;
   return (
-    <Link href={`/deals/${evaluationId}/runs/${run.id}`} className="text-xs" data-testid="run-calls-link">
+    <Link href={`/deals/${evaluationId}/runs/${run.id}`} className="text-meta" data-testid="run-calls-link">
       {run.status === "failed" ? "See the failing model calls →" : "Model calls for this run →"}
     </Link>
   );

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { AuthShell } from "../auth-shell";
 import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
@@ -11,17 +13,16 @@ export default async function SignupPage() {
   if (await getCurrentUser()) redirect("/deals");
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="card w-full max-w-sm">
-        <div className="nav-brand mb-2">
-          <span className="nav-brand-dot" />
-          Tracer
-        </div>
-        <p className="text-muted mb-3 text-[13px]">
-          Create an account for your fund. You become its admin and can add your analysts.
-        </p>
-        <SignupForm />
-      </div>
-    </main>
+    <AuthShell
+      title="Create your fund account"
+      subtitle="You become the fund's admin and can add your analysts."
+      footer={
+        <>
+          Already have an account? <Link href="/login">Sign in</Link>
+        </>
+      }
+    >
+      <SignupForm />
+    </AuthShell>
   );
 }

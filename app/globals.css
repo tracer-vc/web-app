@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
-/* Design tokens from docs/ui_design.html (dark theme). */
+/* Light theme with a teal accent (agreed 2026-10-03).
+   Neutrals run from strongest (100, text) to lightest (900, fills), so the
+   same token keeps its role: 100–200 text, 300 secondary text, 400 muted
+   text, 600–700 borders, 800–900 fills. The accent ramp follows the same
+   idea: 300 is accent text, 400 a strong accent, 800 a tint for fills. */
 :root {
-  --color-bg: #161826;
-  --color-surface: #232532;
-  --color-text: #e9e9ed;
-  --color-accent: #9184d9;
-  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
-  --color-danger: #e5848f;
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #17202a;
+  --color-divider: color-mix(in srgb, #17202a 10%, transparent);
+  --color-danger: #c0392b;
+  --color-hover: #f1f3f6;
 
-  --color-neutral-100: #f3f5fe;
-  --color-neutral-200: #e4e7f5;
-  --color-neutral-300: #cfd3e5;
-  --color-neutral-400: #b2b6ca;
-  --color-neutral-500: #9397ab;
-  --color-neutral-600: #75798c;
-  --color-neutral-700: #595d6c;
-  --color-neutral-800: #3f424d;
-  --color-neutral-900: #292b31;
+  /* accent (teal) */
+  --color-accent: #0f9b84;
+  --color-accent-text: #0d6b5b;
+  --color-accent-950: #083b33;
+  --color-accent-900: #0b5045;
+  --color-accent-700: #108570;
+  --color-accent-500: #14a08a;
+  --color-accent-chip: #9adfd1;
+  --color-accent-tint: #e9f8f4;
+  --color-accent-100: #083b33;
+  --color-accent-300: #0d6b5b; /* accent text */
+  --color-accent-400: #14a08a; /* strong accent: bars, hover */
+  --color-accent-800: #cdefe8; /* tint: active and highlighted fills */
 
-  --color-accent-100: #f5f4ff;
-  --color-accent-300: #d2cefd;
-  --color-accent-400: #b5abfc;
-  --color-accent-800: #423a6a;
+  /* neutrals */
+  --color-neutral-100: #17202a;
+  --color-neutral-200: #243040;
+  --color-neutral-300: #3c4a5c; /* secondary text */
+  --color-neutral-400: #5b6b7e; /* muted text */
+  --color-neutral-500: #7a889a;
+  --color-neutral-600: #9daab9;
+  --color-neutral-700: #cfd6df; /* borders, scrollbar */
+  --color-neutral-800: #e6eaf0;
+  --color-neutral-900: #f1f3f6; /* table header, hover, tracks */
 
   --space-2: 5.6px;
   --space-3: 8.4px;
@@ -32,7 +46,33 @@
 
   --radius-md: 8px;
 
-  color-scheme: dark;
+  color-scheme: light;
+}
+
+/* Type scale. One size per role; use these instead of pixel sizes.
+   page     24px  the heading of a page or pipeline step
+   section  16px  a heading above a table or a group of panels; drawer titles
+   panel    14px  the title inside a card or panel
+   reading  14px  text meant to be read: output documents, memo text, arguments
+   body     13px  table cells (all columns), panel and drawer text, form text
+   meta     12px  table headers, labels, lines under a cell, notes, warnings
+   tag      11px  tags, ID chips and badges only
+   Display sizes (the thesis statement, a verdict, a stat number) stay explicit. */
+@theme {
+  --text-page: 1.5rem;
+  --text-page--line-height: 1.25;
+  --text-section: 1rem;
+  --text-section--line-height: 1.4;
+  --text-panel: 0.875rem;
+  --text-panel--line-height: 1.4;
+  --text-reading: 0.875rem;
+  --text-reading--line-height: 1.6;
+  --text-body: 0.8125rem;
+  --text-body--line-height: 1.5;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.45;
+  --text-tag: 0.6875rem;
+  --text-tag--line-height: 1.3;
 }
 
 @theme inline {
@@ -56,12 +96,97 @@ h3 {
   letter-spacing: -0.015em;
 }
 
-a {
-  color: var(--color-accent);
+/* Base layer, so component classes (.btn on a link) and utilities win. */
+@layer base {
+  a {
+    color: var(--color-accent-text);
+  }
+  a:hover {
+    color: var(--color-accent-700);
+  }
+  /* Checkboxes: a rounded box that fills teal with a white check. */
+  input[type="checkbox"] {
+    appearance: none;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-600);
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+      background-color 0.12s,
+      border-color 0.12s;
+  }
+  input[type="checkbox"]:hover:not(:disabled) {
+    border-color: var(--color-accent);
+  }
+  input[type="checkbox"]:checked {
+    background: var(--color-accent)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+      center / 11px no-repeat;
+    border-color: var(--color-accent);
+  }
+  input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-accent-chip);
+  }
+  input[type="checkbox"]:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+
+  /* Tailwind v4 gives buttons the default arrow; everything clickable gets the hand. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
 }
 
-a:hover {
-  color: var(--color-accent-400);
+/* Scrollbars: slim, rounded, neutral; darker on hover, teal while dragged.
+   Chrome, Edge and Safari use the ::-webkit-scrollbar rules. They are ignored
+   once scrollbar-color is set, so the standard properties are only for
+   browsers without them (Firefox). */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  background: var(--color-neutral-700);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-600);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-accent);
+}
+/* Small scroll areas (source text, text fields, sidebar) get a thinner bar. */
+.app-sidebar::-webkit-scrollbar,
+pre::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.app-sidebar::-webkit-scrollbar-thumb,
+pre::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  border-width: 2px;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-700) transparent;
+  }
 }
 
 /* Top navigation */
@@ -103,105 +228,480 @@ a:hover {
 
 .nav a:hover,
 .nav a[aria-current="page"] {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
-/* Buttons, inputs, tags, cards */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: var(--space-2) calc(var(--space-3) * 1.2);
-  font: inherit;
-  font-weight: 500;
-  line-height: 1.2;
-  white-space: nowrap;
+.nav a.nav-brand,
+.nav a.nav-brand:hover {
   color: var(--color-text);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
+}
+
+/* Dropdown menu (account menu in the top bar). */
+.menu {
+  z-index: 20;
+  background: var(--color-surface);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgb(23 32 42 / 0.1),
+    0 1px 2px rgb(23 32 42 / 0.06);
+  white-space: normal;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 4px;
+  padding: 6px 10px;
+  width: calc(100% - 8px);
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
 }
-
-.btn:hover {
-  color: var(--color-accent);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.btn-primary {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-}
-
-.input {
-  width: 100%;
-  min-height: 36px;
-  padding: 6px 10px;
-  font: inherit;
+.nav .menu-item {
   color: var(--color-text);
-  caret-color: var(--color-accent);
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-md);
 }
-
-.input:focus-visible {
-  border-color: var(--color-accent);
-  outline: none;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  border-radius: calc(var(--radius-md) * 0.75);
-}
-
-.tag-neutral {
-  background: var(--color-neutral-800);
-  color: var(--color-neutral-100);
-}
-
-.tag-accent {
-  background: var(--color-accent-800);
-  color: var(--color-accent-300);
-}
-
-.tag-outline {
-  box-shadow: inset 0 0 0 1px var(--color-neutral-600);
-  color: var(--color-neutral-300);
-}
-
-/* A claim's excerpt highlighted in its source text. */
-mark.excerpt {
-  background: color-mix(in srgb, var(--color-accent) 40%, transparent);
+.menu-item:hover,
+.nav .menu-item:hover {
   color: var(--color-text);
-  border-radius: 2px;
+  background: var(--color-hover);
+}
+.menu-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--color-neutral-400);
+}
+.menu-item:hover .menu-icon {
+  color: var(--color-accent-text);
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-6);
+/* Buttons, inputs, tags, cards. In the components layer so Tailwind
+   utilities on the same element (padding, gap, flex-row, sizes) win. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: var(--space-2) calc(var(--space-3) * 1.2);
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-700);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--color-hover);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .btn-primary {
+    color: #ffffff;
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    color: #ffffff;
+    background: var(--color-accent-700);
+    border-color: var(--color-accent-700);
+  }
+
+  .input {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    font: inherit;
+    color: var(--color-text);
+    caret-color: var(--color-accent);
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-700);
+    border-radius: var(--radius-md);
+  }
+
+  /* Selects: no native arrow, a slim chevron in the app's grey instead. */
+  select.input {
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6b7e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    cursor: pointer;
+  }
+  select.input:hover:not(:disabled) {
+    border-color: var(--color-neutral-600);
+  }
+  select.input:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+  .input:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-tint);
+    outline: none;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    border-radius: calc(var(--radius-md) * 0.75);
+  }
+
+  .tag-neutral {
+    background: var(--color-surface);
+    color: var(--color-neutral-300);
+    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+  }
+
+  .tag-accent {
+    background: var(--color-accent-tint);
+    color: var(--color-accent-text);
+    box-shadow: inset 0 0 0 1px var(--color-accent-chip);
+  }
+
+  .tag-outline {
+    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+    color: var(--color-neutral-300);
+  }
+
+  /* A claim's excerpt highlighted in its source text. */
+  mark.excerpt {
+    background: var(--color-accent-chip);
+    color: var(--color-text);
+    border-radius: 2px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-800);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgb(23 32 42 / 0.04);
+  }
+}
+
+/* Tables sit on a white surface with a light header row. */
+main table {
   background: var(--color-surface);
-  border-radius: var(--radius-md);
+}
+main thead tr {
+  background: var(--color-surface);
+}
+main thead th {
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+/* Tables in a panel get room at the edges. */
+main .panel > table th:first-child,
+main .panel > table td:first-child {
+  padding-left: 16px;
+}
+main .panel > table th:last-child,
+main .panel > table td:last-child {
+  padding-right: 16px;
+}
+main th:first-child,
+main td:first-child {
+  padding-left: 8px;
 }
 
 .text-muted {
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  color: var(--color-neutral-400);
+}
+
+/* Settings sidebar: fixed below the top bar on wide screens. */
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: var(--space-8);
+  padding: 16px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: 10px;
+}
+@media (min-width: 768px) {
+  .app-sidebar {
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    left: 0;
+    z-index: 4;
+    width: 264px;
+    margin: 0;
+    padding: 20px 14px 20px;
+    overflow-y: auto;
+    border-width: 0 1px 0 0;
+    border-radius: 0;
+  }
+}
+/* Never squash sidebar rows; scroll instead. */
+.app-sidebar > * {
+  flex-shrink: 0;
+}
+.sidebar-group {
+  margin: 14px 10px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-neutral-500);
+}
+.sidebar-item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: var(--color-neutral-300);
+  text-decoration: none;
+  border-radius: 6px;
+}
+.sidebar-item:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+.sidebar-item[aria-current="page"],
+.sidebar-item[aria-current="step"] {
+  color: var(--color-accent-text);
+  background: var(--color-accent-tint);
+}
+.sidebar-item-locked,
+.sidebar-item-locked:hover {
+  color: var(--color-neutral-600);
+  background: none;
+  cursor: not-allowed;
+}
+.sidebar-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Segmented control (deal filters). */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md);
+}
+.seg-opt {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--color-neutral-300);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+.seg-opt:hover {
+  color: var(--color-text);
+}
+.seg-opt[aria-current="page"] {
+  color: var(--color-accent-text);
+  background: var(--color-accent-tint);
+}
+
+@layer components {
+  /* A white panel without the card's padding: tables, stat tiles. */
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-800);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgb(23 32 42 / 0.04);
+  }
+}
+
+/* Data tables inside panels (Evidence Pack, research agenda). */
+main .data-table thead tr {
+  background: var(--color-surface);
+}
+main .data-table th {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+main .data-table td {
+  padding: 12px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+main .data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+main .data-table tbody tr:hover {
+  background: var(--color-hover);
+}
+@media print {
+  main .data-table th,
+  main .data-table td {
+    padding: 3px 8px 3px 0;
+  }
+}
+
+/* A row jumped to from elsewhere (e.g. a CR# tag in the Source Table). */
+@keyframes flash-highlight {
+  from {
+    background: var(--color-accent-tint);
+  }
+  to {
+    background: transparent;
+  }
+}
+.flash-highlight {
+  animation: flash-highlight 2.2s ease-out;
+}
+
+/* Open select list: browsers with customizable selects (Chrome/Edge) draw it
+   like the account menu; others keep the native list. Kept outside the layers
+   because ::picker() needs the opt-in on both the select and its picker. */
+@supports (appearance: base-select) {
+  select.input,
+  select.input::picker(select) {
+    appearance: base-select;
+  }
+  select.input {
+    align-items: center;
+  }
+  select.input::picker-icon {
+    display: none; /* the chevron is the background image */
+  }
+  select.input::picker(select) {
+    margin-top: 4px;
+    padding: 4px;
+    min-width: anchor-size(width);
+    background: var(--color-surface);
+    border: 1px solid var(--color-neutral-800);
+    border-radius: 10px;
+    box-shadow:
+      0 8px 24px rgb(23 32 42 / 0.1),
+      0 1px 2px rgb(23 32 42 / 0.06);
+  }
+  select.input option {
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--color-text);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  select.input option::checkmark {
+    display: none;
+  }
+  select.input option:hover,
+  select.input option:focus-visible {
+    background: var(--color-hover);
+    outline: none;
+  }
+  select.input option:checked {
+    color: var(--color-accent-text);
+    background: var(--color-accent-tint);
+    font-weight: 500;
+  }
+}
+
+/* Toasts (react-toastify). Its own CSS is injected after this file and sets
+   its variables on :root, so ours go on the wrapper (.Toastify) to win. */
+.Toastify {
+  --toastify-font-family: inherit;
+  --toastify-text-color-light: var(--color-text);
+  --toastify-color-light: var(--color-surface);
+  --toastify-color-error: var(--color-danger);
+  --toastify-color-success: var(--color-accent);
+  --toastify-color-info: var(--color-accent);
+  --toastify-color-warning: #b7791f;
+  --toastify-toast-width: 420px;
+  --toastify-toast-bd-radius: 12px;
+  --toastify-toast-min-height: 0px;
+  --toastify-toast-top: 76px;
+  --toastify-toast-right: 20px;
+  --toastify-toast-padding: 0;
+}
+.Toastify .Toastify__toast {
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 12px 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  border: 1px solid var(--color-neutral-800);
+  box-shadow:
+    0 12px 32px rgb(23 32 42 / 0.12),
+    0 2px 6px rgb(23 32 42 / 0.06);
+}
+.Toastify .Toastify__toast-icon {
+  width: auto;
+  margin: 0;
+}
+.Toastify .Toastify__close-button {
+  align-self: flex-start;
+  color: var(--color-neutral-500);
+  opacity: 1;
+}
+.Toastify .Toastify__close-button:hover {
+  color: var(--color-text);
+}
+
+/* Deals dashboard table. */
+.deals-table thead tr {
+  background: var(--color-surface);
+}
+.deals-table th {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+.deals-table td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+.deals-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.deals-table tbody tr:hover {
+  background: var(--color-hover);
+}
+.deals-table .deal-link {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.deals-table tbody tr:hover .deal-link {
+  color: var(--color-accent-text);
+}
+main .deals-table th:first-child,
+main .deals-table td:first-child {
+  padding-left: 20px;
+}
+.deals-table th:last-child,
+.deals-table td:last-child {
+  padding-right: 20px;
 }
 
 .text-danger {
@@ -231,6 +731,8 @@ mark.excerpt {
     background: white !important;
     color: black !important;
     padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
   }
   .text-muted {
     color: #444 !important;

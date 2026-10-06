@@ -118,5 +118,7 @@ export type DealRow = {
   openConflicts: number;
   openCriticalUncertainties: number;
   configVersion: number;
+  scores: { label: string; score: number }[]; // dimension scores (override wins), config order
+  running: boolean; // a pipeline step is queued or running
   updatedAt: string;
 };

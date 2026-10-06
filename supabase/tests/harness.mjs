@@ -61,6 +61,7 @@ export async function createDb() {
     const uid = crypto.randomUUID();
     await db.query(`insert into auth.users (id, email, email_confirmed_at) values ($1, $2, now())`, [uid, email]);
     await db.query(`select create_fund_with_admin($1, 'Fund ' || $2, 'Ann')`, [uid, email]);
+    await as(uid, `select complete_fund_setup()`); // publishes the default draft as v1 (decision 47)
     const [{ create_evaluation: evaluationId }] = await as(uid, `select create_evaluation('Nordwind', '', '', '')`);
     await db.query(`update evaluations set status = 'extracting', current_step = 3 where id = $1`, [evaluationId]);
     return { uid, evaluationId };
