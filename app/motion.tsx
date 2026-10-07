@@ -46,7 +46,7 @@ export function Drawer({ open, children }: { open: boolean; children: React.Reac
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 24, opacity: 0, transition: { duration: 0.15, ease: "easeIn" } }}
           transition={{ duration: 0.22, ease: EASE_OUT }}
-          className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col overflow-y-auto border-l border-[var(--color-divider)] bg-[var(--color-surface)] p-6 shadow-2xl print:hidden"
+          className="fixed top-0 right-0 z-20 flex h-full w-full max-w-xl flex-col overflow-y-auto border-l border-[var(--color-line)] bg-[var(--color-surface)] p-6 shadow-[-8px_0_24px_rgb(14_21_48/0.06)] print:hidden"
         >
           {children}
         </m.aside>

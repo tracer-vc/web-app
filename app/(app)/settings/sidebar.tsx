@@ -86,7 +86,7 @@ export function SettingsSidebar({ isAdmin }: { isAdmin: boolean }) {
             );
           })}
 
-          <div className="text-muted mx-2.5 mt-6 rounded-lg border border-[var(--color-neutral-800)] p-2.5 text-meta leading-normal">
+          <div className="text-muted mx-2.5 mt-6 rounded-[4px] border border-[var(--color-line)] bg-[var(--color-subtle)] p-2.5 text-meta leading-normal">
             <div className="mb-1 font-medium text-[var(--color-neutral-300)]">Fixed mechanism (not configurable)</div>
             Mandatory C# on every statement · mandatory S# + excerpt on Facts and Inferences · three claim types ·
             mandatory conflict status · outputs rendered from claims · identifier scheme

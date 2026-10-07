@@ -61,10 +61,10 @@ export function toHtml(doc: RunDoc): string {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(doc.title)}</title>
 <style>
-  body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1d1d24; max-width: 920px; margin: 32px auto; padding: 0 20px; }
+  body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #0e1530; max-width: 920px; margin: 32px auto; padding: 0 20px; }
   h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-  h3 { font-size: 13px; font-weight: 600; color: #0d6b5b; margin: 18px 0 4px; }
-  p { margin: 4px 0; } .muted { color: #666; } .refs { font: 11px ui-monospace, monospace; color: #0d6b5b; }
+  h3 { font-size: 13px; font-weight: 600; color: #2b4bff; margin: 18px 0 4px; }
+  p { margin: 4px 0; } .muted { color: #666; } .refs { font: 11px ui-monospace, monospace; color: #2b4bff; }
   table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 6px 0 12px; }
   th, td { border-top: 1px solid #e3e3e8; padding: 4px 6px; text-align: left; vertical-align: top; } th { color: #666; font-weight: 500; }
   ol, ul { margin: 4px 0; padding-left: 22px; }

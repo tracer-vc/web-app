@@ -72,43 +72,45 @@ export function StudyTab({
         </p>
       </div>
 
-      <section className="card gap-3">
+      <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-section font-semibold">Artifact runs</h3>
           <button className="btn btn-primary ml-auto text-meta" onClick={() => post("artifact", "Couldn't start the artifact run.")} disabled={pending}>
             Run artifact again
           </button>
         </div>
-        <table className="w-full text-left text-body" data-testid="artifact-runs">
-          <thead className="text-muted text-meta">
-            <tr>
-              <th className="py-1 pr-3 font-normal">Run</th>
-              <th className="py-1 pr-3 font-normal">Status</th>
-              <th className="py-1 pr-3 font-normal">Classification</th>
-              <th className="py-1 font-normal" />
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t border-[var(--color-divider)]" data-testid="artifact-run" data-run="1">
-              <td className="py-1.5 pr-3">1 · this deal</td>
-              <td className="py-1.5 pr-3">{study.original.classification ? "Complete" : STATUS_LABELS[study.original.status]}</td>
-              <td className="py-1.5 pr-3">{study.original.classification ? VERDICT_LABELS[study.original.classification] : "—"}</td>
-              <td className="py-1.5">
-                <Link href={`/deals/${evaluationId}?tab=thesis-card`}>Open</Link>
-              </td>
-            </tr>
-            {study.copies.map((c) => (
-              <tr key={c.id} className="border-t border-[var(--color-divider)]" data-testid="artifact-run" data-run={c.run} data-complete={c.classification !== null}>
-                <td className="py-1.5 pr-3">{c.run} · copy</td>
-                <td className={`py-1.5 pr-3 ${c.lastRun?.status === "failed" ? "text-danger" : ""}`}>{runStatus(c)}</td>
-                <td className="py-1.5 pr-3">{c.classification ? VERDICT_LABELS[c.classification] : "—"}</td>
+        <div className="panel overflow-x-auto">
+          <table className="data-table w-full text-left text-body" data-testid="artifact-runs">
+            <thead>
+              <tr>
+                <th>Run</th>
+                <th>Status</th>
+                <th>Classification</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-testid="artifact-run" data-run="1">
+                <td className="py-1.5 pr-3">1 · this deal</td>
+                <td className="py-1.5 pr-3">{study.original.classification ? "Complete" : STATUS_LABELS[study.original.status]}</td>
+                <td className="py-1.5 pr-3">{study.original.classification ? VERDICT_LABELS[study.original.classification] : "—"}</td>
                 <td className="py-1.5">
-                  <Link href={`/deals/${c.id}?tab=${c.classification ? "thesis-card" : "evidence"}`}>Open</Link>
+                  <Link href={`/deals/${evaluationId}?tab=thesis-card`}>Open</Link>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+              {study.copies.map((c) => (
+                <tr key={c.id} data-testid="artifact-run" data-run={c.run} data-complete={c.classification !== null}>
+                  <td className="py-1.5 pr-3">{c.run} · copy</td>
+                  <td className={`py-1.5 pr-3 ${c.lastRun?.status === "failed" ? "text-danger" : ""}`}>{runStatus(c)}</td>
+                  <td className="py-1.5 pr-3">{c.classification ? VERDICT_LABELS[c.classification] : "—"}</td>
+                  <td className="py-1.5">
+                    <Link href={`/deals/${c.id}?tab=${c.classification ? "thesis-card" : "evidence"}`}>Open</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="card gap-3">

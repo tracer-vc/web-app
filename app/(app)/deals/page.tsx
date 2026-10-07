@@ -88,7 +88,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/deals">) {
 
       {deals.length === 0 ? (
         <div className="panel flex flex-col items-center px-6 py-16 text-center">
-          <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-accent-tint)] text-[var(--color-accent-text)]">
+          <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[4px] bg-[var(--color-cobalt-tint)] text-[var(--color-cobalt)]">
             <svg
               width="20"
               height="20"
@@ -120,7 +120,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/deals">) {
             <Stat
               label="Proceed"
               value={counts.proceed}
-              dot="var(--color-accent)"
+              dot="var(--color-cobalt)"
             />
             <Stat
               label="Watch"
@@ -176,7 +176,7 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
     <tr className="relative">
       <td>
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent-tint)] text-body font-medium text-[var(--color-accent-text)]">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-[var(--color-cobalt-tint)] font-mono text-meta font-medium text-[var(--color-cobalt-hover)]">
             {initials(d.name)}
           </span>
           <div className="min-w-0">
@@ -202,13 +202,13 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
               <span
                 key={s.key}
                 title={s.label}
-                className={`h-1.5 w-6 rounded-full ${now && d.running ? "animate-pulse" : ""}`}
+                className={`h-1.5 w-6 ${now && d.running ? "animate-pulse" : ""}`}
                 style={{
                   background: done
-                    ? "var(--color-accent)"
+                    ? "var(--color-cobalt)"
                     : now
-                      ? "var(--color-accent-chip)"
-                      : "var(--color-neutral-800)",
+                      ? "var(--color-cobalt-soft)"
+                      : "var(--color-line)",
                 }}
               />
             );
@@ -228,13 +228,9 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
         {verdict ? (
           <div>
             <span
-              className={`tag ${verdict === "proceed" ? "tag-accent" : "tag-outline"} gap-1.5`}
+              className={`tag ${VERDICT_TAG[verdict]}`}
               data-testid={d.classification ? "deal-classification" : undefined}
             >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: VERDICT_DOT[verdict] }}
-              />
               {VERDICT_LABELS[verdict]}
             </span>
             <div className="text-muted mt-1 text-meta">
@@ -254,7 +250,7 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
           <span className="text-muted">—</span>
         ) : d.openConflicts ? (
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-danger)]" />
+            <span className="h-2 w-2 rounded-[1px] bg-[var(--color-danger)]" />
             {d.openConflicts} open
           </span>
         ) : (
@@ -307,10 +303,11 @@ function DealRowView({ deal: d }: { deal: DealRow }) {
   );
 }
 
-const VERDICT_DOT: Record<Verdict, string> = {
-  proceed: "var(--color-accent)",
-  watch: "var(--color-neutral-500)",
-  pass: "var(--color-danger)",
+// Verdicts as status tags: Proceed cobalt, Watch neutral, Pass warning.
+const VERDICT_TAG: Record<Verdict, string> = {
+  proceed: "tag-accent",
+  watch: "tag-neutral",
+  pass: "tag-warning",
 };
 
 function Stat({
@@ -327,7 +324,7 @@ function Stat({
       <dt className="text-muted flex items-center gap-1.5 text-meta">
         {dot && (
           <span
-            className="h-1.5 w-1.5 rounded-full"
+            className="h-2 w-2 rounded-[1px]"
             style={{ background: dot }}
           />
         )}

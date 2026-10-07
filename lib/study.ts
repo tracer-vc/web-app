@@ -128,7 +128,7 @@ export async function artifactRunDoc(
   const open = conflicts.filter((c) => c.status === "open");
 
   const blocks: Block[] = [
-    { kind: "h1", text: `${label} — ${company}` },
+    { kind: "h1", text: `${label}: ${company}` },
     { kind: "meta", text: `Tracer artifact run · classification ${CLASSIFICATION_LABELS[d.classification]} (by rule) · exported ${today()}` },
     { kind: "h2", text: "Decision Snapshot" },
     { kind: "p", item: { label: "Classification", text: CLASSIFICATION_LABELS[d.classification] } },
@@ -216,7 +216,7 @@ export async function artifactRunDoc(
       rows: conflicts.map((c) => [c.code, c.kind, c.sideA.code, c.sideB.code, c.description, CONFLICT_STATUS_LABELS[c.status]]),
     },
   ];
-  return { title: `${label} — ${company}`, blocks };
+  return { title: `${label}: ${company}`, blocks };
 }
 
 export function baselineRunDoc(b: StudyView["baselines"][number], label: string, company: string): RunDoc {
@@ -225,7 +225,7 @@ export function baselineRunDoc(b: StudyView["baselines"][number], label: string,
   const c = (x: { text: string; refs: number[] }, detail?: string): Cited => ({ text: x.text, detail, refs: refs(x.refs) });
   const p = (title: string, item: Cited): Block[] => [{ kind: "h3", text: title }, { kind: "p", item }];
   const blocks: Block[] = [
-    { kind: "h1", text: `${label} — ${company}` },
+    { kind: "h1", text: `${label}: ${company}` },
     { kind: "meta", text: `Baseline memo (same LLM, corpus and fund config; no claim layer) · exported ${today()}` },
     { kind: "h2", text: "Decision Snapshot" },
     { kind: "p", item: { label: "Recommendation", text: CLASSIFICATION_LABELS[m.recommendation] } },
@@ -271,7 +271,7 @@ export function baselineRunDoc(b: StudyView["baselines"][number], label: string,
       rows: b.refs.map((r) => [`[${r.n}]`, r.title, r.origin]),
     },
   ];
-  return { title: `${label} — ${company}`, blocks };
+  return { title: `${label}: ${company}`, blocks };
 }
 
 // ---------------------------------------------------------------------------
@@ -322,7 +322,7 @@ export async function buildStudyExport(supabase: Supabase, evaluationId: string,
   zip.file(
     "README.md",
     [
-      `# Study 2 export — ${company}`,
+      `# Study 2 export: ${company}`,
       "",
       `Exported ${today()} from Tracer. Fund config v${ev.config.version}; every run used the same configuration and corpus.`,
       "",

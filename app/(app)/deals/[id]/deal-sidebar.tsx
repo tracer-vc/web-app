@@ -45,7 +45,7 @@ export function DealSidebar({
       </Link>
 
       <div className="mx-2.5 mb-2 flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent-tint)] text-body font-medium text-[var(--color-accent-text)]">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-[var(--color-cobalt-tint)] font-mono text-body font-medium text-[var(--color-cobalt-hover)]">
           {initials(deal.company.name)}
         </span>
         <div className="min-w-0">
@@ -85,25 +85,23 @@ export function DealSidebar({
         const current = !done && s.step === deal.currentStep;
         const marker = (
           <span
-            className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-meta tabular-nums ${
-              done
-                ? "bg-[var(--color-accent)] text-white"
-                : current
-                  ? "bg-[var(--color-accent-tint)] text-[var(--color-accent-text)] shadow-[inset_0_0_0_1px_var(--color-accent-chip)]"
-                  : "bg-[var(--color-surface)] text-[var(--color-neutral-500)] shadow-[inset_0_0_0_1px_var(--color-neutral-700)]"
+            className={`step-marker ${
+              done ? "step-marker-done" : current ? "step-marker-current" : unlocked ? "step-marker-todo" : "step-marker-locked"
             }`}
           >
-            {done ? <LuCheck aria-hidden className="h-3 w-3" strokeWidth={3} /> : s.step}
+            {done ? <LuCheck aria-hidden className="h-3 w-3" strokeWidth={3} /> : String(s.step).padStart(2, "0")}
           </span>
         );
+        // Timeline connector to the next step (not after the last one).
+        const step = `${s.step < PIPELINE_STEPS.length ? " step-item" : ""}`;
         return unlocked ? (
-          <Link key={s.key} href={href(s.key)} aria-current={tab === s.key ? "page" : undefined} className="sidebar-item">
+          <Link key={s.key} href={href(s.key)} aria-current={tab === s.key ? "page" : undefined} className={`sidebar-item${step}`}>
             {tab === s.key && <NavHighlight id="deal-nav" />}
             {marker}
             {s.label}
           </Link>
         ) : (
-          <span key={s.key} title="Locked until the pipeline reaches this step" className="sidebar-item sidebar-item-locked">
+          <span key={s.key} title="Locked until the pipeline reaches this step" className={`sidebar-item sidebar-item-locked${step}`}>
             {marker}
             {s.label}
           </span>
@@ -122,7 +120,7 @@ export function DealSidebar({
       )}
 
       <div className="min-h-5 shrink-0" />
-      <dl className="mx-2.5 mt-auto grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-[var(--color-neutral-800)] pt-4 text-meta">
+      <dl className="mx-2.5 mt-auto grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-[var(--color-line)] pt-4 text-meta">
         {deal.memo && (
           <>
             <dt className="text-muted">Quick Screen</dt>

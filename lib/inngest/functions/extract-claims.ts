@@ -149,7 +149,7 @@ export const extractClaims = inngest.createFunction(
           }
           const { kept, rejected } = checkClaimExcerpts(index, claims);
           for (const r of rejected) {
-            stepWarnings.push(`${label}: claim rejected after retries (R4: ${r.reason}): "${r.statement}" — excerpt "${r.excerpt}".`);
+            stepWarnings.push(`${label}: claim rejected after retries (R4: ${r.reason}): "${r.statement}" (excerpt "${r.excerpt}").`);
           }
           await setProgress(((done + 1) / totalChunks) * 70);
           return {

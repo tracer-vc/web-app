@@ -10,9 +10,9 @@ import { citedText, type Block, type Cited, type RunDoc } from "./run-doc";
 const A4 = { w: 595.28, h: 841.89 };
 const M = { x: 48, top: 52, bottom: 56 };
 const WIDTH = A4.w - 2 * M.x;
-const INK = rgb(0.11, 0.11, 0.14);
+const INK = rgb(0.055, 0.082, 0.188); // #0e1530
 const MUTED = rgb(0.42, 0.42, 0.46);
-const ACCENT = rgb(0.36, 0.31, 0.69);
+const ACCENT = rgb(0.169, 0.294, 1); // #2b4bff
 const RULE = rgb(0.86, 0.86, 0.9);
 
 const MAP: Record<string, string> = {

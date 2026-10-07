@@ -37,14 +37,14 @@ export function Preferences({ devMode }: { devMode: boolean }) {
           onClick={toggle}
           disabled={pending}
           data-testid="dev-mode-toggle"
-          className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors disabled:opacity-60 ${
+          className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-[4px] transition-colors disabled:opacity-60 ${
             enabled
-              ? "bg-[var(--color-accent)]"
-              : "bg-[var(--color-neutral-700)]"
+              ? "bg-[var(--color-cobalt)]"
+              : "bg-[var(--color-line-timeline)]"
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+            className={`inline-block h-4 w-4 rounded-[3px] bg-white transition-transform ${
               enabled ? "translate-x-[18px]" : "translate-x-0.5"
             }`}
           />

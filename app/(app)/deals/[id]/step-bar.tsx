@@ -25,22 +25,18 @@ export function StepBar({
 }) {
   return (
     <div
-      className="sticky bottom-0 z-[4] -mb-6 bg-gradient-to-t from-[var(--color-bg)] from-60% to-transparent pt-5 pb-3 print:hidden"
+      className="sticky bottom-0 z-[4] -mb-6 bg-[var(--color-bg)] pt-3 pb-4 print:hidden"
       data-testid="next-step"
     >
-      <div className="panel flex flex-wrap items-center gap-x-6 gap-y-2 py-2.5 pr-[11px] pl-4 shadow-[0_8px_28px_rgb(23_32_42/0.12),0_1px_2px_rgb(23_32_42/0.06)]">
+      <div className="panel flex flex-wrap items-center gap-x-6 gap-y-2 py-2.5 pr-3.5 pl-4 shadow-[0_6px_20px_rgb(14_21_48/0.08),0_1px_3px_rgb(14_21_48/0.06)]">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span
-            className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-meta font-semibold tabular-nums ${
-              done
-                ? "bg-[var(--color-accent)] text-white"
-                : "bg-[var(--color-accent-tint)] text-[var(--color-accent-text)] shadow-[inset_0_0_0_1px_var(--color-accent-chip)]"
-            }`}
+            className={`step-marker h-8 w-8 text-meta ${done ? "step-marker-done" : "step-marker-current"}`}
           >
-            {done ? <LuCheck aria-hidden className="h-3.5 w-3.5" strokeWidth={3} /> : step}
+            {done ? <LuCheck aria-hidden className="h-3.5 w-3.5" strokeWidth={3} /> : String(step).padStart(2, "0")}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="text-meta leading-tight font-medium text-[var(--color-neutral-400)]">
+            <div className="font-mono text-tag leading-tight font-medium text-[var(--color-neutral-500)]">
               Step {step} of 5 · {title}
             </div>
             <div className={`${progress !== undefined ? "text-body" : "text-body"} leading-snug font-medium`}>{status}</div>
@@ -50,7 +46,7 @@ export function StepBar({
               </p>
             )}
             {progress !== undefined && (
-              <div className="mt-2 mb-0.5 h-1 max-w-sm overflow-hidden rounded bg-[var(--color-neutral-900)]" data-testid="run-progress">
+              <div className="mt-2 mb-0.5 h-1 max-w-sm overflow-hidden bg-[var(--color-line-soft)]" data-testid="run-progress">
                 <div className="h-full bg-[var(--color-accent)] transition-[width] duration-500 ease-out" style={{ width: `${Math.max(progress, 3)}%` }} />
               </div>
             )}

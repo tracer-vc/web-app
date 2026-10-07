@@ -36,17 +36,18 @@ export function AuthShell({
 
       <div className="relative hidden overflow-hidden lg:block">
         <Image src="/login-art.jpg" alt="" fill priority sizes="55vw" className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-        <div className="absolute right-10 bottom-10 left-10 text-white">
-          <p className="max-w-md text-page leading-snug font-medium">Every statement traces back to its evidence.</p>
-          <p className="mt-2 max-w-md text-reading text-white/75">
+        <div className="absolute bottom-10 left-10 max-w-md rounded-[4px] bg-[var(--color-ink)] p-6 text-white">
+          <p className="font-display text-[22px] leading-snug font-semibold tracking-[-0.015em]">
+            Every statement traces back to its evidence.
+          </p>
+          <p className="mt-2 text-reading text-[var(--color-cobalt-soft)]">
             From deal materials to a Proceed, Watch or Pass decision, with every claim linked to a tiered source.
           </p>
           <a
             href="https://unsplash.com/photos/white-and-black-striped-textile-mV9-1XjnM4Y"
             target="_blank"
             rel="noreferrer"
-            className="mt-6 inline-block text-meta text-white/60 no-underline hover:text-white"
+            className="mt-4 inline-block text-meta text-[var(--color-cobalt-soft)] no-underline hover:text-white"
           >
             Photo by Scott Webb on Unsplash
           </a>

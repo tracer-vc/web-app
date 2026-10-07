@@ -2,7 +2,7 @@ import { dbErrorResponse, jsonError, memberContext } from "@/lib/api";
 import { NOT_STATED, QUICK_SCREEN_STATUSES } from "@/lib/evaluation-shared";
 import { callLlm } from "@/lib/llm/call";
 import { LlmError } from "@/lib/llm/client";
-import { P1A, fitDocuments } from "@/lib/llm/prompts/p1a-quick-screen-answers";
+import { P1A, fitDocuments, normalizeRef, usableCitations } from "@/lib/llm/prompts/p1a-quick-screen-answers";
 import { failRun, startRun } from "@/lib/runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -72,15 +72,19 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/evaluation
       { fundId: evaluation.fund_id, model: evaluation.fund.llm_model, runId, evaluationId: id },
     );
 
-    const byRef = new Map(output.answers.map((a) => [a.question, a]));
+    const byRef = new Map(output.answers.map((a) => [normalizeRef(a.question), a]));
     const docId = new Map(docs.map((d) => [d.ref, d.id]));
+    const docText = new Map(docs.map((d) => [d.ref, { fullText: d.text }]));
     const drafts = qs.map((q) => {
       const a = byRef.get(q.ref)!;
       return {
         question_id: q.id,
         answer: a.found ? a.answer.trim() : NOT_STATED,
         found: a.found,
-        citations: a.found ? a.citations.map((c) => ({ document_id: docId.get(c.document)!, excerpt: c.excerpt.trim() })) : [],
+        // Only verbatim excerpts within the length limit are stored.
+        citations: a.found
+          ? usableCitations(docText, q.ref, a.citations).map((c) => ({ document_id: docId.get(c.document)!, excerpt: c.excerpt.trim() }))
+          : [],
       };
     });
 

@@ -162,8 +162,8 @@ export function MaterialsSection({
             setDragging(false);
             void addFiles(e.dataTransfer.files);
           }}
-          className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-5 text-center text-body ${
-            dragging ? "border-[var(--color-accent)]" : "border-[var(--color-neutral-700)]"
+          className={`flex flex-col items-center gap-2 rounded-[4px] border border-dashed p-5 text-center text-body ${
+            dragging ? "border-[var(--color-cobalt)] bg-[var(--color-cobalt-tint)]" : "border-[var(--color-line-timeline)] bg-[var(--color-subtle)]"
           }`}
         >
           <span>Drop pitch deck, founder profiles, press, technical docs</span>

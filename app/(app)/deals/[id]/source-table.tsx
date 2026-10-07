@@ -100,7 +100,7 @@ export function SourceTable({ evaluationId, table }: { evaluationId: string; tab
                       href={`/deals/${evaluationId}?tab=claims&source=${s.code}`}
                       onClick={(e) => e.stopPropagation()}
                       title={`Show the ${s.claimCount} claim${s.claimCount === 1 ? "" : "s"} citing ${s.code}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-[var(--color-neutral-900)] px-2 py-0.5 text-meta font-medium text-[var(--color-neutral-300)] no-underline transition-colors hover:bg-[var(--color-accent-tint)] hover:text-[var(--color-accent-text)]"
+                      className="inline-flex items-center gap-1 rounded-[3px] bg-[var(--color-neutral-bg)] px-2 py-0.5 text-meta font-medium text-[var(--color-neutral-300)] no-underline transition-colors hover:bg-[var(--color-cobalt-tint)] hover:text-[var(--color-ink)]"
                     >
                       {s.claimCount}
                       <LuArrowRight aria-hidden className="h-3 w-3" />
@@ -164,7 +164,7 @@ export function TierSummary({ sources }: { sources: SourceView[] }) {
           <span>{TIER_LABELS[t.tier]}</span>
           <span className="h-1.5 overflow-hidden rounded bg-[var(--color-neutral-900)]">
             <span
-              className="grow-x block h-full bg-[var(--color-accent-400)]"
+              className="grow-x block h-full bg-[var(--color-cobalt)]"
               style={{ width: `${sources.length ? (t.n / sources.length) * 100 : 0}%` }}
             />
           </span>
@@ -261,7 +261,7 @@ function TraceDrawer({
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-muted text-meta">Party (who authored it; decides independence)</span>
+          <span className="text-muted text-meta">Party (who authored it)</span>
           <input className="input" aria-label="Party" value={party} onChange={(e) => setParty(e.target.value)} />
         </label>
       </div>

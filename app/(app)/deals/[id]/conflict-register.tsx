@@ -33,16 +33,16 @@ export function ConflictRegister({
   if (conflicts.length === 0) return null;
 
   return (
-    <section className="card gap-3 p-4" data-testid="conflict-register">
-      <div className="text-panel font-semibold">{title}</div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-body">
-          <thead className="text-muted text-meta">
-            <tr className="border-b border-[var(--color-divider)]">
-              <th className="w-14 py-2 pr-3 font-normal">ID</th>
-              <th className="py-2 pr-3 font-normal">Side A</th>
-              <th className="py-2 pr-3 font-normal">Side B</th>
-              <th className="w-[300px] py-2 font-normal">Resolution status</th>
+    <section className="flex flex-col gap-3" data-testid="conflict-register">
+      <h3 className="text-section font-semibold">{title}</h3>
+      <div className="panel overflow-x-auto">
+        <table className="data-table w-full min-w-[760px] text-left text-body">
+          <thead>
+            <tr>
+              <th className="w-14">ID</th>
+              <th>Side A</th>
+              <th>Side B</th>
+              <th className="w-[300px]">Resolution status</th>
             </tr>
           </thead>
           <tbody>

@@ -46,28 +46,29 @@ export default async function TeamPage() {
         the team.
       </p>
 
-      <div className="card mb-8 overflow-x-auto">
-        <table className="w-full text-left text-body">
-          <thead className="text-muted text-meta">
+      <h2 className="text-section mb-3 font-semibold">Members</h2>
+      <div className="panel mb-8 overflow-x-auto">
+        <table className="data-table w-full text-left text-body">
+          <thead>
             <tr>
-              <th className="pb-2 font-normal">Name</th>
-              <th className="pb-2 font-normal">Email</th>
-              <th className="pb-2 font-normal">Role</th>
-              <th className="pb-2 font-normal">Added</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Added</th>
             </tr>
           </thead>
           <tbody>
             {(members ?? []).map((m) => (
-              <tr key={m.id} className="border-t border-[var(--color-divider)]">
-                <td className="py-2 pr-4">
+              <tr key={m.id}>
+                <td>
                   {m.display_name ?? "—"}
                   {m.id === user.id && <span className="text-muted"> (you)</span>}
                 </td>
-                <td className="py-2 pr-4">{emails.get(m.id)}</td>
-                <td className="py-2 pr-4">
+                <td>{emails.get(m.id)}</td>
+                <td>
                   <span className="tag tag-neutral">{m.role}</span>
                 </td>
-                <td className="text-muted py-2">{new Date(m.created_at).toLocaleDateString("en-GB")}</td>
+                <td className="text-muted">{new Date(m.created_at).toLocaleDateString("en-GB")}</td>
               </tr>
             ))}
           </tbody>

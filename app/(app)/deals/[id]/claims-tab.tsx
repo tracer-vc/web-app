@@ -24,7 +24,7 @@ import { ContinueLink, NextIcon, StepBar } from "./step-bar";
 const FILTERS = ["all", "fact", "inference", "speculation"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const TYPE_TAG: Record<ClaimType, string> = { fact: "tag-accent", inference: "tag-neutral", speculation: "tag-outline" };
+const TYPE_TAG: Record<ClaimType, string> = { fact: "tag-positive", inference: "tag-neutral", speculation: "tag-warning" };
 
 // Step 3: Claim Table (C#) with conflict badges, a trace drawer that shows each
 // excerpt in its source, and the uncertainties written by the sufficiency rule.
@@ -167,7 +167,7 @@ export function ClaimsTab({
             {sourceFilter && (
               <Link
                 href={`/deals/${evaluationId}?tab=claims`}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--color-accent-tint)] px-2.5 py-1 text-meta font-medium text-[var(--color-accent-text)] no-underline hover:bg-[var(--color-accent-800)]"
+                className="ml-auto inline-flex items-center gap-1.5 rounded-[3px] bg-[var(--color-cobalt-tint)] px-2.5 py-1 text-meta font-medium text-[var(--color-cobalt-hover)] no-underline hover:bg-[var(--color-cobalt-soft)] hover:text-[var(--color-cobalt-hover)]"
                 title="Show all claims"
                 data-testid="source-filter"
               >
@@ -276,18 +276,16 @@ export function ClaimsTab({
       )}
 
       {(claims.length > 0 || uncertainties.length > 0) && (
-        <section className="card gap-0 overflow-hidden p-0" data-testid="uncertainties">
-          <div className="px-4 pt-4 pb-3 text-panel font-semibold">
+        <section className="flex flex-col gap-3" data-testid="uncertainties">
+          <h3 className="text-section font-semibold">
             <Hint info="Written by the sufficiency rule: a required Collection Prompt without an answering Fact or Inference becomes an uncertainty. The full Uncertainty List is completed with the counter-case.">
               Uncertainty List (Uncovered Collection Prompts)
             </Hint>
-          </div>
+          </h3>
           {uncertainties.length === 0 ? (
-            <p className="text-muted px-4 pb-4 text-body">
-              Every required Collection Prompt has an answering Fact or Inference.
-            </p>
+            <p className="text-muted text-body">Every required Collection Prompt has an answering Fact or Inference.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="panel overflow-x-auto">
               <table className="data-table w-full min-w-[820px] text-left text-body">
                 <thead>
                   <tr>

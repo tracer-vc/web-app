@@ -58,10 +58,10 @@ export function UserMenu({ displayName, email, role, fundName }: Props) {
         aria-expanded={open}
         aria-label="Account menu"
         data-testid="user-menu"
-        className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-meta font-medium transition-colors ${
+        className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-[4px] font-mono text-tag font-medium transition-colors ${
           open
-            ? "bg-[var(--color-accent-tint)] text-[var(--color-accent-text)] ring-2 ring-[var(--color-accent-chip)]"
-            : "bg-[var(--color-neutral-800)] text-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-700)]"
+            ? "bg-[var(--color-cobalt)] text-white"
+            : "bg-[var(--color-cobalt-tint)] text-[var(--color-cobalt-hover)] hover:bg-[var(--color-cobalt-soft)]"
         }`}
       >
         {initials(displayName)}

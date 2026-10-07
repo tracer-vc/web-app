@@ -144,18 +144,16 @@ function Tip({ title, tip }: Problem) {
   );
 }
 
-// Toast icons: the app's icons in a tinted circle, coloured by type.
+// Toast icons: the app's icons in a tinted square, coloured by type.
 const toastIcon: ToastIcon = ({ type }) => {
   const look =
-    type === "error"
-      ? { Icon: LuCircleAlert, color: "var(--color-danger)" }
-      : type === "warning"
-        ? { Icon: LuTriangleAlert, color: "#b7791f" }
-        : { Icon: LuCircleCheck, color: "var(--color-accent)" };
+    type === "error" || type === "warning"
+      ? { Icon: type === "error" ? LuCircleAlert : LuTriangleAlert, color: "var(--color-danger)", bg: "var(--color-warn-bg)" }
+      : { Icon: LuCircleCheck, color: "var(--color-cobalt)", bg: "var(--color-cobalt-tint)" };
   return (
     <span
-      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-      style={{ color: look.color, background: `color-mix(in srgb, ${look.color} 12%, white)` }}
+      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px]"
+      style={{ color: look.color, background: look.bg }}
     >
       <look.Icon aria-hidden className="h-4 w-4" />
     </span>
@@ -279,7 +277,7 @@ export function SetupWizard({
           recycle={false}
           numberOfPieces={380}
           gravity={0.22}
-          colors={["#0f9b84", "#14a08a", "#4fc2ad", "#9adfd1", "#cdefe8", "#17202a", "#9daab9"]}
+          colors={["#2b4bff", "#1a33c9", "#c9d2ff", "#e9ecff", "#0e1530", "#f2dc4b"]}
           style={{ position: "fixed", inset: 0, zIndex: 50, pointerEvents: "none" }}
         />
       )}
@@ -299,19 +297,15 @@ export function SetupWizard({
               onClick={() => reachable && i !== index && go(i)}
               disabled={!reachable && !current}
               aria-current={current ? "step" : undefined}
-              className={`sidebar-item w-full text-left ${reachable || current ? "" : "sidebar-item-locked"}`}
+              className={`sidebar-item w-full text-left ${reachable || current ? "" : "sidebar-item-locked"} ${i < STEPS.length - 1 ? "step-item" : ""}`}
             >
               {current && <NavHighlight id="setup-nav" />}
               <span
-                className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-meta tabular-nums ${
-                  done
-                    ? "bg-[var(--color-accent)] text-white"
-                    : current
-                      ? "bg-[var(--color-surface)] text-[var(--color-accent-text)] shadow-[inset_0_0_0_1px_var(--color-accent-chip)]"
-                      : "bg-[var(--color-surface)] text-[var(--color-neutral-500)] shadow-[inset_0_0_0_1px_var(--color-neutral-700)]"
+                className={`step-marker ${
+                  done ? "step-marker-done" : current ? "step-marker-current" : reachable ? "step-marker-todo" : "step-marker-locked"
                 }`}
               >
-                {done ? <LuCheck aria-hidden className="h-3 w-3" strokeWidth={3} /> : i + 1}
+                {done ? <LuCheck aria-hidden className="h-3 w-3" strokeWidth={3} /> : String(i + 1).padStart(2, "0")}
               </span>
               {s.title}
             </button>
@@ -355,11 +349,11 @@ export function SetupWizard({
 
         {/* Setup bar: pinned to the bottom, like the pipeline's step bar. */}
         <div
-          className={`sticky bottom-0 z-[4] mt-10 max-w-[880px] bg-gradient-to-t from-[var(--color-bg)] from-60% to-transparent pt-5 pb-3 ${last ? "mx-auto" : ""}`}
+          className={`sticky bottom-0 z-[4] mt-10 max-w-[880px] bg-[var(--color-bg)] pt-3 pb-4 ${last ? "mx-auto" : ""}`}
         >
-          <div className="panel flex flex-wrap items-center gap-x-6 gap-y-2 py-2.5 pr-[11px] pl-4 shadow-[0_8px_28px_rgb(23_32_42/0.12),0_1px_2px_rgb(23_32_42/0.06)]">
+          <div className="panel flex flex-wrap items-center gap-x-6 gap-y-2 py-2.5 pr-3.5 pl-4 shadow-[0_6px_20px_rgb(14_21_48/0.08),0_1px_3px_rgb(14_21_48/0.06)]">
             <div className="min-w-0 flex-1">
-              <div className="text-meta leading-tight font-medium text-[var(--color-neutral-400)]">
+              <div className="font-mono text-tag leading-tight font-medium text-[var(--color-neutral-500)]">
                 Step {index + 1} of {STEPS.length} · {step.title}
               </div>
               <div className="text-body leading-snug font-medium">
@@ -408,8 +402,8 @@ function Welcome({ name, fundName }: { name: string; fundName: string }) {
       <div className="grid gap-3 sm:grid-cols-2">
         {STEPS.slice(1, -1).map((s, i) => (
           <div key={s.key} className="panel flex gap-3 p-4">
-            <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-tint)] text-meta font-medium text-[var(--color-accent-text)]">
-              {i + 1}
+            <span className="step-marker step-marker-done">
+              {String(i + 1).padStart(2, "0")}
             </span>
             <div>
               <div className="text-body font-medium">{s.title}</div>
@@ -458,7 +452,7 @@ function Done({ fundName, model }: { fundName: string; model: Model }) {
   ];
   return (
     <div className="panel flex w-full max-w-[760px] flex-col items-center px-10 pt-8 pb-7 text-center">
-      <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent)] text-white shadow-[0_0_0_6px_var(--color-accent-tint)]">
+      <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-[4px] bg-[var(--color-cobalt)] text-white">
         <LuCheck aria-hidden className="h-6 w-6" strokeWidth={3} />
       </span>
       <h1 className="mb-1.5 text-page">{fundName} is ready to screen deals</h1>
@@ -468,18 +462,18 @@ function Done({ fundName, model }: { fundName: string; model: Model }) {
       </p>
       <div className="mb-6 flex flex-wrap justify-center gap-2">
         {summary.map((item) => (
-          <span key={item} className="rounded-full bg-[var(--color-accent-tint)] px-3 py-1 text-body text-[var(--color-accent-text)]">
+          <span key={item} className="rounded-[3px] bg-[var(--color-cobalt-tint)] px-3 py-1 text-body text-[var(--color-cobalt-hover)]">
             {item}
           </span>
         ))}
       </div>
-      <div className="w-full border-t border-[var(--color-neutral-800)] pt-5">
+      <div className="w-full border-t border-[var(--color-line)] pt-5">
         <div className="mb-4 text-body font-medium text-[var(--color-neutral-400)]">What happens next</div>
         <ol className="grid gap-5 sm:grid-cols-3">
           {NEXT_STEPS.map(([title, text], i) => (
             <li key={title} className="flex flex-col items-center">
-              <span className="mb-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent-tint)] text-body font-medium text-[var(--color-accent-text)] tabular-nums">
-                {i + 1}
+              <span className="step-marker step-marker-done mb-1.5">
+                {String(i + 1).padStart(2, "0")}
               </span>
               <div className="mb-0.5 text-reading font-medium">{title}</div>
               <div className="text-muted text-body leading-relaxed">{text}</div>

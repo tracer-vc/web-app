@@ -116,16 +116,16 @@ export function SettingsEditor({
         <div className="panel flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-3.5" data-testid="config-status">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <span
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-meta font-medium whitespace-nowrap ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-[3px] px-2.5 py-1 font-mono text-tag font-medium whitespace-nowrap ${
                 viewing || (draft && dirty)
-                  ? "bg-[var(--color-neutral-900)] text-[var(--color-neutral-300)]"
-                  : "bg-[var(--color-accent-tint)] text-[var(--color-accent-text)]"
+                  ? "bg-[var(--color-neutral-bg)] text-[var(--color-neutral-300)]"
+                  : "bg-[var(--color-cobalt-tint)] text-[var(--color-cobalt-hover)]"
               }`}
               data-testid="config-version"
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  viewing || (draft && dirty) ? "bg-[var(--color-neutral-500)]" : "bg-[var(--color-accent)]"
+                className={`h-1.5 w-1.5 rounded-[1px] ${
+                  viewing || (draft && dirty) ? "bg-[var(--color-neutral-500)]" : "bg-[var(--color-cobalt)]"
                 }`}
               />
               {viewing ? `Viewing v${viewing.version}` : draft ? `Draft v${draft.version}` : `Active v${active?.version ?? "–"}`}

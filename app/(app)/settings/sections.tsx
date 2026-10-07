@@ -10,6 +10,7 @@ import {
   type TierDefinitions,
   type VersionSummary,
 } from "@/lib/config-shared";
+import { LuLock } from "react-icons/lu";
 import { usePlain } from "./plain";
 
 // `key` is a client-only React key; `id` is the database row id (absent for
@@ -170,19 +171,19 @@ export function ConfidenceSection({ rules }: { rules: ConfidenceRules }) {
           "How sure Tracer is about each fact: High, Medium or Low, depending on how many independent sources confirm it and how trustworthy they are. These levels are fixed, so anyone can check how a rating came about.",
         )}
       />
-      <div className="card p-4">
-        <table className="w-full text-left text-body">
-          <thead className="text-muted text-meta">
+      <div className="panel overflow-x-auto">
+        <table className="data-table w-full text-left text-body">
+          <thead>
             <tr>
-              <th className="w-28 pb-2 font-normal">Level</th>
-              <th className="pb-2 font-normal">Rule</th>
+              <th className="w-28">Level</th>
+              <th>Rule</th>
             </tr>
           </thead>
           <tbody>
             {rules.levels.map((l) => (
-              <tr key={l.level} className="border-t border-[var(--color-divider)]">
-                <td className="py-2 pr-4 capitalize">{l.level}</td>
-                <td className="py-2">{l.description}</td>
+              <tr key={l.level}>
+                <td className="capitalize">{l.level}</td>
+                <td>{l.description}</td>
               </tr>
             ))}
           </tbody>
@@ -207,8 +208,9 @@ export function ConfidenceSection({ rules }: { rules: ConfidenceRules }) {
 }
 
 const LOCK = (
-  <span className="tag tag-neutral" title="Fixed by the framework">
-    🔒 Fixed
+  <span className="tag tag-neutral gap-1" title="Fixed by the framework">
+    <LuLock aria-hidden className="h-3 w-3" />
+    Fixed
   </span>
 );
 
@@ -351,29 +353,29 @@ export function VersionsSection({ versions }: { versions: VersionSummary[] }) {
         title="Configuration versions"
         intro="Every evaluation records the version it ran under. Changing configuration never rewrites a past evaluation."
       />
-      <div className="card overflow-x-auto p-4">
-        <table className="w-full text-left text-body">
-          <thead className="text-muted text-meta">
+      <div className="panel overflow-x-auto">
+        <table className="data-table w-full text-left text-body">
+          <thead>
             <tr>
-              <th className="pb-2 font-normal">Version</th>
-              <th className="pb-2 font-normal">Status</th>
-              <th className="pb-2 font-normal">Date</th>
-              <th className="pb-2 font-normal">Author</th>
-              <th className="pb-2" />
+              <th>Version</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Author</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {versions.map((v) => (
-              <tr key={v.id} className="border-t border-[var(--color-divider)]">
-                <td className="py-2 pr-4 tabular-nums">v{v.version}</td>
-                <td className="py-2 pr-4">
+              <tr key={v.id}>
+                <td className="tabular-nums">v{v.version}</td>
+                <td>
                   <span className="tag tag-neutral">
                     {v.status === "draft" ? "draft" : v.isActive ? "active" : "inactive"}
                   </span>
                 </td>
-                <td className="text-muted py-2 pr-4">{new Date(v.date).toLocaleDateString("en-GB")}</td>
-                <td className="py-2 pr-4">{v.author ?? "—"}</td>
-                <td className="py-2 text-right">
+                <td className="text-muted">{new Date(v.date).toLocaleDateString("en-GB")}</td>
+                <td>{v.author ?? "—"}</td>
+                <td className="text-right">
                   {v.status === "published" && !v.isActive && <Link href={`/settings/config?section=versions&v=${v.version}`}>View</Link>}
                 </td>
               </tr>

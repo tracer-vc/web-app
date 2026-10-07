@@ -3,27 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
-  LuBan,
-  LuChartBar,
   LuCircleAlert,
   LuCircleCheck,
-  LuCircleHelp,
   LuCircleMinus,
   LuDownload,
   LuInfo,
-  LuLightbulb,
-  LuListChecks,
-  LuMilestone,
-  LuMinus,
   LuPrinter,
-  LuRefreshCw,
-  LuRocket,
-  LuSearch,
-  LuShield,
-  LuTarget,
-  LuTrendingDown,
-  LuTrendingUp,
-  LuTriangleAlert,
 } from "react-icons/lu";
 import { Drawer } from "@/app/motion";
 import { CLAIM_TYPE_LABELS, CONFIDENCE_LABELS, type ClaimTableView } from "@/lib/claim-shared";
@@ -247,8 +232,6 @@ function Statement({ s, onOpen, detailLabel }: { s: StatementView; onOpen: (code
   );
 }
 
-type IconType = React.ComponentType<{ className?: string; "aria-hidden"?: boolean; style?: React.CSSProperties }>;
-
 // What each Thesis Card section is (docs/app_summary.md, Thesis Card fields).
 const SECTION_INFO = {
   thesis:
@@ -290,7 +273,6 @@ const SECTION_INFO = {
 // A titled section: a white panel on screen, a plain block in print.
 function Panel({
   title,
-  icon: Icon,
   info,
   spacious = false,
   tone = "default",
@@ -299,7 +281,6 @@ function Panel({
   testId,
 }: {
   title: string;
-  icon?: IconType;
   info?: string;
   // More room under the title, for lists and tables (their numbers and
   // rows read as tighter than running text).
@@ -314,7 +295,7 @@ function Panel({
     <section
       className={`panel break-inside-avoid p-5 print:rounded-none print:border-0 print:p-0 print:shadow-none ${
         tone === "danger"
-          ? "rounded-xl border-[color-mix(in_srgb,var(--color-danger)_28%,white)] bg-[color-mix(in_srgb,var(--color-danger)_5%,white)] shadow-none print:bg-transparent"
+          ? "border-[var(--color-warn-border)] bg-[color-mix(in_srgb,var(--color-warn-bg)_45%,white)] print:bg-transparent"
           : ""
       } ${className}`}
       data-testid={testId}
@@ -322,15 +303,7 @@ function Panel({
       <h3
         className={`${spacious ? "mb-4" : "mb-2.5"} text-panel flex items-center gap-2 font-semibold tracking-normal print:mb-0.5 print:text-[8pt] print:font-medium print:text-black`}
       >
-        <Hint info={info}>
-          {Icon && (
-            <Icon
-              aria-hidden
-              className={`h-4 w-4 print:hidden ${tone === "danger" ? "text-[var(--color-danger)]" : "text-[var(--color-accent)]"}`}
-            />
-          )}
-          {title}
-        </Hint>
+        <Hint info={info}>{title}</Hint>
       </h3>
       <div className="flex flex-col gap-2 print:gap-1">{children}</div>
     </section>
@@ -343,7 +316,7 @@ function NumberedList({ items, testId }: { items: { key: string; content: React.
     <ol className="flex flex-col gap-3 print:list-decimal print:gap-0 print:pl-4" data-testid={testId}>
       {items.map((item, i) => (
         <li key={item.key} className="flex gap-3 print:list-item">
-          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-neutral-900)] text-meta font-medium text-[var(--color-neutral-300)] tabular-nums print:hidden">
+          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] bg-[var(--color-neutral-bg)] font-mono text-tag font-medium text-[var(--color-neutral-300)] tabular-nums print:hidden">
             {i + 1}
           </span>
           <div className="min-w-0 flex-1 leading-relaxed print:leading-snug">{item.content}</div>
@@ -400,57 +373,53 @@ function ThesisCard({
       <PrintHeader title="Thesis Card" header={header} />
       {thesis && (
         <div
-          className="rounded-xl border border-[var(--color-accent-chip)] bg-[var(--color-accent-tint)] px-6 py-5 print:rounded-none print:border-0 print:bg-transparent print:p-0"
+          className="rounded-[4px] border border-[var(--color-line)] border-l-[3px] border-l-[var(--color-cobalt)] bg-[var(--color-surface)] px-6 py-5 print:rounded-none print:border-0 print:bg-transparent print:p-0 print:shadow-none"
           data-testid="thesis-hero"
         >
-          <div className="mb-2 flex items-center text-meta font-semibold text-[var(--color-accent-text)] print:hidden">
+          <div className="mb-2.5 flex items-center print:hidden">
             <Hint info={SECTION_INFO.thesis}>
-              <LuLightbulb aria-hidden className="h-4 w-4" />
-              Thesis
+              <span className="eyebrow">Thesis</span>
             </Hint>
           </div>
-          <div className="text-[19px] leading-snug font-medium text-[var(--color-text)] print:text-[10pt] print:font-normal [&_p]:leading-snug">
+          <div className="font-display text-[21px] leading-snug font-semibold tracking-[-0.01em] text-[var(--color-text)] print:font-sans print:text-[10pt] print:font-normal [&_p]:leading-snug">
             <Statement s={thesis} onOpen={onOpen} />
           </div>
         </div>
       )}
       <div className="grid gap-4 md:grid-cols-6 print:grid-cols-2 print:gap-1.5">
-        <Panel title="Outlier scenario & mechanism" info={SECTION_INFO.outlier} icon={LuRocket} className={span}>
+        <Panel title="Outlier scenario & mechanism" info={SECTION_INFO.outlier} className={span}>
           {section("outlier")}
         </Panel>
-        <Panel title="Moat hypothesis" info={SECTION_INFO.moat} icon={LuShield} className={span}>
+        <Panel title="Moat hypothesis" info={SECTION_INFO.moat} className={span}>
           {section("moat")}
         </Panel>
         {/* Scenarios: one panel in three columns on screen; in print the
             wrappers dissolve (display: contents) into the two-column grid. */}
         <section className="panel md:col-span-6 print:contents">
-          <div className="grid divide-y divide-[var(--color-neutral-800)] md:grid-cols-3 md:divide-x md:divide-y-0 print:contents">
+          <div className="grid divide-y divide-[var(--color-line)] md:grid-cols-3 md:divide-x md:divide-y-0 print:contents">
             {(
               [
-                ["base_case", "Base case", "Gating variables", LuMinus, "var(--color-neutral-500)"],
-                ["upside_case", "Upside case", "Gating variables", LuTrendingUp, "var(--color-accent)"],
-                ["failure_case", "Failure case", "Dominant failure mode", LuTrendingDown, "var(--color-danger)"],
+                ["base_case", "Base case", "Gating variables"],
+                ["upside_case", "Upside case", "Gating variables"],
+                ["failure_case", "Failure case", "Dominant failure mode"],
               ] as const
-            ).map(([key, title, detail, Icon, color]) => (
+            ).map(([key, title, detail]) => (
               <div key={key} className="break-inside-avoid p-5 print:p-0">
                 <h3 className="mb-2.5 text-panel flex items-center gap-2 font-semibold tracking-normal print:mb-0.5 print:text-[8pt] print:font-medium print:text-black">
-                  <Hint info={SECTION_INFO[key]}>
-                    <Icon aria-hidden className="h-4 w-4 print:hidden" style={{ color }} />
-                    {title}
-                  </Hint>
+                  <Hint info={SECTION_INFO[key]}>{title}</Hint>
                 </h3>
                 {section(key, detail)}
               </div>
             ))}
           </div>
         </section>
-        <Panel title="Entry wedge" info={SECTION_INFO.entry_wedge} icon={LuTarget} className="md:col-span-6 print:col-span-1">
+        <Panel title="Entry wedge" info={SECTION_INFO.entry_wedge} className="md:col-span-6 print:col-span-1">
           {section("entry_wedge")}
         </Panel>
-        <Panel title="De-risking milestones" info={SECTION_INFO.milestones} spacious icon={LuMilestone} className={span}>
+        <Panel title="De-risking milestones" info={SECTION_INFO.milestones} spacious className={span}>
           <NumberedList items={many(outputs, "milestone").map((m) => ({ key: m.id, content: <Statement s={m} onOpen={onOpen} /> }))} />
         </Panel>
-        <Panel title="Falsifiers" info={SECTION_INFO.falsifiers} spacious icon={LuBan} className={span}>
+        <Panel title="Falsifiers" info={SECTION_INFO.falsifiers} spacious className={span}>
           <NumberedList
             items={bundle.counterCase.falsifiers.map((f) => ({
               key: f.id,
@@ -464,7 +433,7 @@ function ThesisCard({
           />
         </Panel>
       </div>
-      <Panel title="Dimension scores" info={SECTION_INFO.dimensions} spacious icon={LuChartBar}>
+      <Panel title="Dimension scores" info={SECTION_INFO.dimensions} spacious>
         <div className="flex flex-col divide-y divide-[var(--color-neutral-800)] print:divide-[var(--color-divider)]">
           {bundle.dimensions.assessments.map((a) => {
             const score = effectiveScore(a);
@@ -503,7 +472,7 @@ function ThesisCard({
           <p className="text-muted text-meta print:text-[7pt]">* capped by an open uncertainty · † overridden by the analyst</p>
         )}
       </Panel>
-      <Panel title="Open questions" info={SECTION_INFO.open_questions} spacious icon={LuCircleHelp}>
+      <Panel title="Open questions" info={SECTION_INFO.open_questions} spacious>
         <div className="md:columns-2 md:gap-8 print:columns-2 print:gap-6 [&_li]:break-inside-avoid">
           <NumberedList
             items={openQuestions.map((u) => ({
@@ -526,10 +495,11 @@ function ThesisCard({
 // Decision Snapshot
 // ---------------------------------------------------------------------------
 
-const VERDICT_COLOR: Record<keyof typeof CLASSIFICATION_LABELS, string> = {
-  proceed: "var(--color-accent-text)",
-  watch: "var(--color-text)",
-  pass: "var(--color-danger)",
+// The verdict's colour: cobalt for Proceed, ink for Watch, red for Pass.
+const VERDICT_STYLE: Record<keyof typeof CLASSIFICATION_LABELS, string> = {
+  proceed: "text-[var(--color-cobalt)]",
+  watch: "text-[var(--color-ink)]",
+  pass: "text-[var(--color-danger)]",
 };
 
 // The conditions that decided the classification, from the R3 trace: the
@@ -570,8 +540,7 @@ function DecisionSnapshot({
               <Hint info={SECTION_INFO.classification}>Classification</Hint>
             </div>
             <div
-              className="text-[28px] leading-tight font-semibold tracking-tight print:text-base"
-              style={{ color: VERDICT_COLOR[d.classification] }}
+              className={`font-display text-[28px] leading-tight font-bold tracking-[-0.025em] print:font-sans print:text-base ${VERDICT_STYLE[d.classification]}`}
               data-testid="classification"
             >
               {CLASSIFICATION_LABELS[d.classification]}
@@ -580,7 +549,7 @@ function DecisionSnapshot({
           <p className="text-muted ml-auto pb-1 text-body print:ml-0 print:text-xs">Computed by rule (R3), not chosen by the model</p>
         </div>
 
-        <div className="grid border-t border-[var(--color-neutral-800)] md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:divide-x md:divide-[var(--color-neutral-800)] print:mt-2 print:block print:border-0">
+        <div className="grid border-t border-[var(--color-line)] md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:divide-x md:divide-[var(--color-line)] print:mt-2 print:block print:border-0">
           <div className="p-6 print:p-0">
             <div className="mb-3 text-body font-semibold print:mb-0.5 print:text-xs print:text-black">
               <Hint info={SECTION_INFO.rule_applied}>Rule applied</Hint>
@@ -617,10 +586,10 @@ function DecisionSnapshot({
       </section>
 
       <div className="grid gap-4 md:grid-cols-2 print:grid-cols-1 print:gap-3">
-        <Panel title="Three strongest supporting arguments" info={SECTION_INFO.supporting} spacious icon={LuCircleCheck}>
+        <Panel title="Three strongest supporting arguments" info={SECTION_INFO.supporting} spacious>
           <NumberedList items={many(outputs, "supporting_arg").map((s) => ({ key: s.id, content: <Statement s={s} onOpen={onOpen} /> }))} />
         </Panel>
-        <Panel title="Primary risks · the ranked counter-case" info={SECTION_INFO.risks} spacious icon={LuTriangleAlert}>
+        <Panel title="Primary risks · the ranked counter-case" info={SECTION_INFO.risks} spacious>
           <NumberedList
             testId="risks"
             items={bundle.counterCase.arguments.map((a) => ({
@@ -637,7 +606,7 @@ function DecisionSnapshot({
       </div>
 
       {open.length > 0 && (
-        <Panel title="Open conflicts" info={SECTION_INFO.open_conflicts} icon={LuCircleAlert} tone="danger">
+        <Panel title="Open conflicts" info={SECTION_INFO.open_conflicts} tone="danger">
           <ul className="flex flex-col gap-2" data-testid="snapshot-open-conflicts">
             {open.map((c) => (
               <li key={c.id} className="flex items-start gap-2.5">
@@ -648,7 +617,7 @@ function DecisionSnapshot({
                   {c.code}
                 </button>
                 <span className="flex-1">{c.description}</span>
-                <span className="tag bg-[var(--color-surface)] text-danger shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-danger)_22%,white)]">
+                <span className="tag tag-warning">
                   open
                 </span>
               </li>
@@ -657,8 +626,12 @@ function DecisionSnapshot({
         </Panel>
       )}
 
-      <Panel title="Research agenda" info={SECTION_INFO.research_agenda} icon={LuSearch}>
-        <div className="-mx-5 -mb-5 overflow-x-auto print:m-0">
+      {/* A table: title above the frame, like the Evidence Pack tables. */}
+      <section className="flex flex-col gap-3 break-inside-avoid print:gap-1">
+        <h3 className="text-section font-semibold print:text-[8pt] print:font-medium print:text-black">
+          <Hint info={SECTION_INFO.research_agenda}>Research agenda</Hint>
+        </h3>
+        <div className="panel overflow-x-auto print:border-0">
           <table className="data-table w-full min-w-[560px] text-left text-body print:min-w-0 print:text-[12px]">
             <thead>
               <tr>
@@ -680,10 +653,10 @@ function DecisionSnapshot({
             </tbody>
           </table>
         </div>
-      </Panel>
+      </section>
 
       {trigger && (
-        <Panel title="Re-evaluation trigger" info={SECTION_INFO.reeval_trigger} icon={LuRefreshCw}>
+        <Panel title="Re-evaluation trigger" info={SECTION_INFO.reeval_trigger}>
           <Statement s={trigger} onOpen={onOpen} />
         </Panel>
       )}
@@ -718,23 +691,20 @@ function EvidencePack({ outputs, bundle, onOpen }: { outputs: OutputsView; bundl
     <div className="flex flex-col gap-8" data-testid="evidence-pack">
       <section data-testid="structural-checks">
         <h2 className="text-section mb-3 flex items-center font-semibold">
-          <Hint info={SECTION_INFO.structural_checks}>
-            <LuListChecks aria-hidden className="h-5 w-5 text-[var(--color-accent)]" />
-            Structural checks
-          </Hint>
+          <Hint info={SECTION_INFO.structural_checks}>Structural checks</Hint>
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {outputs.checks.map((c) => (
             <div key={c.label} className="panel flex flex-col gap-1.5 p-4" data-testid="check" data-ok={String(c.ok)}>
               <div className="flex items-start gap-2">
-                <span className="text-2xl font-medium tabular-nums">{c.value}</span>
+                <span className="font-display text-2xl font-semibold tabular-nums">{c.value}</span>
                 <span
-                  className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-meta font-medium ${
+                  className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-[3px] px-2 py-0.5 text-meta font-medium ${
                     c.ok === null
-                      ? "bg-[var(--color-neutral-900)] text-[var(--color-neutral-300)]"
+                      ? "bg-[var(--color-neutral-bg)] text-[var(--color-neutral-300)]"
                       : c.ok
-                        ? "bg-[var(--color-accent-tint)] text-[var(--color-accent-text)]"
-                        : "bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] text-[var(--color-danger)]"
+                        ? "bg-[var(--color-cobalt-tint)] text-[var(--color-cobalt-hover)]"
+                        : "bg-[var(--color-warn-bg)] text-[var(--color-danger)]"
                   }`}
                 >
                   {c.ok === null ? (
@@ -759,7 +729,7 @@ function EvidencePack({ outputs, bundle, onOpen }: { outputs: OutputsView; bundl
           <a
             key={t.id}
             href={`#${t.id}`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-neutral-800)] bg-[var(--color-surface)] px-3 py-1 text-body text-[var(--color-neutral-300)] no-underline hover:border-[var(--color-accent-chip)] hover:text-[var(--color-accent-text)]"
+            className="inline-flex items-center gap-1.5 rounded-[3px] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1 text-body text-[var(--color-neutral-300)] no-underline hover:border-[var(--color-cobalt-soft)] hover:text-[var(--color-cobalt)]"
           >
             {t.title}
             <span className="text-muted text-meta tabular-nums">{t.count}</span>
@@ -894,7 +864,7 @@ function PackTable({
     <section id={id} className="flex scroll-mt-20 flex-col gap-3">
       <h2 className="text-section flex items-center gap-2 font-semibold">
         <Hint info={info}>{title}</Hint>
-        <span className="rounded-full bg-[var(--color-neutral-900)] px-2 py-0.5 text-meta font-medium text-[var(--color-neutral-400)] tabular-nums">
+        <span className="rounded-[3px] bg-[var(--color-neutral-bg)] px-2 py-0.5 font-mono text-tag font-medium text-[var(--color-neutral-300)] tabular-nums">
           {count}
         </span>
       </h2>

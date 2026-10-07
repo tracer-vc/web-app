@@ -72,6 +72,7 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 34. **The AI drafts the Quick Screen answers** (agreed 2026-10-02; changes decision 13's input and the order of steps 1 and 2a).
     - Deal materials are uploaded at the start (Step 1), before the Quick Screen; Evidence Collection (2b) reuses the same documents. Upload, extraction and the `documents` table therefore arrive with M5 instead of M6.
     - Prompt **P1a** answers each Quick Screen question from the uploaded documents only, with 1–3 verbatim excerpts per answer. Excerpts are checked against the extracted text (normalised substring, the R4 idea); a mismatch is a rule violation and triggers a retry (decision 25).
+    - Excerpts are at most 300 characters (one sentence, bullet or line). A citation that is too long or not verbatim is dropped when the answer keeps at least one valid citation; only an answer left without any usable excerpt is a violation that triggers a retry. Stored excerpts are therefore always verbatim. A question reference with trailing punctuation ("Q1.") counts as "Q1" (2026-10-07).
     - If the materials don't answer a question, the answer is "Not stated in the materials." with no citations; nothing is guessed. P1 treats such answers as open.
     - The analyst reviews and may edit every answer before P1 writes the memo; the AI's original answer and its citations are kept, so edits stay visible.
     - Uploads only: no web search in the Quick Screen. Typing answers by hand still works when there are no materials.
@@ -174,7 +175,7 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
 ## P. Interface
 
 46. **Light theme and dev mode** (agreed 2026-10-03 with the user).
-    - **Theme:** the app is light only: background #f7f8fa, white surfaces, text #17202a, teal accent #0f9b84 (accent text #0d6b5b), neutral ramp #17202a to #f1f3f6. The tokens are defined in `app/globals.css`.
+    - **Theme:** the app is light only. Colours, fonts and shapes follow decision 48 (they replaced the teal theme of 2026-10-03). The tokens are defined in `app/globals.css`.
     - **Dev mode:** a personal toggle under Settings → Your preferences, for admins and analysts alike (stored as `profiles.dev_mode`, set via `set_dev_mode`; off by default). It only changes what is shown: the "Model calls for this run" links and, for admins, the Study tab appear only when it is on. Access is unchanged; the run pages and the study routes keep their own checks.
     - **Navigation:** the top bar has no page links. The Tracer logo leads to the deals list, and the avatar opens an account menu with Settings (every member), Team (admins) and Sign out. Settings has a fixed sidebar: Preferences (`/settings`, everyone), Team (`/settings/team`) and the fund configuration sections (`/settings/config?section=…`), the last two admin-only (decision 1). Switching configuration sections keeps unsaved draft edits; leaving the configuration with unsaved edits asks first.
     - **Deal page:** a fixed sidebar like the settings one holds the deal summary (company, Quick Screen verdict, status, evaluator, config version), the five pipeline steps (done / current / locked), the three outputs and, in dev mode for admins, Study. The content area shows only the selected step.
@@ -188,6 +189,15 @@ Agreed 2026-10-01. These close ambiguities and contradictions in the other `docs
     - A new fund's first admin is taken to `/setup` before the dashboard. The wizard walks through the fund-specific parts of the framework configuration, each pre-filled from the default template: Quick Screen questions, Collection Prompts, Counter-Case Prompts, Evaluation dimensions, Score anchors, Proceed / Watch / Pass, then one "Review the defaults" step (source tiers, confidence rules read-only, sufficiency rule), an optional "Your team" step (add analysts/admins), and "Ready".
     - Versions: the template is created as draft v1 at sign-up; each step saves the draft; finishing (`complete_fund_setup()`) publishes it as v1 and sets `funds.setup_completed_at`. "Skip and use the defaults" publishes the template unchanged. Until then the fund has no active config, so no deal can be created; analysts who are added early see a notice. Funds created before this change count as set up.
     - Afterwards the configuration is changed in Settings as before (new draft, new version).
+
+## R. Design language
+
+48. **Tracer design language, calm version** (agreed 2026-10-06 with the user; `docs/tracer_design_language.md`).
+    - **Adopted from the doc:** the palette (ink #0e1530 text, cobalt #2b4bff for actions, links and selection, warm page #f7f7f4, white surfaces, the text and line ramps, the status colours), the fonts (Bricolage Grotesque for headings, Inter for text, JetBrains Mono for IDs, step numbers and meta labels), corners of 4px at most (2–3px for tags and markers, no pills or circles), square step markers with mono numbers ("01") joined by a timeline line, status tags (positive, neutral, warning), no gradients, no teal or green, no all caps, sentence case.
+    - **Toned down (the full doc looked too playful for the app):** no hard offset shadows, no press-in buttons and no yellow "signature" shadows. Borders are thin light grey (#e1e5ea; #c9cdda for inputs and secondary buttons), not ink outlines. Buttons are flat: white with a grey border, or cobalt for the primary action. The selected sidebar item and deal filter get a cobalt tint. Only floating layers (menus, select lists, tooltips, toasts, the pinned step bar, drawers) get a light soft shadow.
+    - **Yellow** is only a highlighter: Fact tags and cited text (excerpt highlights, a row jumped to). Emphasis tags (decision-critical, resolved, Proceed) use the cobalt tint; warnings (Speculation, open conflicts, Pass) use the red status colours. ID chips are cobalt on a cobalt tint, in mono.
+    - **Sizes:** the app keeps its dense type scale (decision 46); only the page heading grows to 28px. Copy keeps the app's terms; em dashes are removed from UI sentences (a lone "—" still marks an empty cell). Icons stay where they help navigation (sidebars, account menu, arrows, lock, check); the decorative icons in output panel titles are gone.
+    - The Study exports (HTML, PDF) use ink and cobalt as well.
 
 ## Scope
 

@@ -1,42 +1,69 @@
 @import "tailwindcss";
 
-/* Light theme with a teal accent (agreed 2026-10-03).
-   Neutrals run from strongest (100, text) to lightest (900, fills), so the
-   same token keeps its role: 100–200 text, 300 secondary text, 400 muted
-   text, 600–700 borders, 800–900 fills. The accent ramp follows the same
-   idea: 300 is accent text, 400 a strong accent, 800 a tint for fills. */
+/* Tracer design language (docs/tracer_design_language.md), calm version
+   (decision 48): ink text, cobalt for actions and selection, square corners
+   (4px max), thin light borders, flat buttons. Yellow is only a highlighter
+   (Fact tags, cited text). No offset shadows, gradients, pills, teal or green.
+
+   The older token names (--color-accent-*, --color-neutral-*) stay as
+   aliases so components keep their roles: accent = cobalt, neutrals = the
+   ink text ramp (100 strongest → 900 lightest line). */
 :root {
-  --color-bg: #f7f8fa;
+  /* core */
+  --color-ink: #0e1530;
+  --color-cobalt: #2b4bff;
+  --color-cobalt-hover: #1a33c9;
+  --color-highlight: #f2dc4b;
+  --color-highlight-soft: #fff1a1;
+
+  /* surfaces */
+  --color-bg: #f7f7f4; /* page */
   --color-surface: #ffffff;
-  --color-text: #17202a;
-  --color-divider: color-mix(in srgb, #17202a 10%, transparent);
-  --color-danger: #c0392b;
-  --color-hover: #f1f3f6;
+  --color-sunken: #f4f6f8;
+  --color-subtle: #f7f8fa; /* table headers, footer strips, quoted source boxes */
+  --color-cobalt-tint: #e9ecff;
+  --color-cobalt-soft: #c9d2ff;
+  --color-hover: #f7f8fa;
 
-  /* accent (teal) */
-  --color-accent: #0f9b84;
-  --color-accent-text: #0d6b5b;
-  --color-accent-950: #083b33;
-  --color-accent-900: #0b5045;
-  --color-accent-700: #108570;
-  --color-accent-500: #14a08a;
-  --color-accent-chip: #9adfd1;
-  --color-accent-tint: #e9f8f4;
-  --color-accent-100: #083b33;
-  --color-accent-300: #0d6b5b; /* accent text */
-  --color-accent-400: #14a08a; /* strong accent: bars, hover */
-  --color-accent-800: #cdefe8; /* tint: active and highlighted fills */
+  /* text */
+  --color-text: #0e1530;
 
-  /* neutrals */
-  --color-neutral-100: #17202a;
-  --color-neutral-200: #243040;
-  --color-neutral-300: #3c4a5c; /* secondary text */
-  --color-neutral-400: #5b6b7e; /* muted text */
-  --color-neutral-500: #7a889a;
-  --color-neutral-600: #9daab9;
-  --color-neutral-700: #cfd6df; /* borders, scrollbar */
-  --color-neutral-800: #e6eaf0;
-  --color-neutral-900: #f1f3f6; /* table header, hover, tracks */
+  /* lines */
+  --color-line: #e1e5ea; /* dividers inside cards */
+  --color-line-soft: #eef0f3; /* row dividers */
+  --color-line-timeline: #c9cdda;
+  --color-divider: var(--color-line);
+
+  /* status (tags) */
+  --color-danger: #a1261a;
+  --color-warn-bg: #ffe7e3;
+  --color-warn-border: #f7c9c1;
+  --color-neutral-bg: #f1f3f6;
+
+  /* aliases: accent = cobalt */
+  --color-accent: var(--color-cobalt);
+  --color-accent-text: var(--color-cobalt);
+  --color-accent-950: var(--color-ink);
+  --color-accent-900: var(--color-ink);
+  --color-accent-700: var(--color-cobalt-hover);
+  --color-accent-500: var(--color-cobalt);
+  --color-accent-chip: var(--color-cobalt-soft);
+  --color-accent-tint: var(--color-cobalt-tint);
+  --color-accent-100: var(--color-ink);
+  --color-accent-300: var(--color-cobalt);
+  --color-accent-400: var(--color-cobalt);
+  --color-accent-800: var(--color-cobalt-tint);
+
+  /* aliases: neutrals = text ramp, then lines */
+  --color-neutral-100: #0e1530;
+  --color-neutral-200: #1c2444; /* text-strong */
+  --color-neutral-300: #3a4262; /* text-secondary */
+  --color-neutral-400: #5a6180; /* text-muted */
+  --color-neutral-500: #7d839c; /* text-tertiary */
+  --color-neutral-600: #a3a8bc; /* text-disabled */
+  --color-neutral-700: #c9cdda; /* line-timeline */
+  --color-neutral-800: #e1e5ea; /* line */
+  --color-neutral-900: #eef0f3; /* line-soft, tracks */
 
   --space-2: 5.6px;
   --space-3: 8.4px;
@@ -44,13 +71,17 @@
   --space-6: 16.8px;
   --space-8: 22.4px;
 
-  --radius-md: 8px;
+  /* Floating layers only (menus, pickers, tooltips, toasts, pinned bars):
+     a light lift. Nothing else has a shadow. */
+  --shadow-pop: 0 6px 20px rgb(14 21 48 / 0.08), 0 1px 3px rgb(14 21 48 / 0.06);
+  --border-input: #c9cdda;
 
   color-scheme: light;
 }
 
-/* Type scale. One size per role; use these instead of pixel sizes.
-   page     24px  the heading of a page or pipeline step
+/* Type scale. One size per role; use these instead of pixel sizes. The app
+   keeps a dense scale (decision 48); the design language sets the fonts.
+   page     28px  the heading of a page or pipeline step (Bricolage)
    section  16px  a heading above a table or a group of panels; drawer titles
    panel    14px  the title inside a card or panel
    reading  14px  text meant to be read: output documents, memo text, arguments
@@ -59,8 +90,8 @@
    tag      11px  tags, ID chips and badges only
    Display sizes (the thesis statement, a verdict, a stat number) stay explicit. */
 @theme {
-  --text-page: 1.5rem;
-  --text-page--line-height: 1.25;
+  --text-page: 1.75rem;
+  --text-page--line-height: 1.15;
   --text-section: 1rem;
   --text-section--line-height: 1.4;
   --text-panel: 0.875rem;
@@ -73,10 +104,21 @@
   --text-meta--line-height: 1.45;
   --text-tag: 0.6875rem;
   --text-tag--line-height: 1.3;
+
+  /* Square corners: nothing rounder than 4px. */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
 }
 
 @theme inline {
   --font-sans: var(--font-inter);
+  --font-display: var(--font-bricolage);
+  --font-mono: var(--font-jetbrains);
 }
 
 body {
@@ -91,20 +133,29 @@ body {
 h1,
 h2,
 h3 {
-  font-weight: 500;
-  line-height: 1.12;
+  font-family: var(--font-bricolage), var(--font-inter), system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.15;
   letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+p {
+  text-wrap: pretty;
 }
 
 /* Base layer, so component classes (.btn on a link) and utilities win. */
 @layer base {
   a {
-    color: var(--color-accent-text);
+    color: var(--color-cobalt);
   }
   a:hover {
-    color: var(--color-accent-700);
+    color: var(--color-cobalt-hover);
   }
-  /* Checkboxes: a rounded box that fills teal with a white check. */
+  /* Checkboxes: a square ink box that fills cobalt with a white check. */
   input[type="checkbox"] {
     appearance: none;
     flex-shrink: 0;
@@ -112,25 +163,26 @@ h3 {
     height: 16px;
     margin: 0;
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-600);
-    border-radius: 4px;
+    border: 1px solid var(--border-input);
+    border-radius: 3px;
     cursor: pointer;
     transition:
       background-color 0.12s,
       border-color 0.12s;
   }
   input[type="checkbox"]:hover:not(:disabled) {
-    border-color: var(--color-accent);
+    border-color: var(--color-cobalt);
   }
-  input[type="checkbox"]:checked {
-    background: var(--color-accent)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+  input[type="checkbox"]:checked,
+  input[type="checkbox"]:checked:hover:not(:disabled) {
+    background: var(--color-cobalt)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
       center / 11px no-repeat;
-    border-color: var(--color-accent);
+    border-color: var(--color-cobalt);
   }
   input[type="checkbox"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--color-accent-chip);
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 2px;
   }
   input[type="checkbox"]:disabled {
     cursor: default;
@@ -145,7 +197,7 @@ h3 {
   }
 }
 
-/* Scrollbars: slim, rounded, neutral; darker on hover, teal while dragged.
+/* Scrollbars: slim, square, neutral; darker on hover, ink while dragged.
    Chrome, Edge and Safari use the ::-webkit-scrollbar rules. They are ignored
    once scrollbar-color is set, so the standard properties are only for
    browsers without them (Firefox). */
@@ -159,16 +211,16 @@ h3 {
 }
 ::-webkit-scrollbar-thumb {
   min-height: 40px;
-  background: var(--color-neutral-700);
+  background: var(--color-line-timeline);
   background-clip: padding-box;
   border: 3px solid transparent;
-  border-radius: 999px;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-neutral-600);
+  background-color: var(--color-neutral-500);
 }
 ::-webkit-scrollbar-thumb:active {
-  background-color: var(--color-accent);
+  background-color: var(--color-ink);
 }
 /* Small scroll areas (source text, text fields, sidebar) get a thinner bar. */
 .app-sidebar::-webkit-scrollbar,
@@ -185,7 +237,7 @@ textarea::-webkit-scrollbar-thumb {
 @supports not selector(::-webkit-scrollbar) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-neutral-700) transparent;
+    scrollbar-color: var(--color-line-timeline) transparent;
   }
 }
 
@@ -200,24 +252,27 @@ textarea::-webkit-scrollbar-thumb {
   height: 60px;
   padding: 0 var(--space-8);
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
-  font-weight: 500;
+  gap: 9px;
+  font-family: var(--font-bricolage), var(--font-inter), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   white-space: nowrap;
 }
 
+/* The logo mark: a small cobalt square. */
 .nav-brand-dot {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border: 1.5px solid var(--color-accent);
-  border-radius: 50%;
+  background: var(--color-cobalt);
+  border-radius: 2px;
 }
 
 .nav a {
@@ -228,7 +283,7 @@ textarea::-webkit-scrollbar-thumb {
 
 .nav a:hover,
 .nav a[aria-current="page"] {
-  color: var(--color-accent-text);
+  color: var(--color-cobalt);
 }
 
 .nav a.nav-brand,
@@ -240,11 +295,9 @@ textarea::-webkit-scrollbar-thumb {
 .menu {
   z-index: 20;
   background: var(--color-surface);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: 10px;
-  box-shadow:
-    0 8px 24px rgb(23 32 42 / 0.1),
-    0 1px 2px rgb(23 32 42 / 0.06);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  box-shadow: var(--shadow-pop);
   white-space: normal;
 }
 .menu-item {
@@ -260,7 +313,7 @@ textarea::-webkit-scrollbar-thumb {
   text-decoration: none;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   cursor: pointer;
 }
 .nav .menu-item {
@@ -269,40 +322,53 @@ textarea::-webkit-scrollbar-thumb {
 .menu-item:hover,
 .nav .menu-item:hover {
   color: var(--color-text);
-  background: var(--color-hover);
+  background: var(--color-subtle);
 }
 .menu-icon {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
 }
 .menu-item:hover .menu-icon {
-  color: var(--color-accent-text);
+  color: var(--color-ink);
 }
 
 /* Buttons, inputs, tags, cards. In the components layer so Tailwind
    utilities on the same element (padding, gap, flex-row, sizes) win. */
 @layer components {
+  /* Buttons: flat, 4px corners. Secondary is white with a grey border;
+     primary is cobalt. */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: var(--space-2) calc(var(--space-3) * 1.2);
+    padding: 6px 13px;
     font: inherit;
+    font-size: 13px;
     font-weight: 500;
     line-height: 1.2;
     white-space: nowrap;
-    color: var(--color-text);
+    color: var(--color-ink);
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-700);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--border-input);
+    border-radius: 4px;
     cursor: pointer;
+    transition:
+      background-color 0.12s,
+      border-color 0.12s;
   }
 
   .btn:hover:not(:disabled) {
-    background: var(--color-hover);
+    color: var(--color-ink);
+    background: var(--color-subtle);
+    border-color: var(--color-neutral-500);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 3px;
   }
 
   .btn:disabled {
@@ -312,14 +378,14 @@ textarea::-webkit-scrollbar-thumb {
 
   .btn-primary {
     color: #ffffff;
-    background: var(--color-accent);
-    border-color: var(--color-accent);
+    background: var(--color-cobalt);
+    border-color: var(--color-cobalt);
   }
 
   .btn-primary:hover:not(:disabled) {
     color: #ffffff;
-    background: var(--color-accent-700);
-    border-color: var(--color-accent-700);
+    background: var(--color-cobalt-hover);
+    border-color: var(--color-cobalt-hover);
   }
 
   .input {
@@ -328,67 +394,105 @@ textarea::-webkit-scrollbar-thumb {
     padding: 6px 10px;
     font: inherit;
     color: var(--color-text);
-    caret-color: var(--color-accent);
+    caret-color: var(--color-cobalt);
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-700);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--border-input);
+    border-radius: 4px;
+  }
+  .input::placeholder {
+    color: var(--color-neutral-500);
   }
 
-  /* Selects: no native arrow, a slim chevron in the app's grey instead. */
+  /* Selects: no native arrow, a slim ink chevron instead. */
   select.input {
     appearance: none;
     padding-right: 32px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6b7e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230e1530' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 14px;
     cursor: pointer;
   }
   select.input:hover:not(:disabled) {
-    border-color: var(--color-neutral-600);
+    border-color: var(--color-neutral-500);
   }
-  select.input:disabled {
+  select.input:disabled,
+  .input:disabled {
     cursor: default;
-    opacity: 0.7;
+    color: var(--color-neutral-400);
+    background-color: var(--color-subtle);
   }
   .input:focus-visible {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px var(--color-accent-tint);
+    border-color: var(--color-cobalt);
+    box-shadow: 0 0 0 1px var(--color-cobalt);
     outline: none;
   }
 
+  /* Status tags: square, colour by meaning (positive = highlighter yellow,
+     neutral = grey, warning = red). Never pill-shaped. */
   .tag {
     display: inline-flex;
     align-items: center;
-    padding: 3px 10px;
+    padding: 2px 8px;
     font-size: 11px;
-    letter-spacing: 0.02em;
+    font-weight: 500;
+    line-height: 1.4;
     white-space: nowrap;
-    border-radius: calc(var(--radius-md) * 0.75);
+    color: var(--color-neutral-300);
+    background: var(--color-neutral-bg);
+    border-radius: 3px;
   }
 
   .tag-neutral {
-    background: var(--color-surface);
     color: var(--color-neutral-300);
-    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+    background: var(--color-neutral-bg);
   }
 
+  /* Emphasis (decision-critical, resolved, Proceed): cobalt tint. */
   .tag-accent {
-    background: var(--color-accent-tint);
-    color: var(--color-accent-text);
-    box-shadow: inset 0 0 0 1px var(--color-accent-chip);
+    color: var(--color-cobalt-hover);
+    background: var(--color-cobalt-tint);
   }
 
+  /* Fact: the highlighter, used sparingly. */
+  .tag-positive {
+    color: var(--color-ink);
+    background: var(--color-highlight-soft);
+  }
+
+  /* Warning / Founder only / Speculation / Unresolved. */
+  .tag-warning,
+  .tag.text-danger {
+    color: var(--color-danger);
+    background: var(--color-warn-bg);
+    box-shadow: inset 0 0 0 1px var(--color-warn-border);
+  }
+
+  /* A secondary label that isn't a status (origin, "from an image"). */
   .tag-outline {
-    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
     color: var(--color-neutral-300);
+    background: var(--color-surface);
+    box-shadow: inset 0 0 0 1px var(--color-line-timeline);
+  }
+
+  /* Section / eyebrow label: a quiet mono label. */
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--color-neutral-500);
   }
 
   /* A claim's excerpt highlighted in its source text. */
   mark.excerpt {
-    background: var(--color-accent-chip);
-    color: var(--color-text);
+    padding: 0 2px;
+    color: var(--color-ink);
+    background: var(--color-highlight-soft);
     border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 
   .card {
@@ -397,9 +501,8 @@ textarea::-webkit-scrollbar-thumb {
     gap: var(--space-3);
     padding: var(--space-6);
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-800);
-    border-radius: var(--radius-md);
-    box-shadow: 0 1px 2px rgb(23 32 42 / 0.04);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
   }
 }
 
@@ -408,10 +511,10 @@ main table {
   background: var(--color-surface);
 }
 main thead tr {
-  background: var(--color-surface);
+  background: var(--color-subtle);
 }
 main thead th {
-  border-bottom: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-line);
 }
 /* Tables in a panel get room at the edges. */
 main .panel > table th:first-child,
@@ -435,12 +538,12 @@ main td:first-child {
 .app-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   margin-bottom: var(--space-8);
   padding: 16px 12px;
   background: var(--color-surface);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
 }
 @media (min-width: 768px) {
   .app-sidebar {
@@ -451,7 +554,7 @@ main td:first-child {
     z-index: 4;
     width: 264px;
     margin: 0;
-    padding: 20px 14px 20px;
+    padding: 20px 16px 20px 14px;
     overflow-y: auto;
     border-width: 0 1px 0 0;
     border-radius: 0;
@@ -461,9 +564,11 @@ main td:first-child {
 .app-sidebar > * {
   flex-shrink: 0;
 }
+/* Group labels are meta labels: mono, tertiary. */
 .sidebar-group {
-  margin: 14px 10px 4px;
-  font-size: 12px;
+  margin: 16px 10px 6px;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 11px;
   font-weight: 500;
   color: var(--color-neutral-500);
 }
@@ -474,27 +579,32 @@ main td:first-child {
   flex-shrink: 0;
   align-items: center;
   gap: 10px;
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: 13px;
   color: var(--color-neutral-300);
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 .sidebar-item:hover {
   color: var(--color-text);
   background: var(--color-hover);
 }
 /* The selected item's background is a NavHighlight (app/motion.tsx) that
-   glides between items; the item itself only changes colour. */
+   glides between items: a cobalt tint. */
 .sidebar-item[aria-current="page"],
 .sidebar-item[aria-current="step"] {
-  color: var(--color-accent-text);
+  color: var(--color-text);
+  font-weight: 500;
+}
+.sidebar-item[aria-current="page"]:hover,
+.sidebar-item[aria-current="step"]:hover {
+  background: none;
 }
 .nav-highlight {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--color-accent-tint);
+  background: var(--color-cobalt-tint);
   border-radius: inherit;
 }
 .sidebar-item-locked,
@@ -509,58 +619,112 @@ main td:first-child {
   height: 16px;
 }
 
-/* Segmented control (deal filters). */
+@layer components {
+  /* Step markers (pipeline and setup sidebars): ink squares with a mono
+     number, joined by a thin timeline connector. */
+  .step-marker {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 2px;
+  }
+  .step-marker-done {
+    color: var(--color-cobalt);
+    background: var(--color-cobalt-tint);
+  }
+  .step-marker-current {
+    color: #ffffff;
+    background: var(--color-cobalt);
+  }
+  .step-marker-todo {
+    color: var(--color-neutral-300);
+    background: var(--color-surface);
+    box-shadow: inset 0 0 0 1px var(--border-input);
+  }
+  .step-marker-locked {
+    color: var(--color-neutral-600);
+    background: var(--color-surface);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+  }
+}
+
+/* Connector to the next step (every step but the last carries .step-item):
+   from the bottom of its marker to the top of the next one (rows are 34px
+   tall with a 2px gap, the 22px marker centred 10px from the left edge). */
+.step-item::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: calc(50% + 11px);
+  left: 20.5px;
+  width: 1px;
+  height: 14px;
+  background: var(--color-line-timeline);
+  pointer-events: none;
+}
+
+/* Segmented control (deal filters): the selected option gets the same
+   cobalt tint as the sidebars. */
 .seg {
   display: inline-flex;
-  padding: 3px;
   gap: 2px;
+  padding: 3px;
   background: var(--color-surface);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
 }
 .seg-opt {
   position: relative;
   isolation: isolate;
-  padding: 4px 12px;
+  padding: 5px 12px;
   font-size: 13px;
   color: var(--color-neutral-300);
   text-decoration: none;
   white-space: nowrap;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 .seg-opt:hover {
   color: var(--color-text);
+  background: var(--color-hover);
 }
-.seg-opt[aria-current="page"] {
-  color: var(--color-accent-text);
+.seg-opt[aria-current="page"],
+.seg-opt[aria-current="page"]:hover {
+  color: var(--color-text);
+  font-weight: 500;
+  background: none;
 }
 
 @layer components {
   /* A white panel without the card's padding: tables, stat tiles. */
   .panel {
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-800);
-    border-radius: 10px;
-    box-shadow: 0 1px 2px rgb(23 32 42 / 0.04);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
   }
 }
 
 /* Data tables inside panels (Evidence Pack, research agenda). */
 main .data-table thead tr {
-  background: var(--color-surface);
+  background: var(--color-subtle);
 }
 main .data-table th {
   padding: 10px 16px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
   white-space: nowrap;
-  border-bottom: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-line);
 }
 main .data-table td {
   padding: 12px 16px;
   vertical-align: top;
-  border-bottom: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-line-soft);
 }
 main .data-table tbody tr:last-child td {
   border-bottom: none;
@@ -578,7 +742,7 @@ main .data-table tbody tr:hover {
 /* A row jumped to from elsewhere (e.g. a CR# tag in the Source Table). */
 @keyframes flash-highlight {
   from {
-    background: var(--color-accent-tint);
+    background: var(--color-highlight-soft);
   }
   to {
     background: transparent;
@@ -651,11 +815,9 @@ main .data-table tbody tr:hover {
     padding: 4px;
     min-width: anchor-size(width);
     background: var(--color-surface);
-    border: 1px solid var(--color-neutral-800);
-    border-radius: 10px;
-    box-shadow:
-      0 8px 24px rgb(23 32 42 / 0.1),
-      0 1px 2px rgb(23 32 42 / 0.06);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    box-shadow: var(--shadow-pop);
   }
   /* Fades in and drops 4px from the field, like the account menu. */
   @media (prefers-reduced-motion: no-preference) {
@@ -681,7 +843,7 @@ main .data-table tbody tr:hover {
     padding: 6px 10px;
     font-size: 13px;
     color: var(--color-text);
-    border-radius: 6px;
+    border-radius: 2px;
     cursor: pointer;
   }
   select.input option::checkmark {
@@ -689,12 +851,12 @@ main .data-table tbody tr:hover {
   }
   select.input option:hover,
   select.input option:focus-visible {
-    background: var(--color-hover);
+    background: var(--color-subtle);
     outline: none;
   }
   select.input option:checked {
-    color: var(--color-accent-text);
-    background: var(--color-accent-tint);
+    color: var(--color-ink);
+    background: var(--color-cobalt-tint);
     font-weight: 500;
   }
 }
@@ -706,11 +868,11 @@ main .data-table tbody tr:hover {
   --toastify-text-color-light: var(--color-text);
   --toastify-color-light: var(--color-surface);
   --toastify-color-error: var(--color-danger);
-  --toastify-color-success: var(--color-accent);
-  --toastify-color-info: var(--color-accent);
-  --toastify-color-warning: #b7791f;
+  --toastify-color-success: var(--color-cobalt);
+  --toastify-color-info: var(--color-cobalt);
+  --toastify-color-warning: var(--color-danger);
   --toastify-toast-width: 420px;
-  --toastify-toast-bd-radius: 12px;
+  --toastify-toast-bd-radius: 4px;
   --toastify-toast-min-height: 0px;
   --toastify-toast-top: 76px;
   --toastify-toast-right: 20px;
@@ -722,10 +884,8 @@ main .data-table tbody tr:hover {
   padding: 14px 12px 14px 16px;
   font-size: 13.5px;
   line-height: 1.45;
-  border: 1px solid var(--color-neutral-800);
-  box-shadow:
-    0 12px 32px rgb(23 32 42 / 0.12),
-    0 2px 6px rgb(23 32 42 / 0.06);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-pop);
 }
 .Toastify .Toastify__toast-icon {
   width: auto;
@@ -742,20 +902,20 @@ main .data-table tbody tr:hover {
 
 /* Deals dashboard table. */
 .deals-table thead tr {
-  background: var(--color-surface);
+  background: var(--color-subtle);
 }
 .deals-table th {
   padding: 10px 16px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
   white-space: nowrap;
-  border-bottom: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-line);
 }
 .deals-table td {
   padding: 14px 16px;
   vertical-align: middle;
-  border-bottom: 1px solid var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-line-soft);
 }
 .deals-table tbody tr:last-child td {
   border-bottom: none;
@@ -768,7 +928,7 @@ main .data-table tbody tr:hover {
   text-decoration: none;
 }
 .deals-table tbody tr:hover .deal-link {
-  color: var(--color-accent-text);
+  color: var(--color-cobalt);
 }
 main .deals-table th:first-child,
 main .deals-table td:first-child {
