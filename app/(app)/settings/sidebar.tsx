@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { LuSlidersHorizontal, LuUsers } from "react-icons/lu";
+import { LuArrowLeft, LuSlidersHorizontal, LuUsers } from "react-icons/lu";
 import { NavHighlight } from "@/app/motion";
 import { CONFIG_SECTIONS, toConfigSection } from "./config-sections";
 import { useUnsaved } from "./unsaved";
@@ -40,6 +40,11 @@ export function SettingsSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <aside className="app-sidebar print:hidden" aria-label="Settings">
+      {/* Same back link as the deal sidebar; asks first if draft edits are unsaved. */}
+      <Link href="/deals" onClick={guard} className="sidebar-item mb-3 w-fit text-meta">
+        <LuArrowLeft aria-hidden className="h-3.5 w-3.5" />
+        All deals
+      </Link>
       <div className="mb-4 px-2.5 text-section font-semibold">Settings</div>
 
       <div className="sidebar-group">Account</div>
