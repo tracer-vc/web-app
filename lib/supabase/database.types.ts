@@ -2202,6 +2202,7 @@ export type Database = {
         Args: { p_display_name: string; p_fund_name: string; p_user_id: string }
         Returns: string
       }
+      delete_evaluation: { Args: { p_evaluation_id: string }; Returns: undefined }
       discard_config_draft: { Args: never; Returns: undefined }
       publish_config: { Args: never; Returns: number }
       record_claims: {

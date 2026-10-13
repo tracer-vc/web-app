@@ -10,6 +10,7 @@ import {
   type PipelineTab,
 } from "@/lib/evaluation-shared";
 import { NavHighlight } from "@/app/motion";
+import { DeleteDeal } from "./delete-deal";
 
 const OUTPUT_ICONS = {
   "thesis-card": LuFileText,
@@ -107,6 +108,9 @@ export function DealSidebar({
           </span>
         );
       })}
+      <div className="mt-2">
+        <DeleteDeal evaluationId={deal.id} companyName={deal.company.name} />
+      </div>
 
       {showStudy && (
         <>
